@@ -41,15 +41,14 @@ const fetchProducts = async () => {
 };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen ">
       {/* Hero Section */}
       <HeroSection />
 
       {/* Products Section */}
-      <div className="px-8 py-8">
+      <div className="px-8 py-28">
           <>
-            <ProductsGrid products={products} />
-            
+            <ProductsGrid products={products} /> 
           </>
       </div>
     </div>
