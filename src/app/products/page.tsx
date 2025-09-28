@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { ProductDetail } from '../../types/products';
 import HeroSection from '../../Components/Hero/hero';
-import ProductsGrid from '../../Components/ProductsComponents/productsGrid';
+import { ProductsGrid } from '../../Components/ProductsComponents/productCard';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<ProductDetail[]>([]);
