@@ -3,7 +3,6 @@
 import { useRef, useState } from 'react';
 import ImageGrid from '../../../Components/ProductsComponents/imageGrid';
 import ProductFormFields from '../../../Components/ProductsComponents/productFromFields';
-import VerticalNavigation from '@/Components/Navigation/verticalProductNav';
 
 const MAX_IMAGES = 3;
 
@@ -150,7 +149,6 @@ export default function CreateProductPage() {
 
   return (
     <>
-    <VerticalNavigation />
     <div className="min-h-screen  flex items-center justify-center py-8">
       <div className="w-full max-w-2xl  rounded-xl  p-8">
         <h1 className="text-3xl font-medium mb-6 text-center text-primary">Create Product</h1>
@@ -174,6 +172,6 @@ export default function CreateProductPage() {
         {success && <div className="mt-4 text-green-600 text-center">Product created successfully!</div>}
       </div>
     </div>
-    </>
+   </>
   );
 }

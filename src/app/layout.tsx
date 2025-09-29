@@ -1,6 +1,4 @@
 
-import Footer from "@/Components/Footer/footer"
-import Header from "@/Components/Header/header";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -17,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sellr - Create Account",
-  description: "Sign up for Sellr platform",
+  title: "Sellr",
+  description: "Sellr platform",
 };
 
 export default function RootLayout({
@@ -31,10 +29,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Add Header component */}
-        <Header />
         {children}
-        {/* Add ToastProvider for toast notifications */}
+        {/* Keep ToastProvider at root level for global notifications */}
         <ToastProvider 
           position="top-right"
           richColors={true}
@@ -43,7 +39,6 @@ export default function RootLayout({
           duration={4000}
           theme="light"
         />
-        <Footer />
       </body>
     </html>
   );
