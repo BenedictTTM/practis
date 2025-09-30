@@ -15,7 +15,7 @@ export default function AccountsLayout({
       {/* Main content area with sidebar and content */}
       <div className="flex flex-1">
         {/* left: vertical nav */}
-        <aside className="w-64 bg-gray-50 border-r">
+        <aside className="w-64 bg-gray-50 border-r border-gray-200">
           <VerticalNavigation />
         </aside>
 

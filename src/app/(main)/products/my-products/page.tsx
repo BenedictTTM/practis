@@ -1,1 +1,0 @@
-// Empty my-products page - implement as needed
