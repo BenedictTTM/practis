@@ -34,13 +34,11 @@ export default function Sidebar() {
         { label: 'Product Grid', path: '/accounts/grid' },
       ]
     },
-    { icon: Users, label: 'Customers', path: '/customers' },
-    { icon: ShoppingCart, label: 'Order List', path: '/orders' },
-    { icon: Activity, label: 'Analytics', path: '/analytics' },
-    { icon: Bell, label: 'Notifications', path: '/notifications' },
-    { icon: Settings, label: 'Settings', path: '/settings' }
+    { icon: Users, label: 'Customers', path: '/accounts/customers' },
+    { icon: Activity, label: 'Analytics', path: '/accounts/analytics' },
+    { icon: Bell, label: 'Notifications', path: '/accounts/notifications' },
+    { icon: Settings, label: 'Settings', path: '/accounts/settings' }
   ];
-
   const handleLogout = () => {
     try {
       localStorage.removeItem('token');
@@ -73,8 +71,8 @@ export default function Sidebar() {
                   router.push(item.path);
                 }
               }}
-              className={`w-full flex items-center justify-between px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
-                activeItem === item.label && !item.hasSubmenu ? 'text-gray-900' : ''
+              className={`w-full flex items-center justify-between px-6 py-3 text-gray-600 hover:text-red-950 hover:bg-gray-50 transition-colors ${
+                activeItem === item.label && !item.hasSubmenu ? 'text-red-900' : ''
               }`}
             >
               <div className="flex items-center gap-3">
