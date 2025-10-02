@@ -39,14 +39,14 @@ export default function ProductGallery({
 
       {/* Thumbnail Navigation */}
       <div className="px-3 py-2 border-t">
-        <div ref={carouselRef} className="flex gap-3 overflow-x-auto py-2">
+        <div ref={carouselRef} className="flex gap-2 overflow-x-auto py-2">
           {imagesToShow.map((src, idx) => (
             <button
               key={idx}
               data-idx={idx}
               onClick={() => scrollThumbnail(idx)}
-              className={`flex-shrink-0 w-20 h-20 rounded border ${
-                idx === selectedImageIndex ? "ring-2 ring-yellow-400" : "border-gray-200"
+              className={`flex-shrink-0 w-14 h-14 rounded border ${
+                idx === selectedImageIndex ? "ring-1 ring-red-200" : "border-gray-200"
               } overflow-hidden bg-white`}
             >
               <img 

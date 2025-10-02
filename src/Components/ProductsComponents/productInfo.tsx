@@ -20,8 +20,8 @@ export default function ProductInfo({ product, inStock }: ProductInfoProps) {
         <div className="text-sm font-medium text-gray-700">Availability</div>
         <div className="mt-1">
           {inStock ? (
-            <span className="inline-flex items-center px-2 py-1 rounded text-sm bg-green-50 text-green-700">
-              In stock • {product.stock} available
+            <span className="inline-flex items-center px-2 py-1 rounded text-sm bg-red-50 text-gray-800">
+              In stock •  <span className="text-gray-900 font-semibold px-1">{product.stock}</span>  available
             </span>
           ) : (
             <span className="inline-flex items-center px-2 py-1 rounded text-sm bg-red-50 text-red-700">

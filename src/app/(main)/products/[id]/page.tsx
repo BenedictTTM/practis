@@ -11,6 +11,7 @@ import ProductOptions from "../../../../Components/ProductsComponents/productOpt
 import ProductActions from "../../../../Components/ProductsComponents/productActions";
 import ProductDetails from "../../../../Components/ProductsComponents/productDetails";
 import ProductReviews from "../../../../Components/ProductsComponents/productReviews";
+import ShareProduct from "../../../../Components/ProductsComponents/shareProduct";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -127,7 +128,9 @@ export default function ProductDetailPage() {
             selectedImageIndex={selectedImageIndex}
             onImageSelect={setSelectedImageIndex}
           />
+            <ShareProduct/>
         </div>
+      
 
         {/* Right: Details */}
         <div className="lg:col-span-2">

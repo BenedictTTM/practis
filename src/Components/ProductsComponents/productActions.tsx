@@ -34,7 +34,7 @@ export default function ProductActions({
           disabled={!inStock}
           className={`max-w-3xl flex items-center justify-center gap-2 px-6 py-3 rounded shadow text-white transition-colors ${
             inStock 
-              ? "bg-orange-500 hover:bg-orange-600" 
+              ? "bg-red-500 hover:bg-red-600" 
               : "bg-gray-300 cursor-not-allowed"
           }`}
         >
