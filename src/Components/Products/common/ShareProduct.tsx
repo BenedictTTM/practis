@@ -33,7 +33,7 @@ export default function ShareProduct() {
           className="w-8 h-8 rounded-full border-1 border-gray-300 flex items-center justify-center hover:border-gray-400 hover:bg-gray-50 transition-colors"
           aria-label="Share on Facebook"
         >
-          <Facebook size={20} className="text-gray-700" />
+          <Facebook size={20} className="text-blue-600" />
         </button>
         
         <button
@@ -41,7 +41,7 @@ export default function ShareProduct() {
           className="w-8 h-8 rounded-full border-1 border-gray-300 flex items-center justify-center hover:border-gray-400 hover:bg-gray-50 transition-colors"
           aria-label="Share on Twitter"
         >
-          <Twitter size={20} className="text-gray-700" />
+          <Twitter size={20} className="text-blue-400" />
         </button>
         
         <button
@@ -49,7 +49,7 @@ export default function ShareProduct() {
           className="w-8 h-8 rounded-full border-1 border-gray-300 flex items-center justify-center hover:border-gray-400 hover:bg-gray-50 transition-colors"
           aria-label="Share on WhatsApp"
         >
-          <MessageCircle size={20} className="text-gray-700" />
+          <MessageCircle size={20} className="text-green-600" />
         </button>
       </div>
     </div>

@@ -3,15 +3,21 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Product } from "../../../../types/products";
-import { ProductDetailSkeleton, ErrorMessage, NotFoundMessage } from "../../../../Components/ProductsComponents/loadingStates";
-import ProductGallery from "../../../../Components/ProductsComponents/productGallery";
-import ProductHeader from "../../../../Components/ProductsComponents/productHeader";
-import ProductInfo from "../../../../Components/ProductsComponents/productInfo";
-import ProductOptions from "../../../../Components/ProductsComponents/productOptions";
-import ProductActions from "../../../../Components/ProductsComponents/productActions";
-import ProductDetails from "../../../../Components/ProductsComponents/productDetails";
-import ProductReviews from "../../../../Components/ProductsComponents/productReviews";
-import ShareProduct from "../../../../Components/ProductsComponents/shareProduct";
+import { 
+  ProductDetailSkeleton, 
+  ErrorMessage, 
+  NotFoundMessage,
+  ShareProduct 
+} from "../../../../Components/Products/common";
+import {
+  ProductGallery,
+  ProductHeader,
+  ProductInfo,
+  ProductOptions,
+  ProductActions,
+  ProductDetails,
+  ProductReviews
+} from "../../../../Components/Products/details";
 
 export default function ProductDetailPage() {
   const params = useParams();

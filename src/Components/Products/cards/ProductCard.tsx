@@ -3,27 +3,47 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { IoCartOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
-import { IoCartOutline, IoEyeOutline } from "react-icons/io5";
 
 // ===== TYPE DEFINITIONS =====
-interface Product {
+/**
+ * Product interface representing a product in the e-commerce system
+ */
+export interface Product {
+  /** Unique identifier for the product */
   id: number;
+  /** Product title/name */
   title: string;
+  /** Product image URLs - can be array or single string */
   imageUrl?: string[] | string;
+  /** Original price before discount */
   originalPrice?: number;
+  /** Discounted price (current selling price) */
   discountedPrice?: number;
+  /** Average rating from reviews */
   averageRating?: number;
+  /** Total number of reviews */
   totalReviews?: number;
+  /** Review count from Prisma aggregation */
   _count?: { reviews?: number };
 }
 
-interface ProductCardProps {
+/**
+ * Props for ProductCard component
+ */
+export interface ProductCardProps {
+  /** Product data to display */
   product: Product;
+  /** Whether to show sale badge (optional) */
   showSale?: boolean;
 }
 
-interface ProductsGridProps {
+/**
+ * Props for ProductsGrid component
+ */
+export interface ProductsGridProps {
+  /** Array of products to display in grid */
   products: Product[];
 }
 
@@ -74,6 +94,19 @@ const SimpleStarRating = ({
 
 // ===== PRODUCT CARD COMPONENT =====
 
+/**
+ * ProductCard - Renders a single product card with image, details, and actions
+ * 
+ * Features:
+ * - Hover animations (scale-up, shadow effects)
+ * - Add to cart and wishlist functionality
+ * - Price display with discount indication
+ * - Star rating display
+ * - Responsive design
+ * 
+ * @param props - ProductCardProps containing product data and optional settings
+ * @returns JSX.Element representing the product card
+ */
 function ProductCard({ product, showSale = false }: ProductCardProps) {
   const discountPercentage = calculateDiscountPercent(product.originalPrice, product.discountedPrice);
   const hasDiscount = discountPercentage > 0;
@@ -82,12 +115,6 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
     console.log('Added to cart:', product.title);
-  };
-
-  const handleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Added to wishlist:', product.title);
   };
 
   const handleQuickView = (e: React.MouseEvent) => {
@@ -103,31 +130,17 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
     : '/placeholder-image.png';
 
   return (
-    <div className="group bg-white hover:border-gray-50 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-sm">
+    <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-100">
       {/* Image Section */}
-      <div className="relative aspect-square overflow-hidden bg-gray-100">
-        {/* Discount Badge - Top Left */}
-        {hasDiscount && (
-          <div className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2 py-1  z-20">
-            -{discountPercentage}%
-          </div>
-        )}
-
+      <div className="relative aspect-square overflow-hidden bg-gray-50">
         {/* Action Buttons - Right Side */}
-        <div className="absolute top-2 right-2 flex flex-col gap-1 z-20">
-          <button 
-            onClick={handleWishlist}
-            title="Add to wishlist"
-            className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 hover:text-red-500 transition-all duration-200"
-          >
-            <CiHeart className="w-4 h-4" />
-          </button>
+        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
           <button 
             onClick={handleQuickView}
-            title="Quick view"
-            className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-50 hover:text-gray-700 transition-all duration-200"
+            title="Add to wishlist"
+            className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 hover:text-[#E43C3C] transition-all duration-200"
           >
-            <IoEyeOutline className="w-4 h-4" />
+            <CiHeart className="w-5 h-5" />
           </button>
         </div>
 
@@ -138,49 +151,38 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
             alt={product.title}
             width={300}
             height={300}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             onError={(e) => {
               const target = e.currentTarget as HTMLImageElement;
               target.src = '/placeholder-image.png';
             }}
           />
         </Link>
-
-        {/* Add to Cart Button - Slides up from bottom on hover */}
-        <div className="absolute inset-x-0 bottom-0 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ">
-          <button
-            onClick={handleAddToCart}
-            className="w-full bg-black text-white py-2.5 px-4 font-medium hover:bg-gray-800 transition-colors duration-200 flex items-center justify-center gap-2"
-          >
-            <IoCartOutline className="w-5 h-5" />
-            Add To Cart
-          </button>
-        </div>
       </div>
 
       {/* Product Details */}
-      <div className="px-2 pb-3">
+      <div className="p-4">
         {/* Product Name */}
         <Link href={`/products/${product.id}`}>
-          <h3 className="font-medium text-gray-900 mb-1 text-xs hover:text-red-700 transition-colors line-clamp-2">
+          <h3 className="font-medium text-[#2E2E2E] mb-2 text-sm hover:text-[#E43C3C] transition-colors line-clamp-2 leading-tight">
             {product.title}
           </h3>
         </Link>
   
         {/* Price Section */}
-        <div className="flex items-center gap-1 mb-2">
-          <span className="text-red-600 font-bold text-base">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[#E43C3C] font-bold text-lg">
             {formatGhs(product.discountedPrice)}
           </span>
           {hasDiscount && product.originalPrice && (
-            <span className="text-gray-400 text-xs line-through">
+            <span className="text-gray-400 text-sm line-through">
               {formatGhs(product.originalPrice)}
             </span>
           )}
         </div>
 
         {/* Rating */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 mb-4">
           <SimpleStarRating 
             rating={Math.round(product.averageRating || 0)} 
             totalReviews={product.totalReviews || product._count?.reviews || 0}
@@ -188,31 +190,50 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
             showCount={true}
           />
         </div>
+
+        {/* Add to Cart Button */}
+        <button
+          onClick={handleAddToCart}
+          className="w-full bg-[#E43C3C] text-white py-2.5 px-4 font-medium hover:bg-red-600 transition-colors duration-200 flex items-center justify-center gap-2 rounded-lg"
+        >
+          <IoCartOutline className="w-4 h-4" />
+          Add to Cart
+        </button>
       </div>
     </div>
   );
 }
 
 // ===== PRODUCTS GRID COMPONENT =====
+
+/**
+ * ProductsGrid - Renders a responsive grid of product cards
+ * 
+ * Features:
+ * - Responsive grid layout (1-4 columns based on screen size)
+ * - Empty state handling
+ * - Optimized for performance with React keys
+ * 
+ * @param props - ProductsGridProps containing array of products
+ * @returns JSX.Element representing the products grid or empty state
+ */
 function ProductsGrid({ products }: ProductsGridProps) {
   if (!products || products.length === 0) {
     return (
-      <div className="mt-16">
-        <div className="text-center py-12">
-          <p className="text-gray-500">No products available</p>
+      <div className="flex-1">
+        <div className="text-center py-20">
+          <p className="text-gray-500 text-lg">No products available</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="mt-16">
-      {/* Horizontal Scrolling Container */}
-      <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide px-4">
+    <div className="flex-1">
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {products.map((product) => (
-          <div key={product.id} className="flex-shrink-0 w-48">
-            <ProductCard product={product} />
-          </div>
+          <ProductCard key={product.id} product={product} />
         ))}
       </div>
     </div>

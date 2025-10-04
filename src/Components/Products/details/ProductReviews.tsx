@@ -1,5 +1,5 @@
 import React from "react";
-import { Product } from "../../types/products";
+import { Product } from "../../../types/products";
 
 interface ProductReviewsProps {
   product: Product;

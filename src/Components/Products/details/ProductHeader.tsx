@@ -1,7 +1,7 @@
 import React from "react";
-import SimpleStarRating from "../Rating/rating";
-import { formatGhs, calculateDiscountPercent } from "../../utilities/formatGhs";
-import { Product } from "../../types/products";
+import { SimpleStarRating } from "../cards";
+import { formatGhs, calculateDiscountPercent } from "../../../utilities/formatGhs";
+import { Product } from "../../../types/products";
 
 interface ProductHeaderProps {
   product: Product;

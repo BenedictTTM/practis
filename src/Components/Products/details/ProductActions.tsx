@@ -1,5 +1,5 @@
 import React from "react";
-import QuantitySelector from "./quantitySelector";
+import QuantitySelector from "../common/QuantitySelector";
 import { MdOutlineAddShoppingCart } from "react-icons/md";
 
 interface ProductActionsProps {
