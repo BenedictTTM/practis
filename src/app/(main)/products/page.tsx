@@ -18,6 +18,7 @@ export default function ProductsPage() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAllProducts, setShowAllProducts] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -130,7 +131,31 @@ export default function ProductsPage() {
             
             {/* Products Grid */}
             <div className="p-6">
-              <ProductsGrid products={filteredProducts} />
+              <ProductsGrid products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 8)} />
+              
+              {/* View All Products Button */}
+              {!showAllProducts && filteredProducts.length > 8 && (
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={() => setShowAllProducts(true)}
+                    className="bg-[#E43C3C] text-white px-8 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors duration-200 shadow-md hover:shadow-lg"
+                  >
+                    View All Products ({filteredProducts.length})
+                  </button>
+                </div>
+              )}
+              
+              {/* Show Less Button */}
+              {showAllProducts && filteredProducts.length > 8 && (
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={() => setShowAllProducts(false)}
+                    className="bg-gray-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors duration-200 shadow-md hover:shadow-lg"
+                  >
+                    Show Less
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -142,7 +167,10 @@ export default function ProductsPage() {
 
         {/* Mobile Filter Button */}
         <div className="sidebar-mobile fixed bottom-4 right-4 z-50">
-          <button className="bg-[#E43C3C] text-white p-4 rounded-full shadow-lg hover:bg-red-600 transition-colors">
+          <button 
+            title="Open Filters"
+            className="bg-[#E43C3C] text-white p-4 rounded-full shadow-lg hover:bg-red-600 transition-colors"
+          >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
             </svg>
