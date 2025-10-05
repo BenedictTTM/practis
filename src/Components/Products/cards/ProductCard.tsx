@@ -130,17 +130,17 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
     : '/placeholder-image.png';
 
   return (
-    <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-100">
+    <div className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-gray-100">
       {/* Image Section */}
       <div className="relative aspect-square overflow-hidden bg-gray-50">
         {/* Action Buttons - Right Side */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+        <div className="absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
           <button 
             onClick={handleQuickView}
             title="Add to wishlist"
-            className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 hover:text-[#E43C3C] transition-all duration-200"
+            className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 hover:text-[#E43C3C] transition-all duration-200"
           >
-            <CiHeart className="w-5 h-5" />
+            <CiHeart className="w-4 h-4" />
           </button>
         </div>
 
@@ -149,8 +149,8 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
           <Image
             src={imageUrl}
             alt={product.title}
-            width={300}
-            height={300}
+            width={240}
+            height={240}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             onError={(e) => {
               const target = e.currentTarget as HTMLImageElement;
@@ -161,32 +161,32 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
       </div>
 
       {/* Product Details */}
-      <div className="p-4">
+      <div className="p-3">
         {/* Product Name */}
         <Link href={`/products/${product.id}`}>
-          <h3 className="font-medium text-[#2E2E2E] mb-2 text-sm hover:text-[#E43C3C] transition-colors line-clamp-2 leading-tight">
+          <h3 className="font-medium text-[#2E2E2E] mb-1.5 text-xs hover:text-[#E43C3C] transition-colors line-clamp-2 leading-tight">
             {product.title}
           </h3>
         </Link>
   
         {/* Price Section */}
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-[#E43C3C] font-bold text-lg">
+        <div className="flex items-center gap-1 mb-2">
+          <span className="text-[#E43C3C] font-bold text-sm">
             {formatGhs(product.discountedPrice)}
           </span>
           {hasDiscount && product.originalPrice && (
-            <span className="text-gray-400 text-sm line-through">
+            <span className="text-gray-400 text-xs line-through">
               {formatGhs(product.originalPrice)}
             </span>
           )}
         </div>
 
         {/* Rating */}
-        <div className="flex items-center gap-1 mb-4">
+        <div className="flex items-center gap-1 mb-2.5">
           <SimpleStarRating 
             rating={Math.round(product.averageRating || 0)} 
             totalReviews={product.totalReviews || product._count?.reviews || 0}
-            size={14}
+            size={12}
             showCount={true}
           />
         </div>
@@ -194,9 +194,9 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
         {/* Add to Cart Button */}
         <button
           onClick={handleAddToCart}
-          className="w-full bg-[#E43C3C] text-white py-2.5 px-4 font-medium hover:bg-red-600 transition-colors duration-200 flex items-center justify-center gap-2 rounded-lg"
+          className="w-full bg-[#E43C3C] text-white py-2 px-3 text-xs font-medium hover:bg-red-600 transition-colors duration-200 flex items-center justify-center gap-1.5 rounded-md"
         >
-          <IoCartOutline className="w-4 h-4" />
+          <IoCartOutline className="w-3.5 h-3.5" />
           Add to Cart
         </button>
       </div>
@@ -231,7 +231,7 @@ function ProductsGrid({ products }: ProductsGridProps) {
   return (
     <div className="flex-1">
       {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

@@ -46,11 +46,22 @@
 
 /* Hide scrollbar for grid */
 .scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Apply scrollbar-hide to all scrollable containers */
+.scrollbar-hide,
+*:has(.scrollbar-hide) {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
+*:has(.scrollbar-hide)::-webkit-scrollbar {
   display: none;
 }
 
@@ -85,6 +96,15 @@
 @media (min-width: 1025px) {
   .sidebar-mobile {
     display: none;
+  }
+  
+  .sidebar-desktop {
+    display: block;
+    position: sticky;
+    top: 1rem;
+    align-self: flex-start;
+    height: fit-content;
+    max-height: calc(100vh - 2rem);
   }
 }
 

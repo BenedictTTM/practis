@@ -1,90 +1,250 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
-export default function FlashSalesCountdown() {
-  const [time, setTime] = useState({
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+interface TimeState {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+interface TimeUnitProps {
+  value: number;
+  label: string;
+  ariaLabel?: string;
+}
+
+// ============================================================================
+// CONSTANTS - Centralized configuration
+// ============================================================================
+const TIMER_CONFIG = {
+  INITIAL_HOURS: 3,
+  RESET_HOURS: 3,
+  UPDATE_INTERVAL: 1000,
+} as const;
+
+const THEME = {
+  primary: '#DB4444',
+  text: {
+    primary: '#1A1A1A',
+    secondary: '#6B7280',
+  },
+} as const;
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+const padZero = (num: number): string => String(num).padStart(2, '0');
+
+const calculateNextTime = (current: TimeState): TimeState => {
+  let { days, hours, minutes, seconds } = current;
+
+  if (seconds > 0) {
+    return { ...current, seconds: seconds - 1 };
+  }
+
+  seconds = 59;
+
+  if (minutes > 0) {
+    return { days, hours, minutes: minutes - 1, seconds };
+  }
+
+  minutes = 59;
+
+  if (hours > 0) {
+    return { days, hours: hours - 1, minutes, seconds };
+  }
+
+  hours = 23;
+
+  if (days > 0) {
+    return { days: days - 1, hours, minutes, seconds };
+  }
+
+  // Reset when countdown reaches zero
+  return {
     days: 0,
-    hours: 3,
+    hours: TIMER_CONFIG.RESET_HOURS,
     minutes: 0,
-    seconds: 0
+    seconds: 0,
+  };
+};
+
+// ============================================================================
+// SUBCOMPONENTS
+// ============================================================================
+
+/**
+ * TimeUnit Component - Displays individual time unit (days, hours, etc.)
+ * Memoized to prevent unnecessary re-renders
+ */
+const TimeUnit: React.FC<TimeUnitProps> = React.memo(({ value, label, ariaLabel }) => (
+  <div 
+    className="flex flex-col items-center min-w-[50px] sm:min-w-[60px]"
+    role="timer"
+    aria-label={ariaLabel || `${value} ${label}`}
+  >
+    <span className="text-[10px] sm:text-xs font-medium mb-1.5 sm:mb-2 text-gray-500 uppercase tracking-wide">
+      {label}
+    </span>
+    <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 tabular-nums">
+      {padZero(value)}
+    </span>
+  </div>
+));
+
+TimeUnit.displayName = 'TimeUnit';
+
+/**
+ * TimeSeparator Component - Colon separator between time units
+ */
+const TimeSeparator: React.FC = React.memo(() => (
+  <span 
+    className="text-2xl sm:text-3xl md:text-4xl font-bold self-end pb-0.5 sm:pb-1 md:pb-1.5"
+    style={{ color: THEME.primary }}
+    aria-hidden="true"
+  >
+    :
+  </span>
+));
+
+TimeSeparator.displayName = 'TimeSeparator';
+
+/**
+ * SectionHeader Component - "Today's" label with indicator bar
+ */
+const SectionHeader: React.FC = React.memo(() => (
+  <div className="flex items-center gap-3 mb-3 sm:mb-4">
+    <div 
+      className="w-4 sm:w-5 h-8 sm:h-10 rounded"
+      style={{ backgroundColor: THEME.primary }}
+      aria-hidden="true"
+    />
+    <span 
+      className="text-sm sm:text-base font-semibold uppercase tracking-wide"
+      style={{ color: THEME.primary }}
+    >
+      Today's
+    </span>
+  </div>
+));
+
+SectionHeader.displayName = 'SectionHeader';
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+/**
+ * FlashSalesCountdown Component
+ * 
+ * A performant, accessible countdown timer for flash sales promotions.
+ * Features:
+ * - Type-safe TypeScript implementation
+ * - Fully responsive design (mobile-first)
+ * - Accessibility compliant (ARIA labels, semantic HTML)
+ * - Performance optimized (memoization, efficient updates)
+ * - Clean separation of concerns
+ */
+export default function FlashSalesCountdown() {
+  // ==========================================================================
+  // STATE MANAGEMENT
+  // ==========================================================================
+  const [time, setTime] = useState<TimeState>({
+    days: 0,
+    hours: TIMER_CONFIG.INITIAL_HOURS,
+    minutes: 0,
+    seconds: 0,
   });
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(prevTime => {
-        let { days, hours, minutes, seconds } = prevTime;
-        
-        // Decrease seconds
-        if (seconds > 0) {
-          seconds--;
-        } else {
-          seconds = 59;
-          
-          // Decrease minutes
-          if (minutes > 0) {
-            minutes--;
-          } else {
-            minutes = 59;
-            
-            // Decrease hours
-            if (hours > 0) {
-              hours--;
-            } else {
-              hours = 59;
-              
-              // Decrease days
-              if (days > 0) {
-                days--;
-              } else {
-                // Reset to 3 hours when countdown reaches zero
-                return {
-                  days: 0,
-                  hours: 3,
-                  minutes: 0,
-                  seconds: 0
-                };
-              }
-            }
-          }
-        }
-        
-        return { days, hours, minutes, seconds };
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
+  // ==========================================================================
+  // COUNTDOWN LOGIC
+  // ==========================================================================
+  const updateTimer = useCallback(() => {
+    setTime(calculateNextTime);
   }, []);
 
-  const TimeUnit = ({ value, label }) => (
-    <div className="flex flex-col items-center">
-      <div className="text-[#DB4444] text-xs font-medium mb-1">{label}</div>
-      <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center shadow-sm">
-        <span className="text-3xl font-bold text-black">
-          {String(value).padStart(2, '0')}
-        </span>
-      </div>
-    </div>
-  );
+  useEffect(() => {
+    const interval = setInterval(updateTimer, TIMER_CONFIG.UPDATE_INTERVAL);
+    return () => clearInterval(interval);
+  }, [updateTimer]);
 
+  // ==========================================================================
+  // COMPUTED VALUES
+  // ==========================================================================
+  const isExpiring = useMemo(() => {
+    return time.days === 0 && time.hours === 0 && time.minutes < 10;
+  }, [time.days, time.hours, time.minutes]);
+
+  const timeRemaining = useMemo(() => {
+    const total = time.days * 86400 + time.hours * 3600 + time.minutes * 60 + time.seconds;
+    return `${total} seconds remaining`;
+  }, [time]);
+
+  // ==========================================================================
+  // RENDER
+  // ==========================================================================
   return (
-    <div className="bg-white p-8 rounded-lg max-w-2xl">
-      <div className="flex items-center gap-4 mb-6">
-        <div className="w-5 h-10 bg-[#DB4444] rounded"></div>
-        <h2 className="text-[#DB4444] font-semibold text-lg">Today's</h2>
-      </div>
-      
-      <div className="flex items-center gap-16">
-        <h1 className="text-4xl font-bold text-black">Flash Sales</h1>
-        
-        <div className="flex items-center gap-3">
-          <TimeUnit value={time.days} label="Days" />
-          <span className="text-3xl font-bold text-[#DB4444] mb-6">:</span>
-          <TimeUnit value={time.hours} label="Hours" />
-          <span className="text-3xl font-bold text-[#DB4444] mb-6">:</span>
-          <TimeUnit value={time.minutes} label="Minutes" />
-          <span className="text-3xl font-bold text-[#DB4444] mb-6">:</span>
-          <TimeUnit value={time.seconds} label="Seconds" />
+    <section 
+      className="bg-white border-b border-gray-100"
+      aria-labelledby="flash-sales-heading"
+      role="region"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+        {/* Main Layout Container */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 sm:gap-8 lg:gap-12">
+          
+          {/* LEFT SECTION: Title & Branding */}
+          <div className="flex-shrink-0">
+            <SectionHeader />
+            <h2 
+              id="flash-sales-heading"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight"
+              style={{ color: THEME.text.primary }}
+            >
+              Flash Sales
+            </h2>
+          </div>
+
+          {/* RIGHT SECTION: Countdown Timer */}
+          <div 
+            className={`flex items-center justify-start sm:justify-end gap-3 sm:gap-4 lg:gap-5 pb-1 ${
+              isExpiring ? 'animate-pulse' : ''
+            }`}
+            role="timer"
+            aria-live="polite"
+            aria-atomic="true"
+            aria-label={timeRemaining}
+          >
+            <TimeUnit value={time.days} label="Days" ariaLabel={`${time.days} days`} />
+            <TimeSeparator />
+            <TimeUnit value={time.hours} label="Hours" ariaLabel={`${time.hours} hours`} />
+            <TimeSeparator />
+            <TimeUnit value={time.minutes} label="Minutes" ariaLabel={`${time.minutes} minutes`} />
+            <TimeSeparator />
+            <TimeUnit value={time.seconds} label="Seconds" ariaLabel={`${time.seconds} seconds`} />
+          </div>
         </div>
+
+        {/* Optional: Urgency indicator when time is running out */}
+        {isExpiring && (
+          <div className="mt-4 sm:mt-6" role="alert" aria-live="assertive">
+            <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-red-500 to-orange-500 transition-all duration-1000"
+                style={{ 
+                  width: `${((time.minutes * 60 + time.seconds) / 600) * 100}%` 
+                }}
+              />
+            </div>
+            <p className="text-xs sm:text-sm text-red-600 font-medium mt-2 text-center sm:text-right">
+              ⚡ Hurry! Sale ending soon
+            </p>
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 }

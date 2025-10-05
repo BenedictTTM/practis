@@ -6,7 +6,8 @@ import { ProductsGrid } from '../../../Components/Products/cards';
 import { ProductSidebar } from '../../../Components/Products/layouts';
 import { HowToSection } from '../../../Components/HowTo';
 import '../../../Components/Products/styles/products.css';
-
+import FlashSales from '../../../Components/Products/layouts/FlashSales'
+import Categories from '../../../Components/Products/layouts/Categories';
 interface FilterState {
   category: string;
   priceRange: [number, number];
@@ -110,27 +111,19 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F8]">
+    <div className="min-h-screen bg-[#F8F8F8] overflow-x-hidden">
       {/* Page Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-[#2E2E2E] mb-2">New Arrivals</h1>
-            <p className="text-gray-600">Discover our latest collection of premium products</p>
-          </div>
-        </div>
-      </div>
-
+    <FlashSales />
       {/* Main Content Layout */}
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Left Side - How To Section + Products Grid */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {/* How To Section */}
             <HowToSection />
             
             {/* Products Grid */}
-            <div className="p-6">
+            <div className="py-6">
               <ProductsGrid products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 8)} />
               
               {/* View All Products Button */}
@@ -140,7 +133,7 @@ export default function ProductsPage() {
                     onClick={() => setShowAllProducts(true)}
                     className="bg-[#E43C3C] text-white px-8 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors duration-200 shadow-md hover:shadow-lg"
                   >
-                    View All Products ({filteredProducts.length})
+                    View All Products 
                   </button>
                 </div>
               )}
@@ -156,13 +149,16 @@ export default function ProductsPage() {
                   </button>
                 </div>
               )}
-            </div>
+
+              {/* render Categories correctly (was a stray closing tag) */}
+              <Categories />
+            </div>  
           </div>
 
           {/* Right Side - Sidebar (Desktop) */}
-          <div className="sidebar-desktop">
+          <aside className="sidebar-desktop lg:w-80 lg:flex-shrink-0">
             <ProductSidebar onFiltersChange={handleFiltersChange} />
-          </div>
+          </aside>
         </div>
 
         {/* Mobile Filter Button */}
