@@ -81,7 +81,7 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F8F8]">
+      <div className="min-h-screen bg-neutral-50">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E43C3C] mx-auto mb-4"></div>
@@ -94,7 +94,7 @@ export default function ProductsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#F8F8F8]">
+      <div className="min-h-screen bg-neutral-50">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-red-500 mb-4">{error}</p>
@@ -111,8 +111,7 @@ export default function ProductsPage() {
   }
 
   return (
-    // remove overflow-x-hidden to avoid breaking sticky in some browsers
-    <div className="min-h-screen bg-[#F8F8F8]">
+    <div className="min-h-screen bg-neutral-50">
       {/* Page Header */}
       <FlashSales />
       {/* Main Content Layout */}

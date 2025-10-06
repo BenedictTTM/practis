@@ -116,26 +116,21 @@ TimeSeparator.displayName = 'TimeSeparator';
  * SectionHeader Component - "Today's" label with indicator bar
  */
 const SectionHeader: React.FC = React.memo(() => (
-  <div className="flex items-center gap-3 mb-3 sm:mb-4">
-    <div 
-      className="w-4 sm:w-5 h-8 sm:h-10 rounded"
+  <div className="flex items-center gap-2 sm:gap-3">
+    <div
+      className="w-3.5 sm:w-4 h-6 sm:h-7 rounded"
       style={{ backgroundColor: THEME.primary }}
       aria-hidden="true"
     />
-    <span 
-      className="text-sm sm:text-base font-semibold uppercase tracking-wide"
+    <span
+      className="text-xs sm:text-sm font-semibold uppercase tracking-wide"
       style={{ color: THEME.primary }}
     >
       Today's
     </span>
   </div>
 ));
-
 SectionHeader.displayName = 'SectionHeader';
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
 
 /**
  * FlashSalesCountdown Component
@@ -188,43 +183,39 @@ export default function FlashSalesCountdown() {
   // ==========================================================================
   return (
     <section 
-      className="bg-white border-b border-gray-100"
+      className="bg-white border-b border-neutral-200"
       aria-labelledby="flash-sales-heading"
       role="region"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
-        {/* Main Layout Container */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 sm:gap-8 lg:gap-12">
-          
-          {/* LEFT SECTION: Title & Branding */}
-          <div className="flex-shrink-0">
-            <SectionHeader />
-            <h2 
+        {/* Today's on top */}
+        <div className="flex flex-col gap-2 sm:gap-3">
+          <SectionHeader />
+          {/* Flash Sales and timer on the same line */}
+          <div className="flex items-end gap-3 sm:gap-4 flex-wrap">
+            <h2
               id="flash-sales-heading"
               className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight"
               style={{ color: THEME.text.primary }}
             >
               Flash Sales
             </h2>
-          </div>
 
-          {/* RIGHT SECTION: Countdown Timer */}
-          <div 
-            className={`flex items-center justify-start sm:justify-end gap-3 sm:gap-4 lg:gap-5 pb-1 ${
-              isExpiring ? 'animate-pulse' : ''
-            }`}
-            role="timer"
-            aria-live="polite"
-            aria-atomic="true"
-            aria-label={timeRemaining}
-          >
-            <TimeUnit value={time.days} label="Days" ariaLabel={`${time.days} days`} />
-            <TimeSeparator />
-            <TimeUnit value={time.hours} label="Hours" ariaLabel={`${time.hours} hours`} />
-            <TimeSeparator />
-            <TimeUnit value={time.minutes} label="Minutes" ariaLabel={`${time.minutes} minutes`} />
-            <TimeSeparator />
-            <TimeUnit value={time.seconds} label="Seconds" ariaLabel={`${time.seconds} seconds`} />
+            <div
+              className={`flex items-end gap-2 sm:gap-3 ${isExpiring ? 'animate-pulse' : ''}`}
+              role="timer"
+              aria-live="polite"
+              aria-atomic="true"
+              aria-label={timeRemaining}
+            >
+              <TimeUnit value={time.days} label="Days" ariaLabel={`${time.days} days`} />
+              <TimeSeparator />
+              <TimeUnit value={time.hours} label="Hours" ariaLabel={`${time.hours} hours`} />
+              <TimeSeparator />
+              <TimeUnit value={time.minutes} label="Minutes" ariaLabel={`${time.minutes} minutes`} />
+              <TimeSeparator />
+              <TimeUnit value={time.seconds} label="Seconds" ariaLabel={`${time.seconds} seconds`} />
+            </div>
           </div>
         </div>
 

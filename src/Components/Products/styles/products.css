@@ -109,7 +109,7 @@
     align-self: flex-start;
     height: fit-content;
     max-height: calc(100vh - 5rem); /* keep within viewport */
-    z-index: 10;
+    z-index: 0; /* was 10; ensure footer paints above */
   }
 }
 

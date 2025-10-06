@@ -83,7 +83,7 @@ export default function ProductSidebar({ onFiltersChange }: ProductSidebarProps)
   };
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-sm p-4 lg:p-6 space-y-6 lg:space-y-8 overflow-y-auto">
+    <div className="w-full bg-white rounded-sm shadow-sm p-4 lg:p-6 space-y-6 lg:space-y-8 overflow-y-auto">
       {/* Filters Section */}
       <div>
         <h2 className="text-lg font-semibold text-[#2E2E2E] mb-6">Filters</h2>

@@ -130,9 +130,9 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
     : '/placeholder-image.png';
 
   return (
-    <div className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-gray-100">
+    <div className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-neutral-200">
       {/* Image Section */}
-      <div className="relative aspect-square overflow-hidden bg-gray-50">
+      <div className="relative aspect-square overflow-hidden bg-neutral-50">
         {/* Action Buttons - Right Side */}
         <div className="absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
           <button 
