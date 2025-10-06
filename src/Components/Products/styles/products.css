@@ -10,6 +10,10 @@
   transition: all 0.2s ease;
 }
 
+.sidebar-desktop .sticky {
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -100,11 +104,12 @@
   
   .sidebar-desktop {
     display: block;
-    position: sticky;
-    top: 1rem;
+    position: sticky; /* the aside itself is sticky */
+    top: 0rem;        /* offset for the header (adjust if header height differs) */
     align-self: flex-start;
     height: fit-content;
-    max-height: calc(100vh - 2rem);
+    max-height: calc(100vh - 5rem); /* keep within viewport */
+    z-index: 10;
   }
 }
 

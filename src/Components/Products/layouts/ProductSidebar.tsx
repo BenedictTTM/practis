@@ -83,7 +83,7 @@ export default function ProductSidebar({ onFiltersChange }: ProductSidebarProps)
   };
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-sm p-4 lg:p-6 space-y-6 lg:space-y-8 max-h-[calc(100vh-2rem)] overflow-y-auto scrollbar-hide">
+    <div className="w-full bg-white rounded-lg shadow-sm p-4 lg:p-6 space-y-6 lg:space-y-8 overflow-y-auto">
       {/* Filters Section */}
       <div>
         <h2 className="text-lg font-semibold text-[#2E2E2E] mb-6">Filters</h2>
@@ -153,7 +153,7 @@ export default function ProductSidebar({ onFiltersChange }: ProductSidebarProps)
             Rating
           </label>
           <div className="space-y-2">
-            {[5, 4, 3, 2, 1].map((rating) => (
+            {[4, 2, 0].map((rating) => (
               <button
                 key={rating}
                 onClick={() => handleRatingChange(rating)}

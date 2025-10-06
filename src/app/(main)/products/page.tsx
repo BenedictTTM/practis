@@ -111,12 +111,14 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F8] overflow-x-hidden">
+    // remove overflow-x-hidden to avoid breaking sticky in some browsers
+    <div className="min-h-screen bg-[#F8F8F8]">
       {/* Page Header */}
-    <FlashSales />
+      <FlashSales />
       {/* Main Content Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        {/* align items start so sticky computes correctly */}
+        <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-8">
           {/* Left Side - How To Section + Products Grid */}
           <div className="flex-1 min-w-0">
             {/* How To Section */}

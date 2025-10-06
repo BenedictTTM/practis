@@ -16,7 +16,7 @@ const categories = [
   { id: 1, name: 'Electronics & Accessories', icon: Smartphone },
   { id: 2, name: 'Fashion & Clothing', icon: Shirt },
   { id: 3, name: 'Books & Stationery', icon: BookOpen },
-  { id: 4, name: 'Hostel & Room Essentials', icon: Home },
+  { id: 4, name: 'Hostel Essentials', icon: Home },
   { id: 5, name: 'Food & Groceries', icon: ShoppingBag },
   { id: 6, name: 'Health & Beauty', icon: Sparkles },
   { id: 7, name: 'Services', icon: Printer },
@@ -103,12 +103,12 @@ export default function CategoryBrowser() {
               return (
                 <div
                   key={category.id}
-                  className="flex-shrink-0 border border-gray-200 rounded-lg p-6 hover:bg-red-500 hover:border-red-500 transition-all group cursor-pointer"
+                  className="flex-shrink-0 border border-gray-100 rounded-lg p-6 hover:border-red-50 transition-all group cursor-pointer"
                   style={{ width: `calc(${100 / itemsPerView}% - ${(itemsPerView - 1) * 16 / itemsPerView}px)` }}
                 >
                   <div className="flex flex-col items-center justify-center h-full gap-4">
-                    <Icon className="w-12 h-12 text-gray-700 group-hover:text-white transition-colors" />
-                    <span className="text-center font-medium text-gray-900 group-hover:text-white transition-colors text-sm md:text-base">
+                    <Icon className="w-12 h-12 text-gray-400 font-light   transition-colors" />
+                    <span className="text-center text-gray-900 transition-colors text-sm md:text-base">
                       {category.name}
                     </span>
                   </div>
