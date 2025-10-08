@@ -112,17 +112,18 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* Page Header */}
+      {/* How To Section - Now at the top */}
+      <HowToSection />
+      
+      {/* Flash Sales - Now below How To */}
       <FlashSales />
+      
       {/* Main Content Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* align items start so sticky computes correctly */}
         <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-8">
-          {/* Left Side - How To Section + Products Grid */}
+          {/* Left Side - Products Grid */}
           <div className="flex-1 min-w-0">
-            {/* How To Section */}
-            <HowToSection />
-            
             {/* Products Grid */}
             <div className="py-6">
               <ProductsGrid products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 8)} />

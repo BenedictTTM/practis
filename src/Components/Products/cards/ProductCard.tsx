@@ -207,12 +207,13 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
 // ===== PRODUCTS GRID COMPONENT =====
 
 /**
- * ProductsGrid - Renders a responsive grid of product cards
+ * ProductsGrid - Renders a horizontally scrollable row of product cards
  * 
  * Features:
- * - Responsive grid layout (1-4 columns based on screen size)
+ * - Horizontal scroll layout with snap scrolling
  * - Empty state handling
  * - Optimized for performance with React keys
+ * - Smooth scrolling with hidden scrollbar
  * 
  * @param props - ProductsGridProps containing array of products
  * @returns JSX.Element representing the products grid or empty state
@@ -230,11 +231,15 @@ function ProductsGrid({ products }: ProductsGridProps) {
 
   return (
     <div className="flex-1">
-      {/* Products Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+      {/* Horizontal Scroll Container */}
+      <div className="relative">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide scroll-smooth">
+          {products.map((product) => (
+            <div key={product.id} className="flex-none w-[160px] sm:w-[180px] md:w-[200px] snap-start">
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
