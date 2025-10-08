@@ -183,7 +183,7 @@ export default function FlashSalesCountdown() {
   // ==========================================================================
   return (
     <section 
-      className="bg-white border-b border-neutral-200"
+      className=""
       aria-labelledby="flash-sales-heading"
       role="region"
     >
@@ -195,7 +195,7 @@ export default function FlashSalesCountdown() {
           <div className="flex items-end gap-3 sm:gap-4 flex-wrap">
             <h2
               id="flash-sales-heading"
-              className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight"
+              className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight"
               style={{ color: THEME.text.primary }}
             >
               Flash Sales
@@ -222,7 +222,7 @@ export default function FlashSalesCountdown() {
         {/* Optional: Urgency indicator when time is running out */}
         {isExpiring && (
           <div className="mt-4 sm:mt-6" role="alert" aria-live="assertive">
-            <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-1 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-red-500 to-orange-500 transition-all duration-1000"
                 style={{ 

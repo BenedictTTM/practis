@@ -112,18 +112,17 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* How To Section - Now at the top */}
+      {/* How To Section - At the top */}
       <HowToSection />
       
-      {/* Flash Sales - Now below How To */}
-      <FlashSales />
-      
-      {/* Main Content Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* align items start so sticky computes correctly */}
+      {/* Main Content Layout - Flash Sales and Sidebar aligned */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-8">
-          {/* Left Side - Products Grid */}
-          <div className="flex-1 min-w-0">
+          {/* Left Side - Flash Sales and Products */}
+          <div className="flex-1 min-w-0 lg:order-1">
+            {/* Flash Sales - Now aligned with sidebar */}
+            <FlashSales />
+            
             {/* Products Grid */}
             <div className="py-6">
               <ProductsGrid products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 8)} />
@@ -158,7 +157,7 @@ export default function ProductsPage() {
           </div>
 
           {/* Right Side - Sidebar (Desktop) */}
-          <aside className="sidebar-desktop lg:w-80 lg:flex-shrink-0">
+          <aside className="sidebar-desktop lg:w-80 lg:flex-shrink-0 lg:order-2">
             <ProductSidebar onFiltersChange={handleFiltersChange} />
           </aside>
         </div>

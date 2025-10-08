@@ -83,7 +83,7 @@ export default function ProductSidebar({ onFiltersChange }: ProductSidebarProps)
   };
 
   return (
-    <div className="w-full bg-white rounded-sm shadow-sm p-4 lg:p-6 space-y-6 lg:space-y-8 overflow-y-auto">
+    <div className="w-full p-4 lg:p-6 space-y-6  border border-gray-200  lg:space-y-8 overflow-y-auto">
       {/* Filters Section */}
       <div>
         <h2 className="text-lg font-semibold text-[#2E2E2E] mb-6">Filters</h2>
@@ -179,77 +179,11 @@ export default function ProductSidebar({ onFiltersChange }: ProductSidebarProps)
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Cart Summary Section */}
-      <div>
-        <h2 className="text-lg font-semibold text-[#2E2E2E] mb-4">Cart Summary</h2>
-        
-        {cartItems.length === 0 ? (
-          <p className="text-sm text-gray-500">Your cart is empty</p>
-        ) : (
-          <div className="space-y-4">
-            {/* Cart Items */}
-            <div className="space-y-3">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.title}
-                      width={48}
-                      height={48}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.currentTarget as HTMLImageElement;
-                        target.src = '/placeholder-image.png';
-                      }}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#2E2E2E] truncate">
-                      {item.title}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      GH₵{item.price.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Subtotal */}
-            <div className="border-t border-gray-200 pt-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-[#2E2E2E]">Subtotal:</span>
-                <span className="text-lg font-bold text-[#2E2E2E]">
-                  GH₵{subtotal.toFixed(2)}
-                </span>
-              </div>
-            </div>
-
-            {/* Checkout Button */}
-            <button className="w-full bg-[#E43C3C] text-white py-3 px-4 rounded-lg font-medium hover:bg-red-600 transition-colors duration-200">
-              Checkout
-            </button>
-          </div>
-        )}
-      </div>
+      </div> 
 
       {/* User Profile Section */}
       <div>
-        <h2 className="text-lg font-semibold text-[#2E2E2E] mb-4">Profile</h2>
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-[#D4A574] rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-medium text-sm">SC</span>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[#2E2E2E]">Sophia Carter</p>
-            <button className="text-xs text-[#E43C3C] hover:underline">
-              View Profile
-            </button>
-          </div>
-        </div>
+      
       </div>
     </div>
   );
