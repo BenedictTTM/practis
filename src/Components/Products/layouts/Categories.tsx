@@ -103,7 +103,7 @@ export default function CategoryBrowser() {
               return (
                 <div
                   key={category.id}
-                  className="flex-shrink-0 border border-gray-100 rounded-lg p-6 hover:border-red-50 transition-all group cursor-pointer"
+                  className="flex-shrink-0 border border-gray-200 rounded-lg p-6 hover:border-red-50 transition-all group cursor-pointer"
                   style={{ width: `calc(${100 / itemsPerView}% - ${(itemsPerView - 1) * 16 / itemsPerView}px)` }}
                 >
                   <div className="flex flex-col items-center justify-center h-full gap-4">

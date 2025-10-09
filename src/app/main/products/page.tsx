@@ -8,6 +8,7 @@ import { HowToSection } from '../../../Components/HowTo';
 import '../../../Components/Products/styles/products.css';
 import FlashSales from '../../../Components/Products/layouts/FlashSales'
 import Categories from '../../../Components/Products/layouts/Categories';
+import ServiceFeatures from  '../../../Components/Products/layouts/serviceFeatures';
 interface FilterState {
   category: string;
   priceRange: [number, number];
@@ -81,7 +82,7 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-gray-50">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E43C3C] mx-auto mb-4"></div>
@@ -94,7 +95,7 @@ export default function ProductsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-gray-50">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-red-500 mb-4">{error}</p>
@@ -111,7 +112,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-gray-50">
       {/* How To Section - At the top */}
       <HowToSection />
       
@@ -173,6 +174,8 @@ export default function ProductsPage() {
             </svg>
           </button>
         </div>
+        {/* Service Features Section */}
+        <ServiceFeatures/>
       </div>
     </div>
   );
