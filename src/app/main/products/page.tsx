@@ -175,6 +175,32 @@ export default function ProductsPage() {
           </button>
         </div>
         {/* Service Features Section */}
+                    {/* Products Grid */}
+
+          <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-1 h-6 bg-red-500 rounded"></div>
+          <span className="text-red-500 font-semibold">Products</span>
+        </div>
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Browse Our Products</h2>
+      </div>
+
+            <div className="py-6">
+              <ProductsGrid products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 8)} />
+              
+              {/* View All Products Button */}
+              {!showAllProducts && filteredProducts.length > 8 && (
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={() => setShowAllProducts(true)}
+                    className="bg-[#E43C3C] text-white px-8 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors duration-200 shadow-md hover:shadow-lg"
+                  >
+                    View All Products 
+                  </button>
+                </div>
+              )}
+              </div>
+              
         <ServiceFeatures/>
       </div>
     </div>

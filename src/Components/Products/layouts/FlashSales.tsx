@@ -89,7 +89,7 @@ const TimeUnit: React.FC<TimeUnitProps> = React.memo(({ value, label, ariaLabel 
     <span className="text-[10px] sm:text-xs font-medium mb-1.5 sm:mb-2 text-gray-500 uppercase tracking-wide">
       {label}
     </span>
-    <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 tabular-nums">
+    <span className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 tabular-nums">
       {padZero(value)}
     </span>
   </div>
@@ -102,13 +102,13 @@ TimeUnit.displayName = 'TimeUnit';
  */
 const TimeSeparator: React.FC = React.memo(() => (
   <span 
-    className="text-2xl sm:text-3xl md:text-4xl font-bold self-end pb-0.5 sm:pb-1 md:pb-1.5"
+    className="text-lg  text-gray-800 sm:text-xl md:text-2xl font-semibold self-end pb-0.5 sm:pb-1 md:pb-1.5"
     style={{ color: THEME.primary }}
     aria-hidden="true"
   >
     :
   </span>
-));
+)); 
 
 TimeSeparator.displayName = 'TimeSeparator';
 
@@ -187,7 +187,7 @@ export default function FlashSalesCountdown() {
       aria-labelledby="flash-sales-heading"
       role="region"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 lg:pt-10">
         {/* Today's on top */}
         <div className="flex flex-col gap-2 sm:gap-3">
           <SectionHeader />
@@ -220,21 +220,7 @@ export default function FlashSalesCountdown() {
         </div>
 
         {/* Optional: Urgency indicator when time is running out */}
-        {isExpiring && (
-          <div className="mt-4 sm:mt-6" role="alert" aria-live="assertive">
-            <div className="h-1 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-red-500 to-orange-500 transition-all duration-1000"
-                style={{ 
-                  width: `${((time.minutes * 60 + time.seconds) / 600) * 100}%` 
-                }}
-              />
-            </div>
-            <p className="text-xs sm:text-sm text-red-600 font-medium mt-2 text-center sm:text-right">
-              ⚡ Hurry! Sale ending soon
-            </p>
-          </div>
-        )}
+        
       </div>
     </section>
   );

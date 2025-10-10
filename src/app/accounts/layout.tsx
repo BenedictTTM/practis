@@ -2,6 +2,7 @@ import VerticalNavigation from '@/Components/Navigation/verticalProductNav';
 import Footer from "@/Components/Footer/footer";
 import TopBar from '../../Components/Header/topbar';
 
+
 export default function AccountsLayout({
   children,
 }: {
