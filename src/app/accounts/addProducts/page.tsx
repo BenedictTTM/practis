@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { IoAdd, IoImageOutline, IoClose, IoCamera } from 'react-icons/io5';
 import Image from 'next/image';
 import { TfiReload } from "react-icons/tfi";
@@ -8,6 +8,25 @@ import { TfiReload } from "react-icons/tfi";
 const MAX_IMAGES = 5;
 
 export default function CreateProductPage() {
+  // Add this useEffect to debug cookies
+  useEffect(() => {
+    console.log('🍪 All cookies:', document.cookie);
+    console.log('🍪 Checking for access_token...');
+    
+    // Check if access_token exists
+    const cookies = document.cookie.split(';');
+    const accessTokenCookie = cookies.find(cookie => 
+      cookie.trim().startsWith('access_token=')
+    );
+    
+    if (accessTokenCookie) {
+      console.log('✅ Access token cookie found:', accessTokenCookie.substring(0, 30) + '...');
+    } else {
+      console.log('❌ No access_token cookie found');
+      console.log('Available cookies:', cookies);
+    }
+  }, []);
+
   const [images, setImages] = useState<File[]>([]);
   const [form, setForm] = useState({
     title: '',
@@ -88,30 +107,26 @@ export default function CreateProductPage() {
 
       tagsArray.forEach(tag => formData.append('tags', tag));
 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Please login first');
-        setLoading(false);
-        return;
-      }
+    console.log("Sending response with cookies")
+      
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-      };
 
       const response = await fetch('/api/products', {
         method: 'POST',
-        headers,
+        credentials: 'include', // Include cookies
         body: formData,
       });
 
+      console.log('📊 Response status:', response.status);
       const data = await response.json();
+      console.log('📦 Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Something went wrong');
       }
 
       setSuccess(true);
+      // Reset form...
       setImages([]);
       setForm({
         title: '',

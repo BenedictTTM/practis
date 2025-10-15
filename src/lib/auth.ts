@@ -1,5 +1,6 @@
 import { User, LoginRequest, SignupRequest, AuthResponse } from '@/types/auth';
-const API_URL = 'http://localhost:3001';
+// Use Next.js API proxy routes so cookies are scoped to :3000
+const API_URL = '/api';
 
 export class AuthService {
   // Login user with email and password
@@ -10,6 +11,7 @@ export class AuthService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // allow browser to store cookies set by Next route
         body: JSON.stringify(credentials),
       });
 
@@ -17,11 +19,6 @@ export class AuthService {
       
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
-      }
-
-      if (data.success && data.access_token) {
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
       }
       
       return data;
@@ -39,6 +36,7 @@ export class AuthService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(userData),
       });
 
@@ -48,11 +46,6 @@ export class AuthService {
         throw new Error(data.message || 'Signup failed');
       }
 
-      if (data.success && data.access_token) {
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-      }
-      
       return data;
     } catch (error) {
       console.error('Signup error:', error);
@@ -62,45 +55,37 @@ export class AuthService {
 
   // Logout user
   static logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     window.location.href = '/auth/login';
   }
 
   // Get authentication token
   static getToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('token');
+    // With cookie-based auth, token isn't readable client-side (httpOnly)
+    return null;
   }
 
   // Get current user data
   static getUser(): User | null {
-    if (typeof window === 'undefined') return null;
-    const userJson = localStorage.getItem('user');
-    return userJson ? JSON.parse(userJson) : null;
+    // Consider fetching user from a /api/auth/me endpoint if needed
+    return null;
   }
 
   // Check if user is authenticated
   static isAuthenticated(): boolean {
-    return !!this.getToken();
+    // With cookie auth, rely on server checks or a /api/auth/session endpoint
+    return false;
   }
 
   // Make authenticated API request
   static async authFetch(url: string, options: RequestInit = {}): Promise<any> {
-    const token = this.getToken();
-    
-    if (!token) {
-      throw new Error('Not authenticated');
-    }
-    
     const headers = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
       ...options.headers,
-    };
+    } as Record<string, string>;
 
     const response = await fetch(`${API_URL}${url}`, {
       ...options,
+      credentials: 'include',
       headers,
     });
 

@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+function maskToken(v?: string | null) {
+  if (!v) return 'missing';
+  try {
+    return `${v.slice(0, 10)}…${v.slice(-6)} (len:${v.length})`;
+  } catch {
+    return 'invalid';
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('📤 Creating product, forwarding to backend...');
@@ -15,21 +24,37 @@ export async function POST(request: NextRequest) {
       console.log(`  ${key}:`, value);
     }
     
-    // Get token from Authorization header
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Get cookies from the request (raw header and parsed for convenience)
+    const rawCookie = request.headers.get('cookie') || '';
+    const accessToken = request.cookies.get('access_token')?.value || null;
+    const refreshToken = request.cookies.get('refresh_token')?.value || null;
+    console.log('🍪 Raw Cookie header len:', rawCookie.length);
+    console.log('🔑 access_token:', maskToken(accessToken));
+    console.log('🔁 refresh_token:', maskToken(refreshToken));
+
+    if (!rawCookie) {
       return NextResponse.json(
-        { success: false, message: 'Authorization token required' },
+        { success: false, message: 'Authentication required - please login' },
         { status: 401 }
       );
     }
 
-    // Forward the exact FormData to your backend
+    if (!accessToken) {
+      // Provide clearer error for missing access token
+      return NextResponse.json(
+        { success: false, message: 'Access token is required (no access_token cookie)' },
+        { status: 401 }
+      );
+    }
+
+    console.log('✅ Cookies found, forwarding to backend...');
+
+    // Forward the exact FormData to your backend with cookies
     const response = await fetch(`${API_URL}/products`, {
       method: 'POST',
       body: formData,
       headers: {
-        'Authorization': authHeader,
+        'Cookie': rawCookie, // Forward cookies to backend
       },
     });
 
@@ -59,11 +84,15 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.toString();
+    const rawCookie = request.headers.get('cookie') || '';
+    const accessToken = request.cookies.get('access_token')?.value || null;
+    console.log('🧭 GET /api/products cookies len:', rawCookie.length, '| access_token:', maskToken(accessToken));
     
     const response = await fetch(`${API_URL}/products${query ? `?${query}` : ''}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...(rawCookie && { 'Cookie': rawCookie }),
       },
     });
 

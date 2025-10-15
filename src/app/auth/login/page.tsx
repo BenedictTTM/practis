@@ -47,7 +47,7 @@ export default function LogInPage() {
         action: {
           label: 'Get Started',
           onClick: () => {
-            router.push('/products');
+            router.push('/accouts/addProducts');
             console.log('Redirecting to products...'); 
           }
         }
@@ -55,7 +55,7 @@ export default function LogInPage() {
       
       // Auto-redirect after 2 seconds
       setTimeout(() => {
-        router.push('/products');
+        router.push('/accounts/addProducts');
       }, 2000);
 
       reset();
