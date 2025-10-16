@@ -13,7 +13,7 @@ import { BiPackage } from 'react-icons/bi';
 
 export default function HowToSection() {
   return (
-    <div className="pt-6 px-6 bg-gray-50 ">
+    <div className=" pt-4 md:pt-8 bg-gray-50 ">
       <div className="flex flex-wrap justify-center gap-32">
         <InfoCard
           title="How to Sell"

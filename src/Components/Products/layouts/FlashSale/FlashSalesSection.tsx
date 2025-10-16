@@ -336,7 +336,7 @@ export default function FlashSalesSection({
           renderLoadingSkeleton()
         ) : (
           <div 
-            className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide scroll-smooth flash-sales-track"
+            className="flex gap-30 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide scroll-smooth flash-sales-track"
             role="list"
             aria-label="Flash sale products"
           >

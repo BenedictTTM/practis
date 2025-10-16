@@ -187,7 +187,7 @@ export default function FlashSalesCountdown() {
       aria-labelledby="flash-sales-heading"
       role="region"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 lg:pt-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-2 lg:px-3 pt-6 sm:pt-8 lg:pt-10">
         {/* Today's on top */}
         <div className="flex flex-col gap-2 sm:gap-3">
           <SectionHeader />

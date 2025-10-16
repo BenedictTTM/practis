@@ -116,8 +116,8 @@ export default function ProductsPage() {
       <HowToSection />
       
       {/* Main Content Layout - Flash Sales and Sidebar aligned */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-8">
+      <div className="max-w-7xl mx-auto  py-6">
+        <div className="flex flex-col lg:flex-row lg:items-start ">
           {/* Left Side - Flash Sales and Products */}
           <div className="flex-1 min-w-0 lg:order-1">
             {/* Flash Sales Section with filtering - Now aligned with sidebar */}
@@ -149,7 +149,7 @@ export default function ProductsPage() {
           </div>
 
           {/* Right Side - Sidebar (Desktop) */}
-          <aside className="sidebar-desktop lg:w-80 lg:flex-shrink-0 lg:order-2">
+          <aside className="sidebar-desktop lg:w-80 lg:flex-shrink-0 lg:order-2 ">
             <ProductSidebar onFiltersChange={handleFiltersChange} />
           </aside>
         </div>
@@ -168,7 +168,7 @@ export default function ProductsPage() {
         {/* Service Features Section */}
                     {/* Products Grid */}
 
-          <div className="mb-6">
+          <div className="mb-6 p-4">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-1 h-6 bg-red-500 rounded"></div>
           <span className="text-red-500 font-semibold">Products</span>
@@ -176,9 +176,9 @@ export default function ProductsPage() {
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Browse Our Products</h2>
       </div>
 
-            <div className="py-6">
+            <div className="py-6 p-4 ">
               <ProductsGridLayout 
-                products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 8)}
+                products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 12)}
                 loading={loading}
               />
               
