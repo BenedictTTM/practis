@@ -29,7 +29,7 @@ const mainNavBar = () => {
 ><IoCartOutline className="text-2xl mb-1" /> Cart</a> 
         <a href=""           className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
 > <IoMdHelpCircleOutline  className="text-2xl mb-1"/> Help</a>
-         <a href=""           className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
+         <a href="/accounts/addProducts"           className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
 >  <IoPersonCircleSharp  className="text-2xl mb-1"/> Account</a>
      
       </div>

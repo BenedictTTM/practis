@@ -3,10 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../../../types/products';
 import { ProductsGrid } from '../../../Components/Products/cards';
-import { ProductSidebar } from '../../../Components/Products/layouts';
+import { ProductSidebar, ProductsGridLayout, FlashSalesSection } from '../../../Components/Products/layouts';
 import { HowToSection } from '../../../Components/HowTo';
 import '../../../Components/Products/styles/products.css';
-import FlashSales from '../../../Components/Products/layouts/FlashSales'
 import Categories from '../../../Components/Products/layouts/Categories';
 import ServiceFeatures from  '../../../Components/Products/layouts/serviceFeatures';
 interface FilterState {
@@ -121,25 +120,17 @@ export default function ProductsPage() {
         <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-8">
           {/* Left Side - Flash Sales and Products */}
           <div className="flex-1 min-w-0 lg:order-1">
-            {/* Flash Sales - Now aligned with sidebar */}
-            <FlashSales />
+            {/* Flash Sales Section with filtering - Now aligned with sidebar */}
+            <FlashSalesSection 
+              initialProducts={products}
+              minDiscount={20}
+              maxProducts={8}
+              onProductsLoaded={(flashProducts) => console.log('Flash sales loaded:', flashProducts.length)}
+              onError={(err) => console.error('Flash sales error:', err)}
+            />
             
             {/* Products Grid */}
-            <div className="py-6">
-              <ProductsGrid products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 8)} />
-              
-              {/* View All Products Button */}
-              {!showAllProducts && filteredProducts.length > 8 && (
-                <div className="flex justify-center mt-8">
-                  <button
-                    onClick={() => setShowAllProducts(true)}
-                    className="bg-[#E43C3C] text-white px-8 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors duration-200 shadow-md hover:shadow-lg"
-                  >
-                    View All Products 
-                  </button>
-                </div>
-              )}
-              
+            <div className="py-6">              
               {/* Show Less Button */}
               {showAllProducts && filteredProducts.length > 8 && (
                 <div className="flex justify-center mt-8">
@@ -186,7 +177,10 @@ export default function ProductsPage() {
       </div>
 
             <div className="py-6">
-              <ProductsGrid products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 8)} />
+              <ProductsGridLayout 
+                products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 8)}
+                loading={loading}
+              />
               
               {/* View All Products Button */}
               {!showAllProducts && filteredProducts.length > 8 && (

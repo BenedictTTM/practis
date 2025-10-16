@@ -1,5 +1,46 @@
 /* Custom styles for product page components */
 
+/* ===== GRID LAYOUTS ===== */
+/* Prevent horizontal scrolling on products grid */
+.products-grid-layout {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Ensure grid wraps properly */
+.products-grid-layout > div[role="list"] {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* Flash Sales - Keep horizontal scroll */
+.flash-sales-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.flash-sales-track {
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  scroll-snap-type: x mandatory;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.flash-sales-track > * {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+/* Smooth scrolling for flash sales */
+.flash-sales-track {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Range slider styling */
 .slider {
   -webkit-appearance: none;
