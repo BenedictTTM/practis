@@ -1,17 +1,19 @@
 import React from "react";
 import QuantitySelector from "../common/QuantitySelector";
-import { ShoppingCart } from "lucide-react";
+import AddToCartButton from "../../Cart/AddToCartButton";
 
 interface ProductActionsProps {
+  productId: number;
   quantity: number;
   maxQuantity?: number;
   inStock: boolean;
   onIncreaseQuantity: () => void;
   onDecreaseQuantity: () => void;
-  onAddToCart: () => void;
+  onAddToCart?: () => void;
 }
 
 export default function ProductActions({ 
+  productId,
   quantity, 
   maxQuantity, 
   inStock,
@@ -38,18 +40,28 @@ export default function ProductActions({
       </div>
 
       {/* Add to Cart Button */}
-      <button
-        onClick={onAddToCart}
-        disabled={!inStock}
-        className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-semibold text-base transition-all shadow-md ${
-          inStock 
-            ? "bg-[#E43C3C] hover:bg-red-600 hover:shadow-lg" 
-            : "bg-gray-300 cursor-not-allowed"
-        }`}
-      >
-        <ShoppingCart className="w-5 h-5" />
-        {inStock ? "Add to Cart" : "Out of Stock"}
-      </button>
+      {inStock ? (
+        <AddToCartButton 
+          productId={productId}
+          quantity={quantity}
+          variant="default"
+          onSuccess={() => {
+            console.log(`✅ Added ${quantity} item(s) to cart`);
+            onAddToCart?.();
+          }}
+          onError={(msg) => {
+            console.error('❌ Add to cart failed:', msg);
+            alert(`Failed to add to cart: ${msg}`);
+          }}
+        />
+      ) : (
+        <button
+          disabled
+          className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gray-300 text-white font-semibold rounded-lg cursor-not-allowed"
+        >
+          Out of Stock
+        </button>
+      )}
     </div>
   );
 }

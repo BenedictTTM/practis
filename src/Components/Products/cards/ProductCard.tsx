@@ -3,8 +3,8 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { IoCartOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
+import AddToCartButton from '../../Cart/AddToCartButton';
 
 // ===== TYPE DEFINITIONS =====
 /**
@@ -111,12 +111,6 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
   const discountPercentage = calculateDiscountPercent(product.originalPrice, product.discountedPrice);
   const hasDiscount = discountPercentage > 0;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Added to cart:', product.title);
-  };
-
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -192,13 +186,13 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
         </div>
 
         {/* Add to Cart Button */}
-        <button
-          onClick={handleAddToCart}
-          className="w-full bg-[#E43C3C] text-white py-2 px-3 text-xs font-medium hover:bg-red-600 transition-colors duration-200 flex items-center justify-center gap-1.5 rounded-md"
-        >
-          <IoCartOutline className="w-3.5 h-3.5" />
-          Add to Cart
-        </button>
+        <AddToCartButton 
+          productId={product.id}
+          quantity={1}
+          variant="small"
+          onSuccess={() => console.log(`✅ ${product.title} added to cart`)}
+          onError={(msg) => console.error(`❌ Failed to add ${product.title}:`, msg)}
+        />
       </div>
     </div>
   );

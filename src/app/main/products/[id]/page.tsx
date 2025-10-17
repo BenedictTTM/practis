@@ -18,6 +18,7 @@ import {
   ProductDetails,
   ProductReviews
 } from "../../../../Components/Products/details";
+import { addToCart as addToCartAPI } from "../../../../lib/cart";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -29,6 +30,7 @@ export default function ProductDetailPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [addingToCart, setAddingToCart] = useState<boolean>(false);
 
   useEffect(() => {
     if (!productId) {
@@ -92,10 +94,25 @@ export default function ProductDetailPage() {
     setSelectedSize(size);
   }
 
-  function addToCart() {
-    if (!product || !inStock) return;
-    console.log("Add to cart:", { productId: product.id, quantity, selectedSize });
-    alert(`${product.title} (${quantity}) added to cart`);
+  async function addToCart() {
+    if (!product || !inStock || addingToCart) return;
+    
+    setAddingToCart(true);
+    console.log("🛒 Adding to cart:", { productId: product.id, quantity, selectedSize });
+    
+    const result = await addToCartAPI(product.id, quantity);
+    
+    if (result.success) {
+      console.log("✅ Successfully added to cart:", product.title);
+      alert(`${product.title} (${quantity}) added to cart successfully!`);
+      // Optionally reset quantity after successful add
+      setQuantity(1);
+    } else {
+      console.error("❌ Failed to add to cart:", result.message);
+      alert(`Failed to add to cart: ${result.message}`);
+    }
+    
+    setAddingToCart(false);
   }
 
   function retryFetch() {
@@ -154,6 +171,7 @@ export default function ProductDetailPage() {
           />
 
           <ProductActions 
+            productId={product.id}
             quantity={quantity}
             maxQuantity={product.stock}
             inStock={inStock}

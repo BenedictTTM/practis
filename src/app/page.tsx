@@ -1,9 +1,7 @@
-import React from 'react'
+import { redirect } from 'next/navigation'
 
-const page = () => {
-  return (
-    <div>pageeee</div>
-  )
+export default function Page() {
+  // Server-side redirect to the main products page
+  redirect('/main/products')
+  return null
 }
-
-export default page
