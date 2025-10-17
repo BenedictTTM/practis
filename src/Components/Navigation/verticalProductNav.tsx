@@ -51,7 +51,7 @@ export default function Sidebar() {
   return (
     <div className="h-full flex flex-col ">
       {/* Logo/Brand - fixed at top */}
-      <Link href="/">
+      <Link href="/main/products">
         <div className="flex items-center text-2xl font-bold text-gray-700 p-5 border-b border-gray-100">
           <span className='text-red-500'>my </span> Plug
           <PiPlug className="text-2xl text-gray-700 ml-2" />

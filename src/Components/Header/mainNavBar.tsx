@@ -25,9 +25,9 @@ const mainNavBar = () => {
 
       {/* Search and Icons */}
       <div className="flex items-center space-x-10 ">
-       <a href=""              className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
+       <a href="/main/cart"              className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
 ><IoCartOutline className="text-2xl mb-1" /> Cart</a> 
-        <a href=""           className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
+        <a href="/main/help"           className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
 > <IoMdHelpCircleOutline  className="text-2xl mb-1"/> Help</a>
          <a href="/accounts/addProducts"           className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
 >  <IoPersonCircleSharp  className="text-2xl mb-1"/> Account</a>

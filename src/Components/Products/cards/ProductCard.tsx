@@ -145,7 +145,7 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
         </div>
 
         {/* Product Image */}
-        <Link href={`/products/${product.id}`}>
+        <Link href={`products/${product.id}`}>
           <Image
             src={imageUrl}
             alt={product.title}
