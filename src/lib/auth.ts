@@ -16,11 +16,11 @@ export class AuthService {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
       }
-      
+
       return data;
     } catch (error) {
       console.error('Login error:', error);
@@ -41,7 +41,7 @@ export class AuthService {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || 'Signup failed');
       }
@@ -54,8 +54,19 @@ export class AuthService {
   }
 
   // Logout user
-  static logout(): void {
-    window.location.href = '/auth/login';
+  static async logout(): Promise<void> {
+    try {
+      // Call logout endpoint to clear server-side session
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Always redirect to login
+      window.location.href = '/auth/login';
+    }
   }
 
   // Get authentication token
@@ -65,15 +76,37 @@ export class AuthService {
   }
 
   // Get current user data
-  static getUser(): User | null {
-    // Consider fetching user from a /api/auth/me endpoint if needed
-    return null;
+  static async getUser(): Promise<User | null> {
+    try {
+      const response = await fetch(`${API_URL}/auth/me`, {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      return data.user || null;
+    } catch (error) {
+      console.error('Get user error:', error);
+      return null;
+    }
   }
 
   // Check if user is authenticated
-  static isAuthenticated(): boolean {
-    // With cookie auth, rely on server checks or a /api/auth/session endpoint
-    return false;
+  static async isAuthenticated(): Promise<boolean> {
+    try {
+      const response = await fetch(`${API_URL}/auth/session`, {
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Auth check error:', error);
+      return false;
+    }
   }
 
   // Make authenticated API request
@@ -90,17 +123,17 @@ export class AuthService {
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       // Handle 401 Unauthorized - token expired or invalid
       if (response.status === 401) {
         this.logout();
       }
-      
+
       throw new Error(data.message || 'Request failed');
     }
 
     return data;
-    
+
   }
 }

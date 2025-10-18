@@ -223,9 +223,9 @@ export default function ShoppingCart() {
                       </div>
                     </div>
                   );
-                })}
-              </div>
+
             </div>
+              </div>
 
             {/* Right Column - Order Summary */}
             <div className="lg:col-span-1">

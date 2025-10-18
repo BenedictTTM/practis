@@ -86,7 +86,7 @@ export default function AddToCartButton({
       <button
         onClick={handleAddToCart}
         disabled={loading || success}
-        className={`flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        className={`flex items-center gap-2 px-7 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       >
         {loading ? (
           <>

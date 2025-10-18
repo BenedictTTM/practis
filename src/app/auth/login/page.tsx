@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthService } from '@/lib/auth';
@@ -34,6 +34,16 @@ export default function LogInPage() {
 
   const { showSuccess, showError } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [redirectUrl, setRedirectUrl] = useState<string>('/main/products');
+
+  // Get redirect URL from query params or default to products page
+  useEffect(() => {
+    const redirect = searchParams.get('redirect');
+    if (redirect) {
+      setRedirectUrl(decodeURIComponent(redirect));
+    }
+  }, [searchParams]);
 
   const onSubmit = async (data: LogInData) => {
     console.log('🎉 Login form submitted!', data);
@@ -47,15 +57,15 @@ export default function LogInPage() {
         action: {
           label: 'Get Started',
           onClick: () => {
-            router.push('/accouts/addProducts');
-            console.log('Redirecting to products...'); 
+            router.push(redirectUrl);
+            console.log('Redirecting to:', redirectUrl); 
           }
         }
       });
       
-      // Auto-redirect after 2 seconds
+      // Auto-redirect after 2 seconds to intended destination
       setTimeout(() => {
-        router.push('/accounts/addProducts');
+        router.push(redirectUrl);
       }, 2000);
 
       reset();
