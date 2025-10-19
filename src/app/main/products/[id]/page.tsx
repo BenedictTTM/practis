@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import { Product } from "../../../../types/products";
 import { 
   ProductDetailSkeleton, 
@@ -22,6 +22,8 @@ import { addToCart as addToCartAPI } from "../../../../lib/cart";
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const productId = params?.id as string | undefined;
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -108,6 +110,16 @@ export default function ProductDetailPage() {
       // Optionally reset quantity after successful add
       setQuantity(1);
     } else {
+      // Check if error is due to authentication (401 Unauthorized)
+      if (result.statusCode === 401) {
+        console.log('🔐 User not authenticated, redirecting to login...');
+        // Redirect to login with current page as return URL
+        const redirectUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+        router.push(redirectUrl);
+        return; // Exit early
+      }
+      
+      // For other errors, show alert
       console.error("❌ Failed to add to cart:", result.message);
       alert(`Failed to add to cart: ${result.message}`);
     }

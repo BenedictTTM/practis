@@ -24,7 +24,7 @@ export default function ShoppingCart() {
     setLoading(true);
     setError(null);
     const result = await fetchCart();
-    
+
     if (result.success) {
       setCart(result.data || null);
     } else {
@@ -39,7 +39,7 @@ export default function ShoppingCart() {
     setUpdatingItems(prev => new Set(prev).add(itemId));
 
     const result = await updateCartItem(itemId, newQuantity);
-    
+
     if (result.success && result.data) {
       setCart(result.data);
     } else {
@@ -59,7 +59,7 @@ export default function ShoppingCart() {
     setUpdatingItems(prev => new Set(prev).add(itemId));
 
     const result = await removeCartItem(itemId);
-    
+
     if (result.success) {
       setCart(result.data || null);
     } else {
@@ -77,7 +77,7 @@ export default function ShoppingCart() {
     if (!confirm('Clear all items from cart?')) return;
 
     const result = await clearCart();
-    
+
     if (result.success) {
       setCart(null);
     } else {
@@ -97,7 +97,7 @@ export default function ShoppingCart() {
     );
   }
 
-  const shippingCost = 5.00;
+  const shippingCost = 5.0;
   const subtotal = cart?.subtotal || 0;
   const total = subtotal + shippingCost;
 
@@ -133,17 +133,17 @@ export default function ShoppingCart() {
                 {cart.items.map((item, index) => {
                   const isUpdating = updatingItems.has(item.id);
                   const product = item.product;
-                  const imageUrl = Array.isArray(product.imageUrl) 
-                    ? product.imageUrl[0] 
+                  const imageUrl = Array.isArray(product.imageUrl)
+                    ? product.imageUrl[0]
                     : product.imageUrl || '/placeholder-image.png';
                   const displayPrice = product.discountedPrice || product.originalPrice || 0;
 
                   return (
                     <div
                       key={item.id}
-                      className={`p-4 ${index !== cart.items.length - 1 ? 'border-b border-gray-100' : ''} ${
-                        isUpdating ? 'opacity-50 pointer-events-none' : ''
-                      }`}
+                      className={`p-4 ${
+                        index !== cart.items.length - 1 ? 'border-b border-gray-100' : ''
+                      } ${isUpdating ? 'opacity-50 pointer-events-none' : ''}`}
                     >
                       <div className="flex gap-3">
                         {/* Product Image */}
@@ -191,7 +191,8 @@ export default function ShoppingCart() {
                               <button
                                 onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                                 disabled={
-                                  isUpdating || (product.stock !== undefined && item.quantity >= product.stock)
+                                  isUpdating ||
+                                  (product.stock !== undefined && item.quantity >= product.stock)
                                 }
                                 className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                 aria-label="Increase quantity"
@@ -223,9 +224,9 @@ export default function ShoppingCart() {
                       </div>
                     </div>
                   );
-
-            </div>
+                })}
               </div>
+            </div>
 
             {/* Right Column - Order Summary */}
             <div className="lg:col-span-1">

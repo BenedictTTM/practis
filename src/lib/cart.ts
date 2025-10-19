@@ -60,6 +60,7 @@ export async function addToCart(
       return {
         success: false,
         message: data.message || 'Failed to add item to cart',
+        statusCode: response.status, // Include HTTP status code
       };
     }
 
@@ -67,12 +68,14 @@ export async function addToCart(
     return {
       success: true,
       data: data,
+      statusCode: response.status,
     };
   } catch (error) {
     console.error('💥 Network error adding to cart:', error);
     return {
       success: false,
       message: 'Network error - Unable to connect to server',
+      statusCode: 0, // 0 indicates network error
     };
   }
 }

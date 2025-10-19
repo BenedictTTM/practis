@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useEffect } from 'react'
 import SearchComponent from './searchComponent'
 import { IoCartOutline } from "react-icons/io5";
 import { IoMdHelpCircleOutline } from "react-icons/io";
@@ -8,8 +8,15 @@ import { IoPersonCircleSharp } from "react-icons/io5";
 import NavLinks from '../Navigation/navLinks' // Import your navLinks component
 import { PiPlug } from "react-icons/pi";
 import SearchComponet from './searchComponent';
+import { useCartStore } from '@/store/cartStore';
 
-const mainNavBar = () => {
+const MainNavBar = () => {
+  const itemCount = useCartStore((state) => state.itemCount);
+  const fetchItemCount = useCartStore((state) => state.fetchItemCount);
+
+  useEffect(() => {
+    fetchItemCount();
+  }, [fetchItemCount]);
  return (
     <nav className="flex items-center justify-between px-10 py-4 shadow-sm bg-white border-b border-gray-200">
       {/* Logo */}
@@ -25,8 +32,17 @@ const mainNavBar = () => {
 
       {/* Search and Icons */}
       <div className="flex items-center space-x-10 ">
-       <a href="/main/cart"              className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
-><IoCartOutline className="text-2xl mb-1" /> Cart</a> 
+       <a href="/main/cart" className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors relative">
+         <div className="relative">
+           <IoCartOutline className="text-2xl mb-1" />
+           {itemCount > 0 && (
+             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+               {itemCount > 9 ? '9+' : itemCount}
+             </span>
+           )}
+         </div>
+         Cart
+       </a> 
         <a href="/main/help"           className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
 > <IoMdHelpCircleOutline  className="text-2xl mb-1"/> Help</a>
          <a href="/accounts/addProducts"           className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors"
@@ -37,4 +53,4 @@ const mainNavBar = () => {
   );
 }
 
-export default mainNavBar
+export default MainNavBar

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { ShoppingCart, Check, Loader2 } from 'lucide-react';
 import { addToCart } from '@/lib/cart';
+import { useCartStore } from '@/store/cartStore';
 
 interface AddToCartButtonProps {
   productId: number;
@@ -40,6 +42,9 @@ export default function AddToCartButton({
 }: AddToCartButtonProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const fetchItemCount = useCartStore((state) => state.fetchItemCount);
 
   const handleAddToCart = async () => {
     setLoading(true);
@@ -49,11 +54,25 @@ export default function AddToCartButton({
 
     if (result.success) {
       setSuccess(true);
+      
+      // Update cart count in Zustand store
+      await fetchItemCount();
+      
       onSuccess?.();
       
       // Reset success state after 2 seconds
       setTimeout(() => setSuccess(false), 2000);
     } else {
+      // Check if error is due to authentication (401 Unauthorized)
+      if (result.statusCode === 401) {
+        // Redirect to login with current page as return URL
+        console.log('🔐 User not authenticated, redirecting to login...');
+        const redirectUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+        router.push(redirectUrl);
+        return; // Exit early, don't call onError
+      }
+      
+      // For other errors, call the error callback
       onError?.(result.message || 'Failed to add to cart');
     }
 

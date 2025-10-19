@@ -32,6 +32,7 @@ export interface CartResponse {
   success: boolean;
   data?: Cart | null;
   message?: string;
+  statusCode?: number; // Add HTTP status code for better error handling
 }
 
 /**
