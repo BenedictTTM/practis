@@ -26,9 +26,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Optionally, verify token with backend
-    // You can add backend validation here if needed
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    // Verify token with backend and get user data
+    const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     
     try {
       const response = await fetch(`${BACKEND_URL}/auth/verify`, {
@@ -36,6 +35,7 @@ export async function GET(request: NextRequest) {
         headers: {
           'Cookie': `access_token=${accessToken.value}`,
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -49,25 +49,28 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Token is valid
+      // Get user data from backend
+      const userData = await response.json();
+
+      // Token is valid, return user data
       return NextResponse.json(
         { 
           authenticated: true,
-          message: 'User is authenticated' 
+          message: 'User is authenticated',
+          user: userData.user || userData
         },
         { status: 200 }
       );
     } catch (backendError) {
-      // If backend is unreachable, but token exists, allow access
-      // This prevents complete lockout if backend is temporarily down
-      console.warn('Backend verification failed, allowing access with token:', backendError);
+      console.error('Backend verification failed:', backendError);
       
+      // If backend is unreachable, return error
       return NextResponse.json(
         { 
-          authenticated: true,
-          message: 'Token exists (backend verification unavailable)' 
+          authenticated: false,
+          message: 'Cannot verify authentication. Please try again.' 
         },
-        { status: 200 }
+        { status: 503 }
       );
     }
   } catch (error) {
