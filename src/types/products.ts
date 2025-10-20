@@ -3,6 +3,7 @@ export type User = {
   username: string;
   firstName?: string;
   lastName?: string;
+  storeName?: string;
   profilePic?: string | null;
   rating?: number;
   totalRatings?: number;

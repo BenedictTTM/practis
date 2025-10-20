@@ -16,21 +16,10 @@ interface AddToCartButtonProps {
 }
 
 /**
- * AddToCartButton Component
- * 
- * Reusable button for adding products to cart.
- * Handles loading states, success feedback, and error handling.
- * Supports multiple visual variants.
- * 
- * @component
- * @example
- * ```tsx
- * <AddToCartButton 
- *   productId={123} 
- *   quantity={1}
- *   onSuccess={() => console.log('Added!')}
- * />
- * ```
+ * Improved AddToCartButton
+ * - Prevents multi-line text wrapping
+ * - Uses gradient background, smooth hover, and consistent sizing
+ * - Shows loader and success feedback
  */
 export default function AddToCartButton({
   productId,
@@ -54,44 +43,43 @@ export default function AddToCartButton({
 
     if (result.success) {
       setSuccess(true);
-      
-      // Update cart count in Zustand store
       await fetchItemCount();
-      
       onSuccess?.();
-      
-      // Reset success state after 2 seconds
       setTimeout(() => setSuccess(false), 2000);
     } else {
-      // Check if error is due to authentication (401 Unauthorized)
       if (result.statusCode === 401) {
-        // Redirect to login with current page as return URL
-        console.log('🔐 User not authenticated, redirecting to login...');
-        const redirectUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
-        router.push(redirectUrl);
-        return; // Exit early, don't call onError
+        router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
+        return;
       }
-      
-      // For other errors, call the error callback
       onError?.(result.message || 'Failed to add to cart');
     }
 
     setLoading(false);
   };
 
-  // Icon variant - small circular button
+  // Shared base styles
+  const baseStyle = `
+    flex items-center justify-center gap-2 
+    font-semibold text-white rounded-xl 
+    transition-all duration-300 shadow-md 
+    hover:shadow-lg hover:-translate-y-0.5 
+    disabled:opacity-50 disabled:cursor-not-allowed 
+    whitespace-nowrap
+  `;
+
+  // 🔘 Icon-only button
   if (variant === 'icon') {
     return (
       <button
         onClick={handleAddToCart}
         disabled={loading || success}
-        className={`rounded-full p-2 bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        className={`${baseStyle} p-3 bg-gradient-to-r from-red-500 to-red-600 ${className}`}
         aria-label="Add to cart"
       >
         {loading ? (
           <Loader2 className="h-5 w-5 animate-spin" />
         ) : success ? (
-          <Check className="h-5 w-5" />
+          <Check className="h-5 w-5 text-green-300" />
         ) : (
           <ShoppingCart className="h-5 w-5" />
         )}
@@ -99,13 +87,13 @@ export default function AddToCartButton({
     );
   }
 
-  // Small variant - compact button
+  // 🔹 Small variant
   if (variant === 'small') {
     return (
       <button
         onClick={handleAddToCart}
         disabled={loading || success}
-        className={`flex items-center gap-2 px-7 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        className={`${baseStyle} px-6 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 ${className}`}
       >
         {loading ? (
           <>
@@ -114,7 +102,7 @@ export default function AddToCartButton({
           </>
         ) : success ? (
           <>
-            <Check className="h-4 w-4" />
+            <Check className="h-4 w-4 text-green-300" />
             Added!
           </>
         ) : (
@@ -127,22 +115,22 @@ export default function AddToCartButton({
     );
   }
 
-  // Default variant - full-width button
+  // 🔺 Default variant
   return (
     <button
       onClick={handleAddToCart}
       disabled={loading || success}
-      className={`w-full flex items-center justify-center gap-2 px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`${baseStyle} w-full px-6 py-3 text-sm sm:text-base bg-gradient-to-r from-red-500 to-red-600 ${className}`}
     >
       {loading ? (
         <>
           <Loader2 className="h-5 w-5 animate-spin" />
-          Adding to Cart...
+          Adding...
         </>
       ) : success ? (
         <>
-          <Check className="h-5 w-5" />
-          Added to Cart!
+          <Check className="h-5 w-5 text-green-300" />
+          Added!
         </>
       ) : (
         <>

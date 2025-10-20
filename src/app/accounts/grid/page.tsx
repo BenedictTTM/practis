@@ -1,20 +1,58 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, SlidersHorizontal, Grid3x3, LayoutGrid, Printer, Edit2, Trash2 } from 'lucide-react';
+import { Plus, SlidersHorizontal, Grid3x3, LayoutGrid, Printer, Edit2, Trash2, Eye, Table, Store } from 'lucide-react';
 import { fetchMyProducts } from '../../../lib/products';
 import { Product } from '../../../types/products';
 import { formatGhs, calculateDiscountPercent } from '../../../utilities/formatGhs';
+import ProductCard from '@/Components/Products/cards/ProductCard';
+import { userService } from '@/services/userService';
+
 
 export default function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [userProfile, setUserProfile] = useState<{
+    storeName?: string;
+    profilePic?: string | null;
+    firstName?: string;
+    lastName?: string;
+  } | null>(null);
 
   useEffect(() => {
     loadProducts();
+    loadUserProfile();
   }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      const authResponse = await fetch('/api/auth/session', {
+        credentials: 'include',
+      });
+
+      if (!authResponse.ok) {
+        return;
+      }
+
+      const authData = await authResponse.json();
+      const currentUserId = authData.user?.id || authData.id;
+
+      if (currentUserId) {
+        const profile = await userService.getUserProfile(currentUserId);
+        setUserProfile({
+          storeName: profile.storeName,
+          profilePic: profile.profilePic,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+        });
+      }
+    } catch (err) {
+      console.error('Error loading user profile:', err);
+    }
+  };
 
   const loadProducts = async () => {
     try {
@@ -107,7 +145,7 @@ export default function ProductList() {
     <div className="w-full">
       <div className="w-full max-w-none">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-1">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Product List</h1>
             <p className="text-sm text-red-900 mt-1">
@@ -115,23 +153,52 @@ export default function ProductList() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors">
-              <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">Add Product</span>
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <SlidersHorizontal className="w-4 h-4" />
-              <span className="text-sm font-medium">Filter</span>
-            </button>
-            <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <Grid3x3 className="w-4 h-4" />
-            </button>
-            <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <Printer className="w-4 h-4" />
-            </button>
+            {/* Hide Add Product, Filter, and Print buttons in customer view */}
+            {viewMode === 'table' && (
+              <>
+                <button className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors">
+                  <Plus className="w-4 h-4" />
+                  <span className="text-sm font-medium">Add Product</span>
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  <span className="text-sm font-medium">Filter</span>
+                </button>
+              </>
+            )}
+            
+            {/* View Mode Toggle */}
+            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`p-2 transition-colors ${
+                  viewMode === 'table'
+                    ? 'bg-black text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+                title="Table View"
+              >
+                <Table className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-black text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+                title="Customer View"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+            </div>
+            
+            {/* Hide Print button in customer view */}
+            {viewMode === 'table' && (
+              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                <Printer className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -148,6 +215,69 @@ export default function ProductList() {
                 <Plus className="w-4 h-4" />
                 <span className="text-sm font-medium">Add Product</span>
               </button>
+            </div>
+          </div>
+        ) : viewMode === 'grid' ? (
+          /* Customer View - Grid Layout */
+          <div className="rounded-xl border border-gray-200 overflow-hidden">
+            {/* Company Header */}
+            <div className="px-6 py-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+              <div className="flex items-center gap-4">
+                {/* Company/Profile Image */}
+                <div className="relative">
+                  {userProfile?.profilePic ? (
+                    <img
+                      src={userProfile.profilePic}
+                      alt={userProfile.storeName || 'Store'}
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-gray-200 shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center border-2 border-gray-200 shadow-sm">
+                      <Store className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Company Name and Info */}
+                <div className="flex-1">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+                    {userProfile?.storeName || 'My Store'}
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    {userProfile?.firstName && userProfile?.lastName
+                      ? `${userProfile.firstName} ${userProfile.lastName}`
+                      : 'Welcome to our store'}
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-900 border border-red-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                      {products.length} Product{products.length !== 1 ? 's' : ''} Available
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-1 ">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              </div>
+            </div>
+            <div className="p-6">
+              {/* Responsive Grid - Better column distribution */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+                {products.map((product) => (
+                  <div key={product.id} className="w-full">
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+              
+              {/* Product count */}
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-500">
+                  Showing <span className="font-semibold text-gray-700">{products.length}</span> product{products.length !== 1 ? 's' : ''}
+                </p>
+              </div>
             </div>
           </div>
         ) : (
