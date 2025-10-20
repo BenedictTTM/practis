@@ -194,6 +194,7 @@ class UserService {
 
   /**
    * Uploads profile picture file
+   * OPTIMIZED: Direct backend upload to avoid Next.js proxy timeout
    */
   async uploadProfilePicture(
     userId: number,
@@ -214,12 +215,17 @@ class UserService {
       const formData = new FormData();
       formData.append('file', file);
 
+      // CRITICAL FIX: Upload directly to backend to avoid Next.js proxy timeout
+      // The browser will automatically send cookies (access_token) with credentials: 'include'
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      
       const response = await fetch(
-        `${this.baseUrl}/${userId}/upload-profile-picture`,
+        `${backendUrl}/users/${userId}/upload-profile-picture`,
         {
           method: 'POST',
-          credentials: 'include',
+          credentials: 'include', // This sends cookies to backend
           body: formData,
+          // Don't set Content-Type header - browser will set it automatically with boundary
         }
       );
 
@@ -228,7 +234,8 @@ class UserService {
         throw new Error(error.message || 'Failed to upload profile picture');
       }
 
-      return await response.json();
+      const result = await response.json();
+      return result;
     } catch (error) {
       console.error('Error in uploadProfilePicture:', error);
       throw error;

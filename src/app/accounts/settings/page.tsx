@@ -10,8 +10,11 @@ import {
   Camera,
   CheckCircle,
   XCircle,
+  Save,
   Store,
+ 
 } from 'lucide-react';
+import { MdOutlineFileDownload } from "react-icons/md";
 import {
   userService,
   type UserProfile,
@@ -147,8 +150,11 @@ export default function ProfileSettings() {
       setSuccess(null);
 
       const response = await userService.uploadProfilePicture(userId, file);
-      if (response.imageUrl) {
-        setProfilePic(response.imageUrl);
+      // Response can have imageUrl at top level or in data/user object
+      const uploadedImageUrl = (response as any).imageUrl || response.data?.profilePic || response.user?.profilePic;
+      
+      if (uploadedImageUrl) {
+        setProfilePic(uploadedImageUrl);
         setSuccess('Profile picture updated successfully! 🎉');
       }
     } catch (err: any) {
@@ -174,7 +180,7 @@ export default function ProfileSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-2 px-2 sm:px-3 lg:px-4">
       <div className="max-w-5xl mx-auto">
         {/* Alert Messages */}
         {(success || error) && (
@@ -206,7 +212,7 @@ export default function ProfileSettings() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
-          <p className="text-gray-600">
+          <p className="text-red-900">
             Manage your personal information and profile picture.
           </p>
         </div>
@@ -255,7 +261,7 @@ export default function ProfileSettings() {
 
                   {/* Username display below avatar */}
                   <p className="text-sm text-gray-600 text-center mt-3 font-medium">
-                    {formData.username || 'Username'}
+                    {formData.username || ''}
                   </p>
 
                   <input
@@ -264,6 +270,7 @@ export default function ProfileSettings() {
                     accept="image/jpeg,image/png,image/webp"
                     onChange={handleFileUpload}
                     className="hidden"
+                    aria-label="Upload profile picture"
                   />
                 </div>
 
@@ -384,7 +391,10 @@ export default function ProfileSettings() {
                     Saving...
                   </>
                 ) : (
-                  'Save Changes'
+                  <>
+                    <MdOutlineFileDownload className="w-4 h-4" />
+                    Save Changes
+                  </>
                 )}
               </button>
             </div>

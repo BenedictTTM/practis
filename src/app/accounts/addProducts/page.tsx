@@ -4,10 +4,13 @@ import { useRef, useState, useEffect } from 'react';
 import { IoAdd, IoImageOutline, IoClose, IoCamera } from 'react-icons/io5';
 import Image from 'next/image';
 import { TfiReload } from "react-icons/tfi";
+import { useToast } from '@/Components/Toast/toast';
 
 const MAX_IMAGES = 5;
 
 export default function CreateProductPage() {
+  const { showSuccess, showError } = useToast();
+
   // Add this useEffect to debug cookies
   useEffect(() => {
     console.log('🍪 All cookies:', document.cookie);
@@ -42,8 +45,6 @@ export default function CreateProductPage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [discountType, setDiscountType] = useState<'none' | 'percentage' | 'bundling'>('none');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -74,13 +75,14 @@ export default function CreateProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form submitted!', form);
-    setError(null);
-    setSuccess(false);
     setLoading(true);
 
     const discount = calcDiscount();
     if (discount < 0) {
-      setError('Discount cannot be negative. Discounted price must be less than original price.');
+      showError('Invalid Discount', {
+        description: 'Discounted price must be less than original price.',
+        duration: 5000,
+      });
       setLoading(false);
       return;
     }
@@ -125,7 +127,12 @@ export default function CreateProductPage() {
         throw new Error(data.message || 'Something went wrong');
       }
 
-      setSuccess(true);
+      showSuccess('Product Created Successfully!', {
+        description: `${form.title} has been added to your store.`,
+        duration: 5000,
+        icon: '🎉',
+      });
+
       // Reset form...
       setImages([]);
       setForm({
@@ -141,7 +148,10 @@ export default function CreateProductPage() {
         stock: '',
       });
     } catch (err: any) {
-      setError(err.message);
+      showError('Failed to Create Product', {
+        description: err.message || 'Please try again later.',
+        duration: 5000,
+      });
       console.error('Error in handleSubmit:', err);
     } finally {
       setLoading(false);
@@ -160,21 +170,6 @@ export default function CreateProductPage() {
             </div>
           </div>
         </div>
-  
-        {/* Status Messages */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 shadow-sm">
-            <div className="w-5 h-5 text-red-500 font-bold">⚠</div>
-            <p className="text-red-700 text-sm font-medium">{error}</p>
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3 shadow-sm">
-            <div className="w-5 h-5 text-green-600 font-bold">✓</div>
-            <p className="text-green-700 text-sm font-medium">Product created successfully!</p>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -329,10 +324,10 @@ export default function CreateProductPage() {
                   </div>
 
                   {calcDiscount() > 0 && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className=" ">
                       <div className="flex items-center">
-                        <div className="text-red-700 text-sm font-semibold">
-                          Discount: {calcDiscount()}% off
+                        <div className="text-red-600 text-sm font-semibold">
+                         <span className='text-gray-700 italic font-thin'>Discount:</span>  {calcDiscount()}% off
                         </div>
                       </div>
                     </div>
@@ -496,8 +491,6 @@ export default function CreateProductPage() {
                     locationLng: '',
                     stock: '',
                   });
-                  setError(null);
-                  setSuccess(false);
                 }}
               >
                 <TfiReload className="w-5 h-5" />
