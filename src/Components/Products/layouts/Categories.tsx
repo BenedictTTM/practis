@@ -1,15 +1,15 @@
 'use client';
 
 import { useRef } from 'react';
-import { 
-  Smartphone, 
-  Shirt, 
-  BookOpen, 
-  Home, 
-  ShoppingBag, 
-  Sparkles, 
-  Printer, 
-  Dribbble 
+import {
+  Smartphone,
+  Shirt,
+  BookOpen,
+  Home,
+  ShoppingBag,
+  Sparkles,
+  Printer,
+  Dribbble,
 } from 'lucide-react';
 
 const categories = [
@@ -20,42 +20,42 @@ const categories = [
   { id: 5, name: 'Food & Groceries', icon: ShoppingBag },
   { id: 6, name: 'Health & Beauty', icon: Sparkles },
   { id: 7, name: 'Services', icon: Printer },
-  { id: 8, name: 'Sports & Entertainment', icon: Dribbble }
+  { id: 8, name: 'Sports & Entertainment', icon: Dribbble },
 ];
 
 export default function CategoryBrowser() {
-  const containerRef = useRef(null);
-
-  // Duplicate categories for seamless infinite scroll
+  const containerRef = useRef<HTMLDivElement>(null);
   const duplicatedCategories = [...categories, ...categories];
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-8">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-1 h-6 bg-red-500 rounded"></div>
           <span className="text-red-500 font-semibold">Categories</span>
         </div>
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Browse By Category</h2>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+          Browse By Category
+        </h2>
       </div>
 
-      {/* Categories Container with Auto-scroll */}
+      {/* Categories Container */}
       <div className="relative overflow-hidden">
         <div
-          className="flex gap-4 animate-scroll-left"
           ref={containerRef}
+          className="flex gap-3 sm:gap-4 animate-scroll-left"
         >
           {duplicatedCategories.map((category, index) => {
             const Icon = category.icon;
             return (
               <div
                 key={`${category.id}-${index}`}
-                className="flex-shrink-0 w-[200px] border border-gray-200 rounded-lg p-6 hover:border-red-500 transition-all group cursor-pointer hover:shadow-lg"
+                className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] border border-gray-200 rounded-xl p-4 sm:p-5 md:p-6 bg-white hover:border-red-500 hover:shadow-lg transition-all cursor-pointer group"
               >
-                <div className="flex flex-col items-center justify-center h-full gap-4">
-                  <Icon className="w-12 h-12 text-gray-700 group-hover:text-red-500 transition-colors" />
-                  <span className="text-center text-gray-700 group-hover:text-red-500 transition-colors text-sm md:text-base">
+                <div className="flex flex-col items-center justify-center h-full gap-3 sm:gap-4">
+                  <Icon className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 group-hover:text-red-500 transition-colors" />
+                  <span className="text-center text-gray-700 text-xs sm:text-sm md:text-base group-hover:text-red-500 transition-colors">
                     {category.name}
                   </span>
                 </div>
@@ -77,7 +77,9 @@ export default function CategoryBrowser() {
         }
 
         .animate-scroll-left {
+          display: flex;
           animation: scroll-left 30s linear infinite;
+          will-change: transform;
         }
 
         .animate-scroll-left:hover {
