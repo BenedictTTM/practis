@@ -106,7 +106,7 @@ export default function Sidebar() {
       {/* Logo/Brand - fixed at top */}
       <div className="flex items-center justify-between px-6 py-5 bg-white border-b border-gray-200">
         <Link href="/main/products" className="flex items-center text-xl font-bold text-gray-800">
-          <span>my</span>
+          <span className='text-red-600'>my</span>
           <span className="text-gray-800">Plug</span>
         </Link>
         <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
@@ -115,7 +115,7 @@ export default function Sidebar() {
       </div>
 
       {/* User Profile Section */}
-      <div className="px-6 py-6 bg-white border-b border-gray-200">
+      <div className="px-6 py-2  border-gray-200">
         <div className="flex items-center gap-3">
           {userProfile?.profilePic ? (
             <img

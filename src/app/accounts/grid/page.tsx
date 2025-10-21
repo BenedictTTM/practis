@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, SlidersHorizontal, Grid3x3, LayoutGrid, Printer, Edit2, Trash2, Eye, Table, Store } from 'lucide-react';
+import { Plus, SlidersHorizontal, Grid3x3, LayoutGrid, Printer, Edit2, Trash2, Eye, Table, Store, Share2 } from 'lucide-react';
 import { fetchMyProducts } from '../../../lib/products';
 import { Product } from '../../../types/products';
 import { formatGhs, calculateDiscountPercent } from '../../../utilities/formatGhs';
@@ -15,11 +15,14 @@ export default function ProductList() {
   const [error, setError] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [copied, setCopied] = useState(false);
   const [userProfile, setUserProfile] = useState<{
     storeName?: string;
     profilePic?: string | null;
     firstName?: string;
     lastName?: string;
+    username?: string;
+    id?: number;
   } | null>(null);
 
   useEffect(() => {
@@ -43,14 +46,40 @@ export default function ProductList() {
       if (currentUserId) {
         const profile = await userService.getUserProfile(currentUserId);
         setUserProfile({
+          id: profile.id,
           storeName: profile.storeName,
           profilePic: profile.profilePic,
           firstName: profile.firstName,
           lastName: profile.lastName,
+          username: profile.username,
         });
       }
     } catch (err) {
       console.error('Error loading user profile:', err);
+    }
+  };
+
+  const getStoreUrl = () => {
+    if (typeof window !== 'undefined' && userProfile?.id) {
+      return `${window.location.origin}/store/${userProfile.id}`;
+    }
+    return '';
+  };
+
+  const copyStoreLink = async () => {
+    const storeUrl = getStoreUrl();
+    if (!storeUrl) {
+      alert('Store link not available yet');
+      return;
+    }
+    
+    try {
+      await navigator.clipboard.writeText(storeUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      alert('Failed to copy link');
     }
   };
 
@@ -160,12 +189,24 @@ export default function ProductList() {
                   <Plus className="w-4 h-4" />
                   <span className="text-sm font-medium">Add Product</span>
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  <SlidersHorizontal className="w-4 h-4" />
-                  <span className="text-sm font-medium">Filter</span>
-                </button>
               </>
             )}
+
+            {/* Share Store Button - Always visible */}
+            <button
+              onClick={copyStoreLink}
+              className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${
+                copied
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+              }`}
+              title="Share your store link"
+            >
+              <Share2 className="w-4 h-4" />
+              <span className="text-sm font-medium hidden sm:inline">
+                {copied ? 'Copied!' : 'Share Store'}
+              </span>
+            </button>
             
             {/* View Mode Toggle */}
             <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
