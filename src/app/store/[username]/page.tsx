@@ -157,7 +157,7 @@ export default function PublicStorePage() {
                     <p className="text-sm text-gray-600 mb-3">
                       {storeOwner.firstName && storeOwner.lastName
                         ? `${storeOwner.firstName} ${storeOwner.lastName}`
-                        : `@${username}`}
+                        : `@${userId}`}
                     </p>
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-900 border border-red-200">

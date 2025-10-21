@@ -4,7 +4,9 @@ import React from 'react';
 import { Facebook, Twitter, MessageCircle } from 'lucide-react';
 
 export default function ShareProduct() {
-  const handleShare = (platform) => {
+  type SharePlatform = 'facebook' | 'twitter' | 'whatsapp' | string;
+
+  const handleShare = (platform: SharePlatform) => {
     const url = window.location.href;
     const title = document.title;
     

@@ -2,13 +2,34 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL = 'http://localhost:3001';
 
+type RouteContext = { params: Promise<{ id?: string | string[] }> };
+
+async function resolveProductId(context: RouteContext) {
+  const params = await context.params;
+  const idParam = Array.isArray(params.id) ? params.id[0] : params.id;
+
+  if (!idParam) {
+    throw new Error('Product ID is required');
+  }
+
+  return idParam;
+}
+
 // GET /api/products/[id] - Get single product
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
-    const { id } = params;
+    let id: string;
+    try {
+      id = await resolveProductId(context);
+    } catch (err) {
+      return NextResponse.json(
+        { success: false, message: 'Product ID is required' },
+        { status: 400 }
+      );
+    }
     
     const response = await fetch(`${API_URL}/products/${id}`, {
       method: 'GET',
@@ -39,10 +60,18 @@ export async function GET(
 // PUT /api/products/[id] - Update product
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
-    const { id } = params;
+    let id: string;
+    try {
+      id = await resolveProductId(context);
+    } catch (err) {
+      return NextResponse.json(
+        { success: false, message: 'Product ID is required' },
+        { status: 400 }
+      );
+    }
     const formData = await request.formData();
     const authHeader = request.headers.get('Authorization');
     
@@ -83,10 +112,18 @@ export async function PUT(
 // DELETE /api/products/[id] - Delete product
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
-    const { id } = params;
+    let id: string;
+    try {
+      id = await resolveProductId(context);
+    } catch (err) {
+      return NextResponse.json(
+        { success: false, message: 'Product ID is required' },
+        { status: 400 }
+      );
+    }
     const authHeader = request.headers.get('Authorization');
     
     if (!authHeader) {

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { User, Calendar, MapPin, Globe, Mail } from 'lucide-react';
 
 export default function PersonalInformation() {
@@ -10,7 +10,14 @@ export default function PersonalInformation() {
     school: 'University of Ghana',
   });
 
-  const InfoCard = ({ icon: Icon, label, value, iconColor }) => (
+  type InfoCardProps = {
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    value: string | number;
+    iconColor?: string;
+  };
+
+  const InfoCard = ({ icon: Icon, label, value, iconColor }: InfoCardProps) => (
     <div className="rounded-2xl p-6 shadow-sm hover:shadow-md bg-gray-50 transition-shadow duration-200">
       <div className="flex items-start justify-between mb-2">
         <h3 className="text-gray-900 font-semibold text-lg">{label}</h3>

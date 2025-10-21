@@ -1,8 +1,13 @@
 import React from "react";
 import { LuSendHorizontal } from "react-icons/lu";
 
+type ExclusiveSectionProps = {
+  email: string;
+  setEmail: (value: string) => void;
+  handleSubscribe: (e?: React.SyntheticEvent) => void | Promise<void>;
+};
 
-export default function ExclusiveSection({ email, setEmail, handleSubscribe }) {
+export default function ExclusiveSection({ email, setEmail, handleSubscribe }: ExclusiveSectionProps) {
   return (
     <div className="lg:col-span-1">
       <h3 className="text-lg font-semibold mb-4">Exclusive</h3>
@@ -19,6 +24,8 @@ export default function ExclusiveSection({ email, setEmail, handleSubscribe }) {
         />
         <button
           onClick={handleSubscribe}
+          aria-label="Subscribe"
+          title="Subscribe"
           className="px-3 py-2 bg-transparent border-2 border-gray-300 border-l-0 rounded-r hover:bg-gray-800 transition-colors"
         >
           <LuSendHorizontal size={16} />

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Search, Package, RotateCcw, CreditCard, Shield, Info, Tag, Phone, Mail, MessageSquare, ChevronDown } from 'lucide-react';
 
 const HelpCenter = () => {
-  const [expandedFaq, setExpandedFaq] = useState(null);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   const categories = [
     {
@@ -92,7 +92,7 @@ const HelpCenter = () => {
     }
   ];
 
-  const toggleFaq = (id) => {
+  const toggleFaq = (id: number) => {
     setExpandedFaq(expandedFaq === id ? null : id);
   };
 

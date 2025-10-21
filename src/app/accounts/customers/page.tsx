@@ -23,7 +23,7 @@ type Customer = {
 
 const PAGE_SIZE = 10;
 
-export default function CustomersPage(): JSX.Element {
+export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

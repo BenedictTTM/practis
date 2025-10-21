@@ -9,8 +9,10 @@ import DownloadAppSection from "./downloadAppSection";
 export default function Footer() {
   const [email, setEmail] = useState("");
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubscribe = (e?: React.SyntheticEvent) => {
+    if (e && 'preventDefault' in e) {
+      (e as React.SyntheticEvent).preventDefault();
+    }
     console.log("Subscribing email:", email);
     setEmail("");
   };
