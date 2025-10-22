@@ -7,47 +7,27 @@ import { CiHeart } from "react-icons/ci";
 import AddToCartButton from '../../Cart/AddToCartButton';
 
 // ===== TYPE DEFINITIONS =====
-/**
- * Product interface representing a product in the e-commerce system
- */
 export interface Product {
-  /** Unique identifier for the product */
   id: number;
-  /** Product title/name */
   title: string;
-  /** Product image URLs - can be array or single string */
   imageUrl?: string[] | string;
-  /** Original price before discount */
   originalPrice?: number;
-  /** Discounted price (current selling price) */
   discountedPrice?: number;
-  /** Average rating from reviews */
   averageRating?: number;
-  /** Total number of reviews */
   totalReviews?: number;
-  /** Review count from Prisma aggregation */
   _count?: { reviews?: number };
 }
 
-/**
- * Props for ProductCard component
- */
 export interface ProductCardProps {
-  /** Product data to display */
   product: Product;
-  /** Whether to show sale badge (optional) */
   showSale?: boolean;
 }
 
-/**
- * Props for ProductsGrid component
- */
 export interface ProductsGridProps {
-  /** Array of products to display in grid */
   products: Product[];
 }
 
-// ===== UTILITY FUNCTIONS =====
+// ===== UTILITIES =====
 const formatGhs = (value?: number | null): string => {
   if (value == null) return "GH₵ 0.00";
   return `GH₵ ${Number(value).toFixed(2)}`;
@@ -58,17 +38,17 @@ const calculateDiscountPercent = (originalPrice?: number | null, discountedPrice
   return Math.round(((originalPrice - discountedPrice) / originalPrice) * 100);
 };
 
-// ===== STAR RATING COMPONENT =====
-const SimpleStarRating = ({ 
-  rating = 0, 
-  totalReviews = 0, 
-  size = 16, 
-  showCount = true 
-}: { 
-  rating?: number; 
-  totalReviews?: number; 
-  size?: number; 
-  showCount?: boolean; 
+// ===== STAR RATING =====
+const SimpleStarRating = ({
+  rating = 0,
+  totalReviews = 0,
+  size = 16,
+  showCount = true
+}: {
+  rating?: number;
+  totalReviews?: number;
+  size?: number;
+  showCount?: boolean;
 }) => (
   <div className="flex items-center gap-1">
     <div className="flex items-center">
@@ -85,31 +65,23 @@ const SimpleStarRating = ({
       ))}
     </div>
     {showCount && (
-      <span className="text-sm text-gray-500 ml-1">
+      <span className="text-xs sm:text-sm text-gray-500 ml-1">
         {totalReviews > 0 ? `(${totalReviews})` : '(0)'}
       </span>
     )}
   </div>
 );
 
-// ===== PRODUCT CARD COMPONENT =====
-
-/**
- * ProductCard - Renders a single product card with image, details, and actions
- * 
- * Features:
- * - Hover animations (scale-up, shadow effects)
- * - Add to cart and wishlist functionality
- * - Price display with discount indication
- * - Star rating display
- * - Responsive design
- * 
- * @param props - ProductCardProps containing product data and optional settings
- * @returns JSX.Element representing the product card
- */
+// ===== PRODUCT CARD =====
 function ProductCard({ product, showSale = false }: ProductCardProps) {
   const discountPercentage = calculateDiscountPercent(product.originalPrice, product.discountedPrice);
   const hasDiscount = discountPercentage > 0;
+
+  const imageUrl = Array.isArray(product.imageUrl) && product.imageUrl.length > 0
+    ? product.imageUrl[0]
+    : typeof product.imageUrl === 'string'
+      ? product.imageUrl
+      : '/placeholder-image.png';
 
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -117,28 +89,21 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
     console.log('Quick view:', product.title);
   };
 
-  const imageUrl = Array.isArray(product.imageUrl) && product.imageUrl.length > 0
-    ? product.imageUrl[0]
-    : typeof product.imageUrl === 'string'
-    ? product.imageUrl
-    : '/placeholder-image.png';
-
   return (
-    <div className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-neutral-200">
-      {/* Image Section */}
+    <div className="group flex h-full flex-col bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-neutral-200 w-full">
+      {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-neutral-50">
-        {/* Action Buttons - Right Side */}
+        {/* Wishlist Button */}
         <div className="absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-          <button 
+          <button
             onClick={handleQuickView}
             title="Add to wishlist"
-            className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 hover:text-[#E43C3C] transition-all duration-200"
+            className="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 hover:text-[#E43C3C] transition-all duration-200"
           >
-            <CiHeart className="w-4 h-4" />
+            <CiHeart className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
-        {/* Product Image */}
         <Link href={`products/${product.id}`}>
           <Image
             src={imageUrl}
@@ -154,22 +119,22 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
         </Link>
       </div>
 
-      {/* Product Details */}
-      <div className="p-3">
-        {/* Product Name */}
+      {/* Details */}
+  <div className="p-3 sm:p-4 flex flex-1 flex-col gap-2">
+        {/* Title */}
         <Link href={`/products/${product.id}`}>
-          <h3 className="font-medium text-[#2E2E2E] mb-1.5 text-xs hover:text-[#E43C3C] transition-colors line-clamp-2 leading-tight">
+          <h3 className="font-medium text-[#2E2E2E] mb-1.5 text-xs sm:text-sm md:text-base hover:text-[#E43C3C] transition-colors line-clamp-2 leading-tight">
             {product.title}
           </h3>
         </Link>
-  
-        {/* Price Section */}
+
+        {/* Price */}
         <div className="flex items-center gap-1 mb-2">
-          <span className="text-[#E43C3C] font-bold text-sm">
+          <span className="text-[#E43C3C] font-bold text-sm sm:text-base">
             {formatGhs(product.discountedPrice)}
           </span>
           {hasDiscount && product.originalPrice && (
-            <span className="text-gray-400 text-xs line-through">
+            <span className="text-gray-400 text-xs sm:text-sm line-through">
               {formatGhs(product.originalPrice)}
             </span>
           )}
@@ -177,68 +142,50 @@ function ProductCard({ product, showSale = false }: ProductCardProps) {
 
         {/* Rating */}
         <div className="flex items-center gap-1 mb-2.5">
-          <SimpleStarRating 
-            rating={Math.round(product.averageRating || 0)} 
+          <SimpleStarRating
+            rating={Math.round(product.averageRating || 0)}
             totalReviews={product.totalReviews || product._count?.reviews || 0}
             size={12}
             showCount={true}
           />
         </div>
 
-        {/* Add to Cart Button */}
-        <AddToCartButton 
-          productId={product.id}
-          quantity={1}
-          variant="small"
-          onSuccess={() => console.log(`✅ ${product.title} added to cart`)}
-          onError={(msg) => console.error(`❌ Failed to add ${product.title}:`, msg)}
-        />
+        {/* Add to Cart */}
+        <div className="pt-2 mt-auto">
+          <AddToCartButton
+            productId={product.id}
+            quantity={1}
+            variant="small"
+            className="w-full"
+            onSuccess={() => console.log(`✅ ${product.title} added to cart`)}
+            onError={(msg) => console.error(`❌ Failed to add ${product.title}:`, msg)}
+          />
+        </div>
       </div>
     </div>
   );
 }
 
-// ===== PRODUCTS GRID COMPONENT =====
-
-/**
- * ProductsGrid - Renders a horizontally scrollable row of product cards
- * 
- * Features:
- * - Horizontal scroll layout with snap scrolling
- * - Empty state handling
- * - Optimized for performance with React keys
- * - Smooth scrolling with hidden scrollbar
- * 
- * @param props - ProductsGridProps containing array of products
- * @returns JSX.Element representing the products grid or empty state
- */
+// ===== PRODUCTS GRID =====
 function ProductsGrid({ products }: ProductsGridProps) {
   if (!products || products.length === 0) {
     return (
-      <div className="flex-1">
-        <div className="text-center py-20">
-          <p className="text-gray-500 text-lg">No products available</p>
-        </div>
+      <div className="flex-1 text-center py-16 sm:py-24">
+        <p className="text-gray-500 text-sm sm:text-base md:text-lg">No products available</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1">
-      {/* Horizontal Scroll Container */}
-      <div className="relative">
-        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide scroll-smooth">
-          {products.map((product) => (
-            <div key={product.id} className="flex-none w-[160px] sm:w-[180px] md:w-[200px] snap-start">
-              <ProductCard product={product} />
-            </div>
-          ))}
-        </div>
+    <div className="flex-1 w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6 px-2 sm:px-4 md:px-6 auto-rows-fr">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
       </div>
     </div>
   );
 }
 
-// ===== EXPORTS =====
 export default ProductCard;
 export { ProductsGrid, SimpleStarRating };
