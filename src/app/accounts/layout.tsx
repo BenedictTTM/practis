@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import ProtectedRoute from '@/Components/Auth/ProtectedRoute';
 import VerticalNavigation from '@/Components/Navigation/verticalProductNav';
 import Footer from '@/Components/Footer/footer';
 import TopBar from '../../Components/Header/topbar';
@@ -14,7 +15,8 @@ export default function AccountsLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <ProtectedRoute>
+      <div className="min-h-screen flex flex-col bg-white">
       {/* Top bar at the top */}
       <div className="relative z-50">
         <TopBar />
@@ -26,6 +28,7 @@ export default function AccountsLayout({
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          aria-label="Toggle dashboard navigation"
         >
           <Menu className="w-6 h-6 text-gray-700" />
         </button>
@@ -49,6 +52,7 @@ export default function AccountsLayout({
             <button
               onClick={() => setIsSidebarOpen(false)}
               className="p-2 rounded-lg hover:bg-gray-100 transition"
+              aria-label="Close navigation"
             >
               ✕
             </button>
@@ -73,5 +77,6 @@ export default function AccountsLayout({
       {/* Footer at the bottom */}
       <Footer />
     </div>
+    </ProtectedRoute>
   );
 }

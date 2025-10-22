@@ -23,6 +23,8 @@ const PROTECTED_ROUTES = [
 const PUBLIC_ROUTES = [
   '/auth/login',
   '/auth/signup',
+  '/main/auth/login',
+  '/main/auth/signUp',
   '/auth/forgot-password',
   '/auth/reset-password',
   '/',
@@ -73,11 +75,11 @@ export function middleware(request: NextRequest) {
       );
     }
 
-    // For page routes, redirect to login with return URL
-    const loginUrl = new URL('/auth/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
+  // For page routes, redirect to sign-up with return URL
+  const signupUrl = new URL('/main/auth/signUp', request.url);
+  signupUrl.searchParams.set('redirect', pathname);
     
-    const response = NextResponse.redirect(loginUrl);
+  const response = NextResponse.redirect(signupUrl);
     
     // Add security headers
     response.headers.set('X-Frame-Options', 'DENY');
@@ -87,7 +89,10 @@ export function middleware(request: NextRequest) {
   }
 
   // If authenticated and trying to access auth pages, redirect to main
-  if (isAuthenticated && pathname.startsWith('/auth/')) {
+  if (
+    isAuthenticated &&
+    (pathname.startsWith('/auth/') || pathname.startsWith('/main/auth/'))
+  ) {
     return NextResponse.redirect(new URL('/main/products', request.url));
   }
 

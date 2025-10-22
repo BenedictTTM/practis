@@ -6,6 +6,11 @@ export class AuthService {
   // Login user with email and password
   static async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
+      console.log('🚀 [AUTH] Login attempt:', {
+        url: `${API_URL}/auth/login`,
+        email: credentials.email
+      });
+
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -15,15 +20,40 @@ export class AuthService {
         body: JSON.stringify(credentials),
       });
 
-      const data = await response.json();
+      console.log('📡 [AUTH] Login response status:', response.status, response.statusText);
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+      // Get response text first to handle both JSON and HTML responses
+      const responseText = await response.text();
+      console.log('📄 [AUTH] Raw response (first 200 chars):', responseText.substring(0, 200));
+
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log('✅ [AUTH] Parsed JSON response:', data);
+      } catch (parseError) {
+        console.error('❌ [AUTH] Failed to parse response as JSON');
+        console.error('📄 [AUTH] Full response:', responseText);
+        
+        if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
+          throw new Error(
+            `API returned HTML instead of JSON. Status: ${response.status}\n` +
+            `This usually means the endpoint doesn't exist or backend is not running.`
+          );
+        }
+        
+        throw new Error(`Invalid response from server: ${responseText.substring(0, 100)}`);
       }
 
+      if (!response.ok) {
+        console.error('❌ [AUTH] Login failed:', data);
+        throw new Error(data.message || `Login failed with status ${response.status}`);
+      }
+
+      console.log('✅ [AUTH] Login successful');
       return data;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('💥 [AUTH] Login error:', error);
       throw error;
     }
   }
@@ -31,6 +61,11 @@ export class AuthService {
   // Register new user
   static async signup(userData: SignupRequest): Promise<AuthResponse> {
     try {
+      console.log('🚀 [AUTH] Signup attempt:', {
+        url: `${API_URL}/auth/signup`,
+        userData: { ...userData, password: '***' } // Hide password in logs
+      });
+
       const response = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
         headers: {
@@ -40,15 +75,46 @@ export class AuthService {
         body: JSON.stringify(userData),
       });
 
-      const data = await response.json();
+      console.log('📡 [AUTH] Signup response status:', response.status, response.statusText);
+      console.log('📡 [AUTH] Response headers:', Object.fromEntries(response.headers.entries()));
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Signup failed');
+      // Get response text first to handle both JSON and HTML responses
+      const responseText = await response.text();
+      console.log('📄 [AUTH] Raw response (first 200 chars):', responseText.substring(0, 200));
+
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log('✅ [AUTH] Parsed JSON response:', data);
+      } catch (parseError) {
+        console.error('❌ [AUTH] Failed to parse response as JSON');
+        console.error('📄 [AUTH] Full response:', responseText);
+        
+        // If response is HTML (likely 404 or error page)
+        if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
+          throw new Error(
+            `API returned HTML instead of JSON. This usually means:\n` +
+            `1. The endpoint doesn't exist (404)\n` +
+            `2. Backend is not running\n` +
+            `3. Wrong API URL\n` +
+            `Status: ${response.status} ${response.statusText}\n` +
+            `URL: ${API_URL}/auth/signup`
+          );
+        }
+        
+        throw new Error(`Invalid response from server: ${responseText.substring(0, 100)}`);
       }
 
+      if (!response.ok) {
+        console.error('❌ [AUTH] Signup failed:', data);
+        throw new Error(data.message || `Signup failed with status ${response.status}`);
+      }
+
+      console.log('✅ [AUTH] Signup successful');
       return data;
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('💥 [AUTH] Signup error:', error);
       throw error;
     }
   }

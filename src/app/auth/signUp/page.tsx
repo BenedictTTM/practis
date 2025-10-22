@@ -9,10 +9,10 @@ import { PasswordStrengthMeter } from '@/Components/PasswordStrengthMeter/passwo
 import { useToast } from '@/Components/Toast/toast';
 import { SubmitButton } from '@/Components/AuthSubmitButton/SubmitButton';
 import { FormInput } from '@/Components/FormInput/fromInput';
-import CartImage from '../../../../public/CartImage.png';
 import Image from 'next/image';
+import CartImage from '../../../../public/CartImage2.png';
+import { useRouter } from 'next/navigation';
 
-// Zod validation schema
 const signUpSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
   lastName: z.string().min(2, 'Last name must be at least 2 characters'),
@@ -22,117 +22,115 @@ const signUpSchema = z.object({
 
 type SignUpData = z.infer<typeof signUpSchema>;
 
-// Main SignUp Component
 export default function SignUpPage() {
   const {
     register,
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
-    reset
+    reset,
   } = useForm<SignUpData>({
     resolver: zodResolver(signUpSchema),
   });
 
+  const router = useRouter();
   const { showSuccess, showError } = useToast();
   const password = useWatch({ control, name: 'password', defaultValue: '' });
 
   const onSubmit = async (data: SignUpData) => {
-    console.log('🎉 Form submitted!', data);
-
     try {
       const response = await AuthService.signup(data);
-      console.log('✅ Signup response:', response);
+      console.log('✅ Signup successful:', response);
 
-      showSuccess('Account created successfully!', {
-        description: 'Welcome to our platform',
-        action: {
-          label: 'Get Started',
-          onClick: () => {
-            console.log('Redirecting to ...');
-            // e.g., router.push('/dashboard');
-          }
-        }
-      });
-      reset();
+      if (response?.success) {
+        showSuccess('Account created successfully!', {
+          description: 'Welcome to our platform!',
+        });
+
+        setTimeout(() => {
+          console.log('🚀 Redirecting to /products...');
+          router.push('/main/products');
+          reset();
+        }, 500);
+      } else {
+        throw new Error('Signup failed — no success response.');
+      }
     } catch (error) {
       console.error('❌ Signup error:', error);
-
       showError('Signup failed', {
         description: (error as Error).message || 'Something went wrong',
-        action: {
-          label: 'Try Again',
-          onClick: () => {
-            console.log('Retrying...');
-          }
-        }
       });
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-white">
-      <div className="flex w-full">
-        {/* Image Section */}
-        <div className="flex-1">
-          <Image 
-            src={CartImage} 
-            alt="Cart Image" 
-            className="w-full h-screen object-cover py-10" 
-          />
-        </div>
+    <div className="min-h-screen flex flex-col md:flex-row bg-white">
+      {/* Image Section */}
+      <div className="relative hidden md:flex md:w-1/2 lg:w-3/5">
+        <Image src={CartImage} alt="Cart" fill className="object-cover" />
+      </div>
 
-        {/* SignUp Form Section */}
-        <div className="flex-1 flex items-center justify-center bg-white">
-          <div className="w-full max-w-sm px-8">
-            <div className="mb-8 ">
-              <h1 className="text-3xl font-semibold text-black mb-4">Create an account</h1>
-              <p className="text-sm text-gray-700">Enter your details below</p>
-            </div>
+      {/* Form Section */}
+      <div className="flex w-full md:w-1/2 lg:w-2/5 items-center justify-center p-6 sm:p-8 md:p-10 lg:p-16 bg-white">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center md:text-left">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-red-900 mb-2">
+              Create an Account
+            </h1>
+            <p className="text-sm sm:text-base text-red-900">
+              Enter your details below
+            </p>
+          </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <FormInput
-                placeholder="First Name"
-                register={register('firstName')}
-                error={errors.firstName?.message}
-              />
-              <FormInput
-                placeholder="Last Name"
-                register={register('lastName')}
-                error={errors.lastName?.message}
-              />
-              <FormInput
-                type="email"
-                placeholder="Email or Phone Number"
-                register={register('email')}
-                error={errors.email?.message}
-              />
-              <FormInput
-                type="password"
-                placeholder="Password"
-                register={register('password')}
-                error={errors.password?.message}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <FormInput
+              placeholder="First Name"
+              register={register('firstName')}
+              error={errors.firstName?.message}
+            />
+            <FormInput
+              placeholder="Last Name"
+              register={register('lastName')}
+              error={errors.lastName?.message}
+            />
+            <FormInput
+              type="email"
+              placeholder="Email or Phone Number"
+              register={register('email')}
+              error={errors.email?.message}
+            />
+            <FormInput
+              type="password"
+              placeholder="Password"
+              register={register('password')}
+              error={errors.password?.message}
+            >
+              <PasswordStrengthMeter password={password} />
+            </FormInput>
+
+            <SubmitButton isSubmitting={isSubmitting} loadingText="Creating account...">
+              Create Account
+            </SubmitButton>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account?{' '}
+              <a
+                href="/auth/login"
+                className="font-medium text-blue-700 hover:underline hover:text-blue-600"
               >
-                <PasswordStrengthMeter password={password} />
-              </FormInput>
-
-              <SubmitButton isSubmitting={isSubmitting} loadingText="Creating account...">
-                Create Account
-              </SubmitButton>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Already have account?{' '}
-                <a href="/auth/login" className="font-medium underline text-blue-700 hover:text-blue-600 ">
-                  Log In
-                </a>
-              </p>
-            </div>
+                Log In
+              </a>
+            </p>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Image */}
+      <div className="relative w-full h-48 mt-4 md:hidden">
+        <Image src={CartImage} alt="Cart" fill className="object-cover rounded-t-lg" />
       </div>
     </div>
   );
 }
-

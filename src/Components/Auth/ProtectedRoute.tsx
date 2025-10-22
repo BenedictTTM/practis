@@ -38,7 +38,7 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({
   children,
   fallback,
-  redirectTo = '/auth/login',
+  redirectTo = '/auth/signUp',
 }: ProtectedRouteProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -62,21 +62,21 @@ export default function ProtectedRoute({
         credentials: 'include',
         cache: 'no-store',
       });
-
+ 
       if (response.ok) {
         setIsAuthenticated(true);
       } else {
         setIsAuthenticated(false);
         // Redirect to login with return URL
-        const loginUrl = `${redirectTo}?redirect=${encodeURIComponent(pathname)}`;
-        router.push(loginUrl);
+  const signupUrl = `${redirectTo}?redirect=${encodeURIComponent(pathname)}`;
+  router.push(signupUrl);
       }
     } catch (error) {
       console.error('Authentication check failed:', error);
       setIsAuthenticated(false);
       // Redirect on error (network issue, etc.)
-      const loginUrl = `${redirectTo}?redirect=${encodeURIComponent(pathname)}`;
-      router.push(loginUrl);
+  const signupUrl = `${redirectTo}?redirect=${encodeURIComponent(pathname)}`;
+  router.push(signupUrl);
     } finally {
       setIsLoading(false);
     }
