@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import { Product } from "../../../../types/products";
-import { 
-  ProductDetailSkeleton, 
-  ErrorMessage, 
+import {
+  ProductDetailSkeleton,
+  ErrorMessage,
   NotFoundMessage,
-  ShareProduct 
+  ShareProduct,
 } from "../../../../Components/Products/common";
 import {
   ProductGallery,
@@ -16,7 +16,7 @@ import {
   ProductOptions,
   ProductActions,
   ProductDetails,
-  ProductReviews
+  ProductReviews,
 } from "../../../../Components/Products/details";
 import { addToCart as addToCartAPI } from "../../../../lib/cart";
 
@@ -53,18 +53,18 @@ export default function ProductDetailPage() {
         const payload = (body && (body.data ?? body)) ?? null;
 
         if (!response.ok) {
-          const message = payload?.message ?? response.statusText ?? "Failed to fetch product";
+          const message =
+            payload?.message ?? response.statusText ?? "Failed to fetch product";
           setError(`Error fetching product: ${message}`);
           setProduct(null);
         } else {
           setProduct(payload as Product);
-          // ensure selected image index reset
           setSelectedImageIndex(0);
           setQuantity(1);
           setSelectedSize(null);
         }
       } catch (err: any) {
-        if (err.name === "AbortError") return; // ignore
+        if (err.name === "AbortError") return;
         console.error(err);
         setError(String(err?.message ?? err));
       } finally {
@@ -75,14 +75,16 @@ export default function ProductDetailPage() {
     return () => controller.abort();
   }, [productId]);
 
-  // Derived data
-  const images = product?.images && product.images.length > 0 ? product.images : product?.imageUrl ?? [];
+  const images =
+    product?.images && product.images.length > 0
+      ? product.images
+      : product?.imageUrl ?? [];
   const inStock = (product?.stock ?? 0) > 0 && !product?.isSold;
-  
-  // Extract sizes from tags or use defaults
-  const sizes = product?.tags?.filter((t) => /^(s|m|l|xl|xxl|3xl|4xl|5xl)$/i.test(t)) ?? ["S", "M", "L", "XL", "XXL"];
+  const sizes =
+    product?.tags?.filter((t) =>
+      /^(s|m|l|xl|xxl|3xl|4xl|5xl)$/i.test(t)
+    ) ?? ["S", "M", "L", "XL", "XXL"];
 
-  // Event handlers
   function increaseQuantity() {
     if (!product?.stock) return;
     setQuantity((q) => Math.min(product.stock!, q + 1));
@@ -98,51 +100,44 @@ export default function ProductDetailPage() {
 
   async function addToCart() {
     if (!product || !inStock || addingToCart) return;
-    
+
     setAddingToCart(true);
     console.log("🛒 Adding to cart:", { productId: product.id, quantity, selectedSize });
-    
+
     const result = await addToCartAPI(product.id, quantity);
-    
+
     if (result.success) {
       console.log("✅ Successfully added to cart:", product.title);
       alert(`${product.title} (${quantity}) added to cart successfully!`);
-      // Optionally reset quantity after successful add
       setQuantity(1);
     } else {
-      // Check if error is due to authentication (401 Unauthorized)
       if (result.statusCode === 401) {
-        console.log('🔐 User not authenticated, redirecting to login...');
-        // Redirect to login with current page as return URL
+        console.log("🔐 Redirecting to login...");
         const redirectUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
         router.push(redirectUrl);
-        return; // Exit early
+        return;
       }
-      
-      // For other errors, show alert
       console.error("❌ Failed to add to cart:", result.message);
       alert(`Failed to add to cart: ${result.message}`);
     }
-    
+
     setAddingToCart(false);
   }
 
   function retryFetch() {
     if (productId) {
       setError(null);
-      // Re-trigger the fetch by updating a dependency
       setLoading(true);
     }
   }
 
-  // Handle loading and error states
   if (loading) return <ProductDetailSkeleton />;
-  
+
   if (error) {
     return (
-      <ErrorMessage 
-        message={error} 
-        subText="Try refreshing or check that the product id in the URL is correct." 
+      <ErrorMessage
+        message={error}
+        subText="Try refreshing or check that the product ID in the URL is correct."
         onRetry={retryFetch}
       />
     );
@@ -153,48 +148,48 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Images */}
-        <div className="lg:col-span-1">
-          <ProductGallery 
-            images={images}
-            title={product.title}
-            selectedImageIndex={selectedImageIndex}
-            onImageSelect={setSelectedImageIndex}
-          />
-            <ShareProduct/>
-        </div>
-      
+    <div className="px-3 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-6 sm:py-8 md:py-10 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-10">
+          {/* Left: Product Gallery */}
+          <div className="lg:col-span-1 space-y-4">
+            <ProductGallery
+              images={images}
+              title={product.title}
+              selectedImageIndex={selectedImageIndex}
+              onImageSelect={setSelectedImageIndex}
+            />
+            <div className="mt-4 sm:mt-6">
+              <ShareProduct />
+            </div>
+          </div>
 
-        {/* Right: Details */}
-        <div className="lg:col-span-2">
-          <ProductHeader product={product} />
+          {/* Right: Product Details */}
+          <div className="lg:col-span-2 space-y-8">
+            <ProductHeader product={product} />
 
-          <ProductInfo 
-            product={product}
-            inStock={inStock}
-          />
+            <ProductInfo product={product} inStock={inStock} />
 
-          <ProductOptions 
-            sizes={sizes}
-            selectedSize={selectedSize}
-            onSelectSize={selectSize}
-          />
+            <ProductOptions
+              sizes={sizes}
+              selectedSize={selectedSize}
+              onSelectSize={selectSize}
+            />
 
-          <ProductActions 
-            productId={product.id}
-            quantity={quantity}
-            maxQuantity={product.stock}
-            inStock={inStock}
-            onIncreaseQuantity={increaseQuantity}
-            onDecreaseQuantity={decreaseQuantity}
-            onAddToCart={addToCart}
-          />
+            <ProductActions
+              productId={product.id}
+              quantity={quantity}
+              maxQuantity={product.stock}
+              inStock={inStock}
+              onIncreaseQuantity={increaseQuantity}
+              onDecreaseQuantity={decreaseQuantity}
+              onAddToCart={addToCart}
+            />
 
-          <ProductDetails product={product} />
-          
-          <ProductReviews product={product} />
+            <ProductDetails product={product} />
+
+            <ProductReviews product={product} />
+          </div>
         </div>
       </div>
     </div>

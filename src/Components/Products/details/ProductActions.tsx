@@ -12,36 +12,40 @@ interface ProductActionsProps {
   onAddToCart?: () => void;
 }
 
-export default function ProductActions({ 
+export default function ProductActions({
   productId,
-  quantity, 
-  maxQuantity, 
+  quantity,
+  maxQuantity,
   inStock,
-  onIncreaseQuantity, 
+  onIncreaseQuantity,
   onDecreaseQuantity,
-  onAddToCart 
+  onAddToCart,
 }: ProductActionsProps) {
   return (
-    <div className="mt-8 space-y-4">
+    <section className="mt-8 w-full px-2 sm:px-4 md:px-6 space-y-5 sm:space-y-6">
       {/* Quantity Selector */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Quantity:
-        </label>
-        <QuantitySelector 
-          quantity={quantity}
-          maxQuantity={maxQuantity}
-          onIncrease={onIncreaseQuantity}
-          onDecrease={onDecreaseQuantity}
-        />
-        {maxQuantity && maxQuantity > 0 && (
-          <p className="mt-1 text-xs text-gray-500">({maxQuantity} available)</p>
-        )}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="w-full sm:w-auto flex-1">
+          <label className="block text-sm sm:text-base font-medium text-gray-700 mb-1.5 sm:mb-2">
+            Quantity:
+          </label>
+          <QuantitySelector
+            quantity={quantity}
+            maxQuantity={maxQuantity}
+            onIncrease={onIncreaseQuantity}
+            onDecrease={onDecreaseQuantity}
+          />
+          {maxQuantity && maxQuantity > 0 && (
+            <p className="mt-1 text-xs sm:text-sm text-gray-500">
+              ({maxQuantity} available)
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Add to Cart Button */}
       {inStock ? (
-        <AddToCartButton 
+        <AddToCartButton
           productId={productId}
           quantity={quantity}
           variant="default"
@@ -50,18 +54,19 @@ export default function ProductActions({
             onAddToCart?.();
           }}
           onError={(msg) => {
-            console.error('❌ Add to cart failed:', msg);
+            console.error("❌ Add to cart failed:", msg);
             alert(`Failed to add to cart: ${msg}`);
           }}
+          className="w-full sm:w-auto min-w-[200px] py-3 sm:py-4 text-base sm:text-lg rounded-xl font-semibold shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
         />
       ) : (
         <button
           disabled
-          className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gray-300 text-white font-semibold rounded-lg cursor-not-allowed"
+          className="w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 px-6 py-3 sm:py-4 bg-gray-300 text-white text-base sm:text-lg font-semibold rounded-xl cursor-not-allowed"
         >
           Out of Stock
         </button>
       )}
-    </div>
+    </section>
   );
 }
