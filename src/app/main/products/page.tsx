@@ -168,10 +168,7 @@ export default function ProductsPage() {
             <ServiceFeatures />
           </div>
 
-          {/* Right Side - Sidebar */}
-          <aside className="lg:w-80 lg:flex-shrink-0">
-            <ProductSidebar onFiltersChange={handleFiltersChange} />
-          </aside>
+
         </div>
       </div>
     </div>

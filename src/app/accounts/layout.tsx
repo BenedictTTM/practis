@@ -4,7 +4,6 @@ import { useState } from 'react';
 import ProtectedRoute from '@/Components/Auth/ProtectedRoute';
 import VerticalNavigation from '@/Components/Navigation/verticalProductNav';
 import Footer from '@/Components/Footer/footer';
-import TopBar from '../../Components/Header/topbar';
 import { Menu } from 'lucide-react';
 
 export default function AccountsLayout({
@@ -17,10 +16,6 @@ export default function AccountsLayout({
   return (
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col bg-white">
-      {/* Top bar at the top */}
-      <div className="relative z-50">
-        <TopBar />
-      </div>
 
       {/* Mobile toggle button (only visible on small screens) */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white lg:hidden">

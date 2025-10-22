@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   LayoutGrid,
   Tag,
@@ -20,56 +20,61 @@ import { userService } from '@/services/userService';
 
 export default function Sidebar() {
   const router = useRouter();
-  const [isProductsOpen, setIsProductsOpen] = useState(true);
-  const [activeItem, setActiveItem] = useState('Product Grid');
-  const [isMobileOpen, setIsMobileOpen] = useState(true);
+  const pathname = usePathname();
+
+  const [activeItem, setActiveItem] = useState('');
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{
     firstName?: string;
     lastName?: string;
     profilePic?: string | null;
   } | null>(null);
 
+  // ✅ Detect active item by route
   useEffect(() => {
-    loadUserProfile();
+    if (pathname.includes('/accounts/addProducts')) setActiveItem('Add Product');
+    else if (pathname.includes('/accounts/grid')) setActiveItem('Product Grid');
+    else if (pathname.includes('/accounts/customers')) setActiveItem('Customers');
+    else if (pathname.includes('/accounts/analytics')) setActiveItem('Analytics');
+    else if (pathname.includes('/accounts/notifications')) setActiveItem('Notifications');
+    else if (pathname.includes('/accounts/settings')) setActiveItem('Settings');
+    else setActiveItem('Dashboard');
+  }, [pathname]);
+
+  // ✅ Load user profile once
+  useEffect(() => {
+    (async () => {
+      try {
+        const authResponse = await fetch('/api/auth/session', { credentials: 'include' });
+        if (!authResponse.ok) return;
+
+        const authData = await authResponse.json();
+        const currentUserId = authData.user?.id || authData.id;
+
+        if (currentUserId) {
+          const profile = await userService.getUserProfile(currentUserId);
+          setUserProfile({
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            profilePic: profile.profilePic,
+          });
+        }
+      } catch (err) {
+        console.error('Error loading user profile:', err);
+      }
+    })();
   }, []);
 
-  const loadUserProfile = async () => {
-    try {
-      const authResponse = await fetch('/api/auth/session', {
-        credentials: 'include',
-      });
+  const getUserInitials = () =>
+    userProfile?.firstName && userProfile?.lastName
+      ? `${userProfile.firstName[0]}${userProfile.lastName[0]}`.toUpperCase()
+      : 'U';
 
-      if (!authResponse.ok) return;
-
-      const authData = await authResponse.json();
-      const currentUserId = authData.user?.id || authData.id;
-
-      if (currentUserId) {
-        const profile = await userService.getUserProfile(currentUserId);
-        setUserProfile({
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          profilePic: profile.profilePic,
-        });
-      }
-    } catch (err) {
-      console.error('Error loading user profile:', err);
-    }
-  };
-
-  const getUserInitials = () => {
-    if (userProfile?.firstName && userProfile?.lastName) {
-      return `${userProfile.firstName[0]}${userProfile.lastName[0]}`.toUpperCase();
-    }
-    return 'U';
-  };
-
-  const getUserFullName = () => {
-    if (userProfile?.firstName && userProfile?.lastName) {
-      return `${userProfile.firstName} ${userProfile.lastName}`;
-    }
-    return 'User';
-  };
+  const getUserFullName = () =>
+    userProfile?.firstName && userProfile?.lastName
+      ? `${userProfile.firstName} ${userProfile.lastName}`
+      : 'User';
 
   const menuItems = [
     { icon: LayoutGrid, label: 'Dashboard', path: '/accounts' },
@@ -89,12 +94,12 @@ export default function Sidebar() {
   ];
 
   const handleLogout = () => {
-    try {
-      localStorage.removeItem('token');
-    } catch {
-      // ignore
-    }
+    localStorage.removeItem('token');
     router.push('/auth/login');
+  };
+
+  const toggleSubmenu = (label: string) => {
+    setOpenSubmenu(openSubmenu === label ? null : label);
   };
 
   return (
@@ -142,9 +147,7 @@ export default function Sidebar() {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-gray-900 truncate">
-                {getUserFullName()}
-              </h3>
+              <h3 className="text-sm font-semibold text-gray-900 truncate">{getUserFullName()}</h3>
               <p className="text-xs text-gray-500">Administrator</p>
             </div>
           </div>
@@ -157,7 +160,7 @@ export default function Sidebar() {
               <button
                 onClick={() => {
                   if (item.hasSubmenu) {
-                    setIsProductsOpen(!isProductsOpen);
+                    toggleSubmenu(item.label);
                   } else {
                     setActiveItem(item.label);
                     router.push(item.path);
@@ -183,13 +186,13 @@ export default function Sidebar() {
                 {item.hasSubmenu && (
                   <ChevronDown
                     className={`w-4 h-4 text-gray-400 transition-transform ${
-                      isProductsOpen ? '' : '-rotate-90'
+                      openSubmenu === item.label ? 'rotate-0' : '-rotate-90'
                     }`}
                   />
                 )}
               </button>
 
-              {item.hasSubmenu && isProductsOpen && (
+              {item.hasSubmenu && openSubmenu === item.label && (
                 <div className="mt-1 ml-3 space-y-1">
                   {item.submenu.map((subItem, subIndex) => (
                     <button
@@ -207,9 +210,7 @@ export default function Sidebar() {
                     >
                       <subItem.icon
                         className={`w-4 h-4 ${
-                          activeItem === subItem.label
-                            ? 'text-red-600'
-                            : 'text-gray-500'
+                          activeItem === subItem.label ? 'text-red-600' : 'text-gray-500'
                         }`}
                       />
                       <span>{subItem.label}</span>
