@@ -74,7 +74,7 @@ export default function SignUpPage() {
       <div className="flex w-full md:w-1/2 lg:w-2/5 items-center justify-center p-6 sm:p-8 md:p-10 lg:p-16 bg-white">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center md:text-left">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-red-900 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-2">
               Create an Account
             </h1>
             <p className="text-sm sm:text-base text-red-900">

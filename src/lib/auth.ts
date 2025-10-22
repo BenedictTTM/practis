@@ -2,6 +2,9 @@ import { User, LoginRequest, SignupRequest, AuthResponse } from '@/types/auth';
 // Use Next.js API proxy routes so cookies are scoped to :3000
 const API_URL = '/api';
 
+type PasswordResetRequest = { email: string };
+type PasswordResetPayload = { token: string; newPassword: string };
+
 export class AuthService {
   // Login user with email and password
   static async login(credentials: LoginRequest): Promise<AuthResponse> {
@@ -133,6 +136,60 @@ export class AuthService {
       // Always redirect to login
       window.location.href = '/auth/login';
     }
+  }
+
+  static async requestPasswordReset(data: PasswordResetRequest): Promise<{ message?: string }> {
+    const response = await fetch(`${API_URL}/auth/password-reset/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+
+    const responseText = await response.text();
+    let payload: any = {};
+
+    if (responseText.trim()) {
+      try {
+        payload = JSON.parse(responseText);
+      } catch (error) {
+        console.error('❌ [AUTH] Failed to parse password reset request response:', responseText);
+        throw new Error('Unexpected response from server while requesting password reset');
+      }
+    }
+
+    if (!response.ok) {
+      throw new Error(payload?.message || 'Password reset request failed');
+    }
+
+    return payload;
+  }
+
+  static async resetPassword(data: PasswordResetPayload): Promise<{ message?: string }> {
+    const response = await fetch(`${API_URL}/auth/password-reset/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+
+    const responseText = await response.text();
+    let payload: any = {};
+
+    if (responseText.trim()) {
+      try {
+        payload = JSON.parse(responseText);
+      } catch (error) {
+        console.error('❌ [AUTH] Failed to parse password reset response:', responseText);
+        throw new Error('Unexpected response from server while resetting password');
+      }
+    }
+
+    if (!response.ok) {
+      throw new Error(payload?.message || 'Password reset failed');
+    }
+
+    return payload;
   }
 
   // Get authentication token

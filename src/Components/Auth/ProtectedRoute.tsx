@@ -68,15 +68,15 @@ export default function ProtectedRoute({
       } else {
         setIsAuthenticated(false);
         // Redirect to login with return URL
-  const signupUrl = `${redirectTo}?redirect=${encodeURIComponent(pathname)}`;
-  router.push(signupUrl);
+        const signupUrl = `${redirectTo}?redirect=${encodeURIComponent(pathname)}`;
+        router.push(signupUrl);
       }
     } catch (error) {
       console.error('Authentication check failed:', error);
       setIsAuthenticated(false);
       // Redirect on error (network issue, etc.)
-  const signupUrl = `${redirectTo}?redirect=${encodeURIComponent(pathname)}`;
-  router.push(signupUrl);
+      const signupUrl = `${redirectTo}?redirect=${encodeURIComponent(pathname)}`;
+      router.push(signupUrl);
     } finally {
       setIsLoading(false);
     }

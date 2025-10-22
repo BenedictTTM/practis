@@ -81,7 +81,7 @@ export default function LogInPage() {
             <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-2">
               Log in to Your Account
             </h1>
-            <p className="text-sm sm:text-base text-red-red">
+            <p className="text-sm sm:text-base text-red-900">
               Enter your details below
             </p>
           </div>

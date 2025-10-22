@@ -25,8 +25,10 @@ const PUBLIC_ROUTES = [
   '/auth/signup',
   '/main/auth/login',
   '/main/auth/signUp',
+  '/main/reset-password',
   '/auth/forgot-password',
   '/auth/reset-password',
+  '/main/auth/forgot-password',
   '/',
 ];
 
