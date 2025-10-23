@@ -60,6 +60,15 @@ interface FlashSalesState {
   isEmpty: boolean;
 }
 
+/**
+ * Backend flash sales response format
+ */
+interface FlashSalesApiResponse {
+  products: Product[];
+  nextRefreshAt: string;
+  refreshesIn: number;
+}
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -84,6 +93,7 @@ const SCROLL_CONFIG = {
 /**
  * Custom hook for fetching and managing flash sales products
  * Follows Single Responsibility: handles data fetching only
+ * Now includes timer data from backend
  */
 function useFlashSalesProducts(
   endpoint: string,
@@ -98,6 +108,14 @@ function useFlashSalesProducts(
     isEmpty: false,
   });
 
+  const [timerData, setTimerData] = useState<{
+    nextRefreshAt: string | null;
+    refreshesIn: number | null;
+  }>({
+    nextRefreshAt: null,
+    refreshesIn: null,
+  });
+
   const fetchProducts = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
@@ -106,23 +124,25 @@ function useFlashSalesProducts(
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        cache: 'no-store', // Always get fresh data
       });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Failed to fetch products`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as FlashSalesApiResponse;
       
-      // Handle different API response formats
-      const allProducts = Array.isArray(data) ? data : (data.data || data.products || []);
+      // Extract timer data from backend
+      if (data.nextRefreshAt && data.refreshesIn) {
+        setTimerData({
+          nextRefreshAt: data.nextRefreshAt,
+          refreshesIn: data.refreshesIn,
+        });
+      }
 
-      // Apply business logic: filter and limit
-      const flashSalesProducts = getFlashSalesProducts(allProducts, {
-        minDiscountPercentage: minDiscount,
-        maxProducts,
-        sortBy: 'none', // First 8 by date/ID
-      });
+      // Get products from response (already filtered by backend)
+      const flashSalesProducts = data.products || [];
 
       setState({
         products: flashSalesProducts,
@@ -147,7 +167,7 @@ function useFlashSalesProducts(
     }
   }, [endpoint, minDiscount, maxProducts]);
 
-  return { ...state, fetchProducts };
+  return { ...state, timerData, fetchProducts };
 }
 
 // ============================================================================
@@ -181,7 +201,7 @@ export default function FlashSalesSection({
   // STATE AND DATA FETCHING
   // ==========================================================================
   
-  const { products, loading, error, isEmpty, fetchProducts } = useFlashSalesProducts(
+  const { products, loading, error, isEmpty, timerData, fetchProducts } = useFlashSalesProducts(
     apiEndpoint,
     minDiscount,
     maxProducts,
@@ -196,6 +216,12 @@ export default function FlashSalesSection({
         .catch(err => onError?.(err));
     }
   }, [fetchProducts, initialProducts, onProductsLoaded, onError]);
+
+  // Handler for countdown completion
+  const handleCountdownComplete = useCallback(() => {
+    console.log('[FlashSales] Countdown complete, refreshing...');
+    fetchProducts().catch(console.error);
+  }, [fetchProducts]);
 
   // ==========================================================================
   // MEMOIZED VALUES
@@ -305,7 +331,11 @@ export default function FlashSalesSection({
   if (error && !hasProducts) {
     return (
       <section className={`flash-sales-section ${className}`} aria-labelledby="flash-sales-heading">
-        <FlashSalesCountdown />
+        <FlashSalesCountdown 
+          nextRefreshAt={timerData.nextRefreshAt || undefined}
+          refreshesIn={timerData.refreshesIn || undefined}
+          onCountdownComplete={handleCountdownComplete}
+        />
         {renderErrorState()}
       </section>
     );
@@ -315,7 +345,11 @@ export default function FlashSalesSection({
   if (isEmpty && !loading) {
     return (
       <section className={`flash-sales-section ${className}`} aria-labelledby="flash-sales-heading">
-        <FlashSalesCountdown />
+        <FlashSalesCountdown 
+          nextRefreshAt={timerData.nextRefreshAt || undefined}
+          refreshesIn={timerData.refreshesIn || undefined}
+          onCountdownComplete={handleCountdownComplete}
+        />
         {renderEmptyState()}
       </section>
     );
@@ -327,8 +361,12 @@ export default function FlashSalesSection({
       aria-labelledby="flash-sales-heading"
       role="region"
     >
-      {/* Countdown Timer */}
-      <FlashSalesCountdown />
+      {/* Countdown Timer with real backend data */}
+      <FlashSalesCountdown 
+        nextRefreshAt={timerData.nextRefreshAt || undefined}
+        refreshesIn={timerData.refreshesIn || undefined}
+        onCountdownComplete={handleCountdownComplete}
+      />
 
       {/* Products Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6">

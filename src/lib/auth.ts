@@ -1,4 +1,6 @@
 import { User, LoginRequest, SignupRequest, AuthResponse } from '@/types/auth';
+import { fetchWithTokenRefresh } from './token-refresh';
+
 // Use Next.js API proxy routes so cookies are scoped to :3000
 const API_URL = '/api';
 
@@ -232,31 +234,67 @@ export class AuthService {
     }
   }
 
-  // Make authenticated API request
+  // Make authenticated API request with automatic token refresh
   static async authFetch(url: string, options: RequestInit = {}): Promise<any> {
+    console.log('🔐 [AUTH-FETCH] Making authenticated request:', {
+      url: `${API_URL}${url}`,
+      method: options.method || 'GET',
+    });
+
     const headers = {
       'Content-Type': 'application/json',
       ...options.headers,
     } as Record<string, string>;
 
-    const response = await fetch(`${API_URL}${url}`, {
-      ...options,
-      credentials: 'include',
-      headers,
-    });
+    try {
+      // Use fetchWithTokenRefresh for automatic 401 handling
+      const response = await fetchWithTokenRefresh(`${API_URL}${url}`, {
+        ...options,
+        credentials: 'include',
+        headers,
+      });
 
-    const data = await response.json();
+      console.log('📡 [AUTH-FETCH] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
 
-    if (!response.ok) {
-      // Handle 401 Unauthorized - token expired or invalid
-      if (response.status === 401) {
-        this.logout();
+      // Handle non-JSON responses
+      const contentType = response.headers.get('content-type');
+      const isJson = contentType?.includes('application/json');
+
+      if (!response.ok) {
+        let errorMessage = 'Request failed';
+        
+        if (isJson) {
+          const data = await response.json();
+          errorMessage = data.message || errorMessage;
+        } else {
+          errorMessage = response.statusText || errorMessage;
+        }
+
+        console.error('❌ [AUTH-FETCH] Request failed:', {
+          status: response.status,
+          error: errorMessage,
+        });
+
+        // If still 401 after token refresh attempts, logout
+        if (response.status === 401) {
+          console.error('🚫 [AUTH-FETCH] Authentication failed, logging out...');
+          this.logout();
+        }
+
+        throw new Error(errorMessage);
       }
 
-      throw new Error(data.message || 'Request failed');
+      // Parse JSON response
+      const data = isJson ? await response.json() : null;
+      console.log('✅ [AUTH-FETCH] Request successful');
+      
+      return data;
+    } catch (error) {
+      console.error('💥 [AUTH-FETCH] Request error:', error);
+      throw error;
     }
-
-    return data;
-
   }
 }

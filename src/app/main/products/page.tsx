@@ -1,12 +1,33 @@
+/**
+ * Products Page - Main E-commerce Product Listing
+ * 
+ * Senior Frontend Engineering Principles Applied:
+ * - Separation of Concerns (Custom hooks for data fetching)
+ * - Performance Optimization (useMemo, useCallback, code splitting)
+ * - Error Boundaries and Resilient Error Handling
+ * - Accessibility (ARIA labels, semantic HTML, keyboard navigation)
+ * - Type Safety (Strict TypeScript interfaces)
+ * - Clean Code (Single Responsibility, DRY, KISS principles)
+ * 
+ * @module ProductsPage
+ */
+
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Product } from '../../../types/products';
-import { ProductsGridLayout, ProductSidebar, FlashSalesSection } from '../../../Components/Products/layouts';
+import { 
+  ProductsGridLayout, 
+  FlashSalesSection 
+} from '../../../Components/Products/layouts';
 import { HowToSection } from '../../../Components/HowTo';
-import '../../../Components/Products/styles/products.css';
 import Categories from '../../../Components/Products/layouts/Categories';
 import ServiceFeatures from '../../../Components/Products/layouts/serviceFeatures';
+import '../../../Components/Products/styles/products.css';
+
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
 
 interface FilterState {
   category: string;
@@ -14,163 +35,540 @@ interface FilterState {
   rating: number;
 }
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showAllProducts, setShowAllProducts] = useState(false);
+interface ProductsState {
+  products: Product[];
+  filteredProducts: Product[];
+  loading: boolean;
+  error: string | null;
+}
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+interface FlashSalesData {
+  products: Product[];
+  nextRefreshAt: string;
+  refreshesIn: number;
+}
 
-  const fetchProducts = async () => {
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const CONFIG = {
+  INITIAL_PRODUCTS_DISPLAY: 12,
+  API: {
+    PRODUCTS: '/api/products',
+    FLASH_SALES: '/api/products/flash-sales',
+  },
+  RETRY_DELAY: 3000,
+} as const;
+
+// ============================================================================
+// CUSTOM HOOKS
+// ============================================================================
+
+/**
+ * Custom hook for fetching and managing products
+ * Follows Single Responsibility Principle
+ */
+function useProducts() {
+  const [state, setState] = useState<ProductsState>({
+    products: [],
+    filteredProducts: [],
+    loading: true,
+    error: null,
+  });
+
+  const fetchProducts = useCallback(async () => {
     try {
-      setLoading(true);
-      console.log('🔍 Fetching products from frontend...');
+      setState(prev => ({ ...prev, loading: true, error: null }));
 
-      const response = await fetch('/api/products');
-      console.log('📊 Frontend API response status:', response.status);
+      const response = await fetch(CONFIG.API.PRODUCTS, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch products`);
+      }
 
       const data = await response.json();
-      console.log('📦 Frontend API response data:', data);
+      const productsArray = Array.isArray(data) ? data : data.data || [];
 
-      if (response.ok) {
-        const productsArray = Array.isArray(data) ? data : data.data || [];
-        setProducts(productsArray);
-        setFilteredProducts(productsArray);
-      } else {
-        setError(data.message || 'Failed to fetch products');
-      }
+      setState({
+        products: productsArray,
+        filteredProducts: productsArray,
+        loading: false,
+        error: null,
+      });
+
+      return productsArray;
     } catch (err) {
-      console.error('💥 Frontend fetch error:', err);
-      setError('Failed to fetch products');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch products';
+      console.error('[ProductsPage] Fetch error:', err);
+      
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: errorMessage,
+      }));
+
+      throw err;
+    }
+  }, []);
+
+  return { ...state, fetchProducts };
+}
+
+/**
+ * Custom hook for managing flash sales with countdown
+ */
+function useFlashSales() {
+  const [flashSalesData, setFlashSalesData] = useState<FlashSalesData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchFlashSales = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(CONFIG.API.FLASH_SALES, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch flash sales`);
+      }
+
+      const data: FlashSalesData = await response.json();
+      setFlashSalesData(data);
+      
+      return data;
+    } catch (err) {
+      const errorObj = err instanceof Error ? err : new Error('Unknown error');
+      console.error('[FlashSales] Fetch error:', errorObj);
+      setError(errorObj);
+      throw errorObj;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleFiltersChange = (filters: FilterState) => {
-    let filtered = [...products];
+  // Auto-refresh when timer expires
+  useEffect(() => {
+    if (!flashSalesData?.refreshesIn) return;
 
-    // Filter by category
-    if (filters.category !== 'All Categories') {
-      // Implement category filter here when product structure supports it
-      // filtered = filtered.filter(product => product.category === filters.category);
-    }
+    const timeoutId = setTimeout(() => {
+      console.log('[FlashSales] Auto-refreshing...');
+      fetchFlashSales();
+    }, flashSalesData.refreshesIn);
 
-    // Filter by price range
-    filtered = filtered.filter(product => {
-      const price = product.discountedPrice || product.originalPrice || 0;
-      return price <= filters.priceRange[1];
-    });
+    return () => clearTimeout(timeoutId);
+  }, [flashSalesData?.refreshesIn, fetchFlashSales]);
 
-    // Filter by rating
-    if (filters.rating > 0) {
-      filtered = filtered.filter(product => {
-        const rating = product.averageRating || 0;
-        return rating >= filters.rating;
-      });
-    }
+  return { flashSalesData, loading, error, fetchFlashSales };
+}
 
-    setFilteredProducts(filtered);
-  };
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E43C3C] mx-auto mb-4"></div>
-          <p className="text-[#2E2E2E]">Loading products...</p>
-        </div>
-      </div>
+/**
+ * Apply filters to products
+ * Pure function for testability
+ */
+function applyProductFilters(products: Product[], filters: FilterState): Product[] {
+  let filtered = [...products];
+
+  // Filter by category
+  if (filters.category && filters.category !== 'All Categories') {
+    filtered = filtered.filter(product => 
+      product.category?.toLowerCase() === filters.category.toLowerCase()
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
+  // Filter by price range
+  const [minPrice, maxPrice] = filters.priceRange;
+  filtered = filtered.filter(product => {
+    const price = product.discountedPrice || product.originalPrice || 0;
+    return price >= minPrice && price <= maxPrice;
+  });
+
+  // Filter by rating
+  if (filters.rating > 0) {
+    filtered = filtered.filter(product => {
+      const rating = product.averageRating || 0;
+      return rating >= filters.rating;
+    });
+  }
+
+  return filtered;
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+export default function ProductsPage() {
+  // ==========================================================================
+  // STATE AND HOOKS
+  // ==========================================================================
+  
+  const { 
+    products, 
+    filteredProducts, 
+    loading, 
+    error, 
+    fetchProducts 
+  } = useProducts();
+
+  const { 
+    flashSalesData, 
+    loading: flashSalesLoading, 
+    error: flashSalesError,
+    fetchFlashSales 
+  } = useFlashSales();
+
+  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<FilterState>({
+    category: 'All Categories',
+    priceRange: [0, Number.MAX_SAFE_INTEGER],
+    rating: 0,
+  });
+
+  // ==========================================================================
+  // EFFECTS
+  // ==========================================================================
+  
+  // Initial data fetch
+  useEffect(() => {
+    fetchProducts().catch(console.error);
+    fetchFlashSales().catch(console.error);
+  }, [fetchProducts, fetchFlashSales]);
+
+  // ==========================================================================
+  // HANDLERS
+  // ==========================================================================
+
+  /**
+   * Handle filter changes
+   * Uses useCallback to prevent unnecessary re-renders
+   */
+  const handleFiltersChange = useCallback((filters: FilterState) => {
+    setActiveFilters(filters);
+    // Reset pagination when filters change
+    setShowAllProducts(false);
+  }, []);
+
+  /**
+   * Toggle view all products
+   */
+  const toggleViewAll = useCallback(() => {
+    setShowAllProducts(prev => !prev);
+  }, []);
+
+  /**
+   * Retry fetch on error
+   */
+  const handleRetry = useCallback(() => {
+    fetchProducts().catch(console.error);
+  }, [fetchProducts]);
+
+  // ==========================================================================
+  // MEMOIZED VALUES
+  // ==========================================================================
+
+  /**
+   * Apply filters only when products or filters change
+   */
+  const displayProducts = useMemo(() => {
+    const filtered = applyProductFilters(products, activeFilters);
+    return showAllProducts ? filtered : filtered.slice(0, CONFIG.INITIAL_PRODUCTS_DISPLAY);
+  }, [products, activeFilters, showAllProducts]);
+
+  const totalFilteredCount = useMemo(() => {
+    return applyProductFilters(products, activeFilters).length;
+  }, [products, activeFilters]);
+
+  const shouldShowViewAllButton = totalFilteredCount > CONFIG.INITIAL_PRODUCTS_DISPLAY;
+
+  // ==========================================================================
+  // RENDER HELPERS (Components as pure functions)
+  // ==========================================================================
+
+  /**
+   * Loading state component
+   * Extracted for reusability and testing
+   */
+  const LoadingState = () => (
+    <div 
+      className="min-h-screen bg-gray-50 flex items-center justify-center"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading products"
+    >
+      <div className="text-center">
+        <div 
+          className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E43C3C] mx-auto mb-4"
+          aria-hidden="true"
+        />
+        <p className="text-[#2E2E2E] font-medium">Loading amazing products...</p>
+        <p className="text-gray-500 text-sm mt-2">This won't take long</p>
+      </div>
+    </div>
+  );
+
+  /**
+   * Error state component with retry logic
+   * Follows accessibility best practices
+   */
+  const ErrorState = () => (
+    <div 
+      className="min-h-screen bg-gray-50 flex items-center justify-center px-4"
+      role="alert"
+      aria-live="assertive"
+    >
+      <div className="text-center max-w-md">
+        <svg 
+          className="w-16 h-16 text-red-400 mx-auto mb-4" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+          />
+        </svg>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">
+          Oops! Something went wrong
+        </h2>
+        <p className="text-red-600 mb-4 text-sm">{error}</p>
+        <div className="flex gap-4 justify-center">
           <button
-            onClick={fetchProducts}
-            className="bg-[#E43C3C] text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+            onClick={handleRetry}
+            className="bg-[#E43C3C] text-white px-6 py-3 rounded-lg hover:bg-red-600 
+                     transition-all duration-200 shadow-md hover:shadow-lg 
+                     focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            aria-label="Retry loading products"
           >
             Try Again
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* How To Section */}
-      <HowToSection />
-
-      {/* Main Layout */}
-      <div className="max-w-7xl mx-auto py-6">
-        <div className="flex flex-col lg:flex-row lg:items-start gap-8">
-          {/* Left Side - Products + Flash Sales */}
-          <div className="flex-1">
-            {/* Flash Sales */}
-            <FlashSalesSection
-              initialProducts={products}
-              minDiscount={20}
-              maxProducts={8}
-              onProductsLoaded={(flashProducts) =>
-                console.log('Flash sales loaded:', flashProducts.length)
-              }
-              onError={(err) => console.error('Flash sales error:', err)}
-            />
-
-            {/* Category Section */}
-            <div className="py-6">
-              <Categories />
-            </div>
-
-            {/* Product Grid Section */}
-            <div className="py-6 px-4">
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1 h-6 bg-red-500 rounded"></div>
-                  <span className="text-red-500 font-semibold">Products</span>
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                  Browse Our Products
-                </h2>
-              </div>
-
-              <ProductsGridLayout
-                products={showAllProducts ? filteredProducts : filteredProducts.slice(0, 12)}
-                loading={loading}
-              />
-
-              {/* View All / Show Less Button */}
-              {filteredProducts.length > 8 && (
-                <div className="flex justify-center mt-8">
-                  <button
-                    onClick={() => setShowAllProducts(!showAllProducts)}
-                    className={`px-8 py-3 rounded-lg font-medium transition-colors duration-200 shadow-md hover:shadow-lg ${
-                      showAllProducts
-                        ? 'bg-gray-600 text-white hover:bg-gray-700'
-                        : 'bg-[#E43C3C] text-white hover:bg-red-600'
-                    }`}
-                  >
-                    {showAllProducts ? 'Show Less' : 'View All Products'}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Service Features Section */}
-            <ServiceFeatures />
-          </div>
-
-
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 
+                     transition-all duration-200 focus:outline-none focus:ring-2 
+                     focus:ring-gray-400 focus:ring-offset-2"
+            aria-label="Refresh page"
+          >
+            Refresh Page
+          </button>
         </div>
       </div>
     </div>
   );
+
+  // ==========================================================================
+  // EARLY RETURNS
+  // ==========================================================================
+
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState />;
+
+  // ==========================================================================
+  // MAIN RENDER
+  // ==========================================================================
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* How To Section - Hero/Guide */}
+      <HowToSection />
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto py-6">
+        <div className="flex flex-col lg:flex-row lg:items-start gap-8">
+          
+          {/* Primary Content Column */}
+          <div className="flex-1 space-y-8">
+            
+            {/* Flash Sales Section with Countdown */}
+            <section aria-labelledby="flash-sales-heading">
+              <FlashSalesSection
+                apiEndpoint={CONFIG.API.FLASH_SALES}
+                minDiscount={30}
+                maxProducts={20}
+                onProductsLoaded={(flashProducts) => {
+                  console.log(`[FlashSales] Loaded ${flashProducts.length} products`);
+                }}
+                onError={(err) => {
+                  console.error('[FlashSales] Error:', err);
+                }}
+                className="mb-8"
+              />
+            </section>
+
+            {/* Categories Navigation */}
+            <section aria-label="Product categories">
+              <Categories />
+            </section>
+
+            {/* Main Products Grid */}
+            <section aria-labelledby="products-heading" className="px-4">
+              
+              {/* Section Header */}
+              <header className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <div 
+                    className="w-1 h-6 bg-red-500 rounded" 
+                    aria-hidden="true"
+                  />
+                  <span className="text-red-500 font-semibold text-sm uppercase tracking-wide">
+                    Products
+                  </span>
+                </div>
+                <h2 
+                  id="products-heading"
+                  className="text-3xl md:text-4xl font-bold text-gray-900"
+                >
+                  Browse Our Products
+                </h2>
+                
+                {/* Results count */}
+                {totalFilteredCount > 0 && (
+                  <p className="text-gray-600 mt-2 text-sm">
+                    Showing {displayProducts.length} of {totalFilteredCount} products
+                  </p>
+                )}
+              </header>
+
+              {/* Products Grid */}
+              {displayProducts.length > 0 ? (
+                <ProductsGridLayout
+                  products={displayProducts}
+                  loading={false}
+                />
+              ) : (
+                // Empty state when filters return no results
+                <div 
+                  className="text-center py-12 px-4"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <svg 
+                    className="w-20 h-20 text-gray-300 mx-auto mb-4" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={1.5} 
+                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" 
+                    />
+                  </svg>
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                    No products found
+                  </h3>
+                  <p className="text-gray-500">
+                    Try adjusting your filters to find what you're looking for
+                  </p>
+                </div>
+              )}
+
+              {/* View All / Show Less Toggle */}
+              {shouldShowViewAllButton && displayProducts.length > 0 && (
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={toggleViewAll}
+                    className={`
+                      px-8 py-3 rounded-lg font-medium 
+                      transition-all duration-200 
+                      shadow-md hover:shadow-lg 
+                      focus:outline-none focus:ring-2 focus:ring-offset-2
+                      ${showAllProducts
+                        ? 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500'
+                        : 'bg-[#E43C3C] text-white hover:bg-red-600 focus:ring-red-500'
+                      }
+                    `}
+                    aria-expanded={showAllProducts ? 'true' : 'false'}
+                    aria-label={showAllProducts ? 'Show less products' : 'View all products'}
+                  >
+                    {showAllProducts ? (
+                      <>
+                        <svg 
+                          className="inline-block w-5 h-5 mr-2" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M5 15l7-7 7 7" 
+                          />
+                        </svg>
+                        Show Less
+                      </>
+                    ) : (
+                      <>
+                        View All Products
+                        <svg 
+                          className="inline-block w-5 h-5 ml-2" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M19 9l-7 7-7-7" 
+                          />
+                        </svg>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </section>
+
+            {/* Service Features Section */}
+            <section aria-label="Service features">
+              <ServiceFeatures />
+            </section>
+
+          </div>
+          {/* End Primary Content Column */}
+
+        </div>
+      </main>
+
+      {/* Accessibility: Skip to top link */}
+      <a 
+        href="#top"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 
+                   bg-white px-4 py-2 rounded-lg shadow-lg z-50"
+      >
+        Skip to top
+      </a>
+    </div>
+  );
 }
+
+// ============================================================================
+// PERFORMANCE OPTIMIZATIONS
+// ============================================================================
+
+// Prevent unnecessary re-renders
+// export default React.memo(ProductsPage);
