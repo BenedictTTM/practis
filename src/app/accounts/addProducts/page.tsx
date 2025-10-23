@@ -5,18 +5,104 @@ import { IoAdd, IoImageOutline, IoClose, IoCamera } from 'react-icons/io5';
 import Image from 'next/image';
 import { TfiReload } from "react-icons/tfi";
 import { useToast } from '@/Components/Toast/toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 const MAX_IMAGES = 5;
+
+// Zod validation schema
+const productSchema = z.object({
+  title: z.string()
+    .min(3, 'Title must be at least 3 characters')
+    .max(100, 'Title must be less than 100 characters'),
+  description: z.string()
+    .max(1000, 'Description must be less than 1000 characters')
+    .min(30, 'Description must be at least 30 characters'),
+  originalPrice: z.string()
+    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+      message: 'Original price must be a positive number',
+    }),
+  discountedPrice: z.string()
+    .refine((val) => val === '' || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), {
+      message: 'Discounted price must be a positive number or empty',
+    })
+    .optional(),
+  category: z.string()
+    .min(1, 'Please select a category'),
+  condition: z.string()
+    .min(1, 'Please select a condition'),
+  tags: z.string()
+    .min(1, 'Tags are required')
+    .refine((val) => {
+      const tagsArray = val.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      return tagsArray.length >= 2;
+    }, {
+      message: 'Please provide at least 2 tags separated by commas',
+    }),
+  locationLat: z.string().optional(),
+  locationLng: z.string().optional(),
+  stock: z.string()
+    .refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 0, {
+      message: 'Stock must be a non-negative number',
+    }),
+  images: z.array(z.instanceof(File))
+    .min(1, 'At least one product image is required')
+    .max(MAX_IMAGES, `Maximum ${MAX_IMAGES} images allowed`),
+}).refine((data) => {
+  if (data.discountedPrice && data.discountedPrice !== '') {
+    const original = parseFloat(data.originalPrice);
+    const discounted = parseFloat(data.discountedPrice);
+    return discounted < original;
+  }
+  return true;
+}, {
+  message: 'Discounted price must be less than original price',
+  path: ['discountedPrice'],
+});
+
+type ProductFormData = z.infer<typeof productSchema>;
 
 export default function CreateProductPage() {
   const { showSuccess, showError } = useToast();
 
-  // Add this useEffect to debug cookies
+  // React Hook Form with Zod validation
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    formState: { errors, isSubmitting },
+    watch,
+    reset,
+    setValue,
+    trigger,
+  } = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      originalPrice: '',
+      discountedPrice: '',
+      category: '',
+      condition: '',
+      tags: '',
+      locationLat: '',
+      locationLng: '',
+      stock: '',
+      images: [],
+    },
+  });
+
+  const [images, setImages] = useState<File[]>([]);
+
+  // Watch form values for dynamic calculations
+  const originalPrice = watch('originalPrice');
+  const discountedPrice = watch('discountedPrice');
+
+  // Debug cookies on mount
   useEffect(() => {
     console.log('🍪 All cookies:', document.cookie);
     console.log('🍪 Checking for access_token...');
     
-    // Check if access_token exists
     const cookies = document.cookie.split(';');
     const accessTokenCookie = cookies.find(cookie => 
       cookie.trim().startsWith('access_token=')
@@ -30,33 +116,10 @@ export default function CreateProductPage() {
     }
   }, []);
 
-  const [images, setImages] = useState<File[]>([]);
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    originalPrice: '',
-    discountedPrice: '',
-    category: '',
-    condition: '',
-    tags: '',
-    locationLat: '',
-    locationLng: '',
-    stock: '',
-  });
-
-  const [loading, setLoading] = useState(false);
-  const [discountType, setDiscountType] = useState<'none' | 'percentage' | 'bundling'>('none');
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
   // Calculate discount dynamically
   const calcDiscount = () => {
-    const original = parseFloat(form.originalPrice);
-    const discounted = parseFloat(form.discountedPrice);
+    const original = parseFloat(originalPrice);
+    const discounted = parseFloat(discountedPrice);
     if (!original || !discounted || original === 0) return 0;
     return Math.round(((original - discounted) / original) * 100);
   };
@@ -64,44 +127,40 @@ export default function CreateProductPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      setImages(prev => [...prev, ...files].slice(0, MAX_IMAGES));
+      const newImages = [...images, ...files].slice(0, MAX_IMAGES);
+      setImages(newImages);
+      setValue('images', newImages);
+      trigger('images'); // Trigger validation for images field
     }
   };
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+    setValue('images', newImages);
+    trigger('images'); // Trigger validation for images field
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Form submitted!', form);
-    setLoading(true);
+  const handleSubmit = async (data: ProductFormData) => {
+    console.log('Form submitted!', data);
 
     const discount = calcDiscount();
-    if (discount < 0) {
-      showError('Invalid Discount', {
-        description: 'Discounted price must be less than original price.',
-        duration: 5000,
-      });
-      setLoading(false);
-      return;
-    }
 
     try {
       const formData = new FormData();
       images.forEach(file => formData.append('images', file));
-      formData.append('title', form.title);
-      formData.append('description', form.description);
-      formData.append('originalPrice', form.originalPrice);
-      formData.append('discountedPrice', form.discountedPrice);
-      formData.append('category', form.category);
+      formData.append('title', data.title);
+      formData.append('description', data.description || '');
+      formData.append('originalPrice', data.originalPrice);
+      formData.append('discountedPrice', data.discountedPrice || '');
+      formData.append('category', data.category);
       formData.append('discount', discount.toString());
-      formData.append('condition', form.condition);
-      formData.append('locationLat', form.locationLat);
-      formData.append('locationLng', form.locationLng);
-      formData.append('stock', form.stock);
+      formData.append('condition', data.condition);
+      formData.append('locationLat', data.locationLat || '');
+      formData.append('locationLng', data.locationLng || '');
+      formData.append('stock', data.stock);
 
-      const rawTags = form.tags || "";
+      const rawTags = data.tags || "";
       const tagsArray = rawTags
         .split(',')
         .map(tag => tag.trim())
@@ -109,53 +168,43 @@ export default function CreateProductPage() {
 
       tagsArray.forEach(tag => formData.append('tags', tag));
 
-    console.log("Sending response with cookies")
-      
-
+      console.log("Sending response with cookies");
 
       const response = await fetch('/api/products', {
         method: 'POST',
-        credentials: 'include', // Include cookies
+        credentials: 'include',
         body: formData,
       });
 
       console.log('📊 Response status:', response.status);
-      const data = await response.json();
-      console.log('📦 Response data:', data);
+      const responseData = await response.json();
+      console.log('📦 Response data:', responseData);
 
       if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+        throw new Error(responseData.message || 'Something went wrong');
       }
 
       showSuccess('Product Created Successfully!', {
-        description: `${form.title} has been added to your store.`,
+        description: `${data.title} has been added to your store.`,
         duration: 5000,
         icon: '🎉',
       });
 
-      // Reset form...
+      // Reset form and images
+      reset();
       setImages([]);
-      setForm({
-        title: '',
-        description: '',
-        originalPrice: '',
-        discountedPrice: '',
-        category: '',
-        condition: '',
-        tags: '',
-        locationLat: '',
-        locationLng: '',
-        stock: '',
-      });
     } catch (err: any) {
       showError('Failed to Create Product', {
         description: err.message || 'Please try again later.',
         duration: 5000,
       });
       console.error('Error in handleSubmit:', err);
-    } finally {
-      setLoading(false);
     }
+  };
+
+  const handleReset = () => {
+    reset();
+    setImages([]);
   };
 
   return (
@@ -171,7 +220,7 @@ export default function CreateProductPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleFormSubmit(handleSubmit)}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
             {/* Main Content */}
             <div className="lg:col-span-8 space-y-5">
@@ -188,13 +237,13 @@ export default function CreateProductPage() {
                     <input
                       type="text"
                       id="title"
-                      name="title"
-                      value={form.title}
-                      onChange={handleChange}
-                      required
+                      {...register('title')}
                       className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                       placeholder="Enter product title"
                     />
+                    {errors.title && (
+                      <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+                    )}
                   </div>
 
                   <div>
@@ -203,13 +252,14 @@ export default function CreateProductPage() {
                     </label>
                     <textarea
                       id="description"
-                      name="description"
-                      value={form.description}
-                      onChange={handleChange}
+                      {...register('description')}
                       rows={4}
                       className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none"
                       placeholder="Describe your product"
                     />
+                    {errors.description && (
+                      <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -219,10 +269,7 @@ export default function CreateProductPage() {
                       </label>
                       <select
                         id="category"
-                        name="category"
-                        value={form.category}
-                        onChange={handleChange}
-                        required
+                        {...register('category')}
                         className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                       >
                         <option value="">Select a category</option>
@@ -233,6 +280,9 @@ export default function CreateProductPage() {
                         <option value="sports">Sports & Outdoors</option>
                         <option value="other">Other</option>
                       </select>
+                      {errors.category && (
+                        <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
+                      )}
                     </div>
 
                     <div>
@@ -241,10 +291,7 @@ export default function CreateProductPage() {
                       </label>
                       <select
                         id="condition"
-                        name="condition"
-                        value={form.condition}
-                        onChange={handleChange}
-                        required
+                        {...register('condition')}
                         className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                       >
                         <option value="">Select condition</option>
@@ -254,22 +301,26 @@ export default function CreateProductPage() {
                         <option value="fair">Fair</option>
                         <option value="poor">Poor</option>
                       </select>
+                      {errors.condition && (
+                        <p className="mt-1 text-sm text-red-600">{errors.condition.message}</p>
+                      )}
                     </div>
                   </div>
 
                   <div>
                     <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
-                      Tags
+                      Tags * <span className="text-xs text-gray-500 font-normal">(Minimum 2 tags)</span>
                     </label>
                     <input
                       type="text"
                       id="tags"
-                      name="tags"
-                      value={form.tags}
-                      onChange={handleChange}
+                      {...register('tags')}
                       className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                      placeholder="Enter tags separated by commas"
+                      placeholder="e.g., smartphone, android, samsung (comma separated)"
                     />
+                    {errors.tags && (
+                      <p className="mt-1 text-sm text-red-600">{errors.tags.message}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -290,16 +341,16 @@ export default function CreateProductPage() {
                         <input
                           type="number"
                           id="originalPrice"
-                          name="originalPrice"
-                          value={form.originalPrice}
-                          onChange={handleChange}
-                          required
+                          {...register('originalPrice')}
                           min="0"
                           step="0.01"
                           className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                           placeholder="0.00"
                         />
                       </div>
+                      {errors.originalPrice && (
+                        <p className="mt-1 text-sm text-red-600">{errors.originalPrice.message}</p>
+                      )}
                     </div>
 
                     <div>
@@ -311,15 +362,16 @@ export default function CreateProductPage() {
                         <input
                           type="number"
                           id="discountedPrice"
-                          name="discountedPrice"
-                          value={form.discountedPrice}
-                          onChange={handleChange}
+                          {...register('discountedPrice')}
                           min="0"
                           step="0.01"
                           className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                           placeholder="0.00"
                         />
                       </div>
+                      {errors.discountedPrice && (
+                        <p className="mt-1 text-sm text-red-600">{errors.discountedPrice.message}</p>
+                      )}
                     </div>
                   </div>
 
@@ -340,14 +392,14 @@ export default function CreateProductPage() {
                     <input
                       type="number"
                       id="stock"
-                      name="stock"
-                      value={form.stock}
-                      onChange={handleChange}
-                      required
+                      {...register('stock')}
                       min="0"
                       className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                       placeholder="Enter stock quantity"
                     />
+                    {errors.stock && (
+                      <p className="mt-1 text-sm text-red-600">{errors.stock.message}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -358,13 +410,15 @@ export default function CreateProductPage() {
               {/* Product Images */}
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
                 <div className="p-5 border-b border-gray-100">
-                  <h2 className="text-base font-semibold text-gray-900">Product Images</h2>
-                  <p className="text-xs text-gray-500 mt-1">Add up to {MAX_IMAGES} images</p>
+                  <h2 className="text-base font-semibold text-gray-900">Product Images *</h2>
+                  <p className="text-xs text-gray-500 mt-1">Add up to {MAX_IMAGES} images (Required)</p>
                 </div>
                 <div className="p-5">
                   {/* Main Image Preview */}
                   <div className="mb-3">
-                    <div className="aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center overflow-hidden hover:border-gray-300 transition-colors">
+                    <div className={`aspect-square bg-gray-50 border-2 border-dashed rounded-lg flex items-center justify-center overflow-hidden transition-colors ${
+                      errors.images ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                    }`}>
                       {images.length > 0 ? (
                         <div className="relative w-full h-full">
                           <Image
@@ -376,6 +430,8 @@ export default function CreateProductPage() {
                           <button
                             type="button"
                             onClick={() => removeImage(0)}
+                            aria-label="Remove main image"
+                            title="Remove image"
                             className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
                           >
                             <IoClose className="w-4 h-4" />
@@ -404,6 +460,11 @@ export default function CreateProductPage() {
                     </div>
                   </div>
 
+                  {/* Image Validation Error */}
+                  {errors.images && (
+                    <p className="mb-3 text-sm text-red-600">{errors.images.message}</p>
+                  )}
+
                   {/* Additional Images */}
                   <div className="grid grid-cols-3 gap-2">
                     {images.slice(1).map((image, index) => (
@@ -417,6 +478,8 @@ export default function CreateProductPage() {
                         <button
                           type="button"
                           onClick={() => removeImage(index + 1)}
+                          aria-label={`Remove image ${index + 2}`}
+                          title="Remove image"
                           className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
                         >
                           <IoClose className="w-3.5 h-3.5" />
@@ -427,6 +490,7 @@ export default function CreateProductPage() {
                     {images.length < MAX_IMAGES && (
                       <div className="aspect-square border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center hover:border-red-300 hover:bg-red-50 transition-all cursor-pointer">
                         <label htmlFor="additional-images" className="cursor-pointer w-full h-full flex items-center justify-center">
+                          <span className="sr-only">Add more images</span>
                           <IoAdd className="h-7 w-7 text-gray-400" />
                           <input
                             id="additional-images"
@@ -435,6 +499,7 @@ export default function CreateProductPage() {
                             multiple
                             onChange={handleImageUpload}
                             className="sr-only"
+                            aria-label="Upload additional product images"
                           />
                         </label>
                       </div>
@@ -477,30 +542,16 @@ export default function CreateProductPage() {
                 type="button"
                 className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-white border border-gray-200 bg-white rounded-lg transition-all shadow-sm"
                 title="Refresh"
-                onClick={() => {
-                  setImages([]);
-                  setForm({
-                    title: '',
-                    description: '',
-                    originalPrice: '',
-                    discountedPrice: '',
-                    category: '',
-                    condition: '',
-                    tags: '',
-                    locationLat: '',
-                    locationLng: '',
-                    stock: '',
-                  });
-                }}
+                onClick={handleReset}
               >
                 <TfiReload className="w-5 h-5" />
               </button>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isSubmitting}
                 className="px-5 py-2.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2"
               >
-                {loading ? 'Publishing...' : 'Add to Product'}
+                {isSubmitting ? 'Publishing...' : 'Add to Product'}
               </button>
             </div>
           </div>
