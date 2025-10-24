@@ -101,7 +101,7 @@ function ProductCard({ product }: ProductCardProps) {
           </button>
         </div>
 
-        <Link href={`/products/${product.id}`}>
+        <Link href={`products/${product.id}`}>
           <Image
             src={imageUrl}
             alt={product.title}
