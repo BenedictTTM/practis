@@ -16,7 +16,7 @@ const SearchComponent = () => {
   const router = useRouter();
 
   // Debounce timer
-  const debounceTimer = useRef<NodeJS.Timeout>();
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch autocomplete suggestions
   useEffect(() => {

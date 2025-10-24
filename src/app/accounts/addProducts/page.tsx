@@ -118,8 +118,8 @@ export default function CreateProductPage() {
 
   // Calculate discount dynamically
   const calcDiscount = () => {
-    const original = parseFloat(originalPrice);
-    const discounted = parseFloat(discountedPrice);
+    const original = parseFloat(originalPrice || '0');
+    const discounted = parseFloat(discountedPrice || '0');
     if (!original || !discounted || original === 0) return 0;
     return Math.round(((original - discounted) / original) * 100);
   };
