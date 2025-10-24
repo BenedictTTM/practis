@@ -23,6 +23,15 @@ import {
 import { HowToSection } from '../../../Components/HowTo';
 import Categories from '../../../Components/Products/layouts/Categories';
 import ServiceFeatures from '../../../Components/Products/layouts/serviceFeatures';
+import { DotLoader } from '../../../Components/Loaders';
+import { MultipleSchemas } from '../../../Components/Schema';
+import {
+  generateProductListSchema,
+  generateWebPageSchema,
+  generateBreadcrumbSchema,
+  generateFlashSalesSchema,
+  generateOrganizationSchema,
+} from '../../../lib/schemas/productSchemas';
 import '../../../Components/Products/styles/products.css';
 
 // ============================================================================
@@ -296,6 +305,50 @@ export default function ProductsPage() {
   const shouldShowViewAllButton = totalFilteredCount > CONFIG.INITIAL_PRODUCTS_DISPLAY;
 
   // ==========================================================================
+  // SEO SCHEMAS (Structured Data for Rich Results)
+  // ==========================================================================
+
+  /**
+   * Generate JSON-LD schemas for SEO
+   * Memoized to prevent regeneration on every render
+   */
+  const schemas = useMemo(() => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://sellr.com';
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : `${baseUrl}/main/products`;
+
+    return [
+      // Organization Schema
+      generateOrganizationSchema(
+        'Sellr',
+        baseUrl,
+        `${baseUrl}/logo.png`
+      ),
+
+      // WebPage Schema
+      generateWebPageSchema(
+        'Browse Products - Sellr',
+        'Discover amazing products with great deals and flash sales. Shop electronics, fashion, home goods, and more.',
+        currentUrl
+      ),
+
+      // Breadcrumb Schema
+      generateBreadcrumbSchema([
+        { name: 'Home', url: '/' },
+        { name: 'Products', url: '/main/products' },
+      ], baseUrl),
+
+      // Product List Schema (for main products)
+      ...(displayProducts.length > 0 ? [generateProductListSchema(displayProducts, baseUrl)] : []),
+
+      // Flash Sales Schema (if available)
+      ...(flashSalesData?.products && flashSalesData.products.length > 0
+        ? [generateFlashSalesSchema(flashSalesData.products, flashSalesData.nextRefreshAt)]
+        : []
+      ),
+    ];
+  }, [displayProducts, flashSalesData]);
+
+  // ==========================================================================
   // RENDER HELPERS (Components as pure functions)
   // ==========================================================================
 
@@ -311,11 +364,12 @@ export default function ProductsPage() {
       aria-label="Loading products"
     >
       <div className="text-center">
-        <div 
-          className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E43C3C] mx-auto mb-4"
-          aria-hidden="true"
+        <DotLoader 
+          size={60}
+          color="#E43C3C"
+          ariaLabel="Loading amazing products"
         />
-        <p className="text-[#2E2E2E] font-medium">Loading amazing products...</p>
+        <p className="text-[#2E2E2E] font-medium mt-6">Loading amazing products...</p>
         <p className="text-gray-500 text-sm mt-2">This won't take long</p>
       </div>
     </div>
@@ -386,12 +440,16 @@ export default function ProductsPage() {
   // ==========================================================================
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      {/* SEO: Structured Data (JSON-LD Schemas) */}
+      <MultipleSchemas schemas={schemas} />
+
+      <div className="min-h-screen bg-gray-50">
       {/* How To Section - Hero/Guide */}
       <HowToSection />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6">
+      <main className="max-w-7xl mx-auto  ">
         <div className="flex flex-col lg:flex-row lg:items-start gap-8">
           
           {/* Primary Content Column */}
@@ -562,7 +620,8 @@ export default function ProductsPage() {
       >
         Skip to top
       </a>
-    </div>
+      </div>
+    </>
   );
 }
 

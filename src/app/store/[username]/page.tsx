@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Store, Star, Share2, ArrowLeft } from 'lucide-react';
 import ProductCard from '@/Components/Products/cards/ProductCard';
 import { Product } from '@/types/products';
+import { DotLoader } from '@/Components/Loaders';
 import Link from 'next/link';
 
 interface StoreOwner {
@@ -80,8 +81,12 @@ export default function PublicStorePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading store...</p>
+          <DotLoader 
+            size={60}
+            color="#DC2626"
+            ariaLabel="Loading store"
+          />
+          <p className="text-gray-600 mt-6">Loading store...</p>
         </div>
       </div>
     );

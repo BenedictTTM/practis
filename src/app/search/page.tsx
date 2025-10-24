@@ -4,7 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { searchProducts } from '@/services/searchService';
 import { SearchResult } from '@/types/search';
-import { Loader2, SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
+import { DotLoader } from '@/Components/Loaders';
 import ProductCard from '@/Components/Products/cards/ProductCard';
 import Link from 'next/link';
 import SearchComponent from '@/Components/Header/searchComponent';
@@ -60,7 +61,11 @@ export default function SearchPage() {
   if (isLoading && !results) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <DotLoader 
+          size={60}
+          color="#2563EB"
+          ariaLabel="Searching products"
+        />
       </div>
     );
   }
@@ -230,7 +235,11 @@ export default function SearchPage() {
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <DotLoader 
+                size={50}
+                color="#2563EB"
+                ariaLabel="Loading results"
+              />
             </div>
           ) : results?.products.length === 0 ? (
             <div className="text-center py-20">

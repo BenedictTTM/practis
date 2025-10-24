@@ -110,9 +110,9 @@ TimeSeparator.displayName = 'TimeSeparator';
  * SectionHeader Component - "Today's" label with indicator bar
  */
 const SectionHeader: React.FC = React.memo(() => (
-  <div className="flex items-center gap-2 sm:gap-3">
+  <div className="flex items-center gap-1 sm:gap-2">
     <div
-      className="w-3.5 sm:w-4 h-6 sm:h-7 rounded bg-[#DB4444]"
+      className="w-3.5 sm:w-4 md:h-6 h-4 sm:h-7 rounded bg-[#DB4444]"
       aria-hidden="true"
     />
     <span className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-[#DB4444]">
@@ -223,7 +223,7 @@ export default function FlashSalesCountdown({
       aria-labelledby="flash-sales-heading"
       role="region"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-2 lg:px-3 pt-6 sm:pt-8 lg:pt-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-2 lg:px-3  ">
         {/* Today's on top */}
         <div className="flex flex-col gap-2 sm:gap-3">
           <SectionHeader />
