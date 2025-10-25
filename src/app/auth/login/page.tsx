@@ -8,7 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthService } from '@/lib/auth';
 import { useToast } from '@/Components/Toast/toast';
 import { SubmitButton } from '@/Components/AuthSubmitButton/SubmitButton';
-import SignInWithGoogle from '@/Components/AuthSubmitButton/signInWithGoogle';
 import { FormInput } from '@/Components/FormInput/fromInput';
 import Image from 'next/image';
 import CartImage from '../../../../public/CartImage2.png';
@@ -104,8 +103,6 @@ export default function LogInPage() {
             <SubmitButton isSubmitting={isSubmitting} loadingText="Logging in...">
               Log In
             </SubmitButton>
-
-            <SignInWithGoogle isSubmitting={isSubmitting} />
 
             <div className="text-right">
               <a

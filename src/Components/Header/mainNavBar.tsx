@@ -35,7 +35,7 @@ const MainNavBar = () => {
   }, [isMobileMenuOpen]);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <nav className="md:sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}

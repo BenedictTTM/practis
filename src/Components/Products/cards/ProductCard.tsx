@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import React from 'react';
 import { CiHeart } from "react-icons/ci";
 import AddToCartButton from '../../Cart/AddToCartButton';
 
@@ -72,7 +71,7 @@ const SimpleStarRating = ({
 );
 
 // ===== PRODUCT CARD =====
-function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product }: { product: any }) {
   const discountPercentage = calculateDiscountPercent(product.originalPrice, product.discountedPrice);
   const hasDiscount = discountPercentage > 0;
 
@@ -87,79 +86,47 @@ function ProductCard({ product }: ProductCardProps) {
     e.stopPropagation();
   };
 
+  const href = `/main/products/${product.id}`;
+
   return (
-    <div className="group flex flex-col bg-white rounded-xl overflow-hidden shadow-xs hover:shadow-sm transition-all duration-300 hover:scale-[1.015] border border-neutral-200 w-full h-full">
-      {/* Image */}
-      <div className="relative aspect-[4/5] sm:aspect-[1/1] overflow-hidden bg-neutral-50">
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+    // Wrap entire card so image + title + meta all navigate to same route
+    <Link href={href} className="block rounded-lg bg-white shadow-sm hover:shadow-md overflow-hidden">
+      <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+        {/* image */}
+        <img
+          src={product.imageUrl?.[0] ?? '/placeholder.png'}
+          alt={product.title}
+          className="object-contain w-full h-full"
+        />
+      </div>
+
+      <div className="p-4">
+        {/* title */}
+        <h3 className="text-lg font-medium text-gray-900">{product.title}</h3>
+
+        {/* price / meta */}
+        <div className="mt-3">
+          <span className="text-red-600 font-semibold">GHC {product.discountedPrice ?? product.originalPrice}</span>
+          {/* ...other meta... */}
+        </div>
+
+        {/* keep CTA as a link/button that also points to same href or a client-side action */}
+        <div className="mt-4">
           <button
-            onClick={handleQuickView}
-            title="Add to wishlist"
-            className="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 hover:text-[#E43C3C] transition-all duration-200"
+            type="button"
+            onClick={(e) => {
+              // stop propagation only if CTA does something different (e.g. add to cart)
+              e.preventDefault();
+              // perform add-to-cart logic here
+            }}
+            className="w-full btn btn-red"
+            aria-label={`Add ${product.title} to cart`}
           >
-            <CiHeart className="w-4 h-4 sm:w-5 sm:h-5" />
+            <i className="icon-cart" /> Add to Cart
           </button>
         </div>
-
-        <Link href={`products/${product.id}`}>
-          <Image
-            src={imageUrl}
-            alt={product.title}
-            width={200}
-            height={200}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            onError={(e) => {
-              const target = e.currentTarget as HTMLImageElement;
-              target.src = '/placeholder-image.png';
-            }}
-          />
-        </Link>
       </div>
-
-      {/* Details */}
-      <div className="flex flex-col justify-between flex-1 p-3 sm:p-4">
-        {/* Title */}
-        <Link href={`/products/${product.id}`}>
-          <h3 className="font-medium text-[#2E2E2E] mb-1 text-sm sm:text-base hover:text-[#E43C3C] transition-colors line-clamp-2 leading-tight h-[2.8em] sm:h-[3em]">
-            {product.title}
-          </h3>
-        </Link>
-
-        {/* Price + Rating Section */}
-        <div className="flex flex-col gap-1 mb-2 md:mb-2">
-          {/* Price */}
-          <div className="flex items-center gap-0.5">
-            <span className="text-[#E43C3C] font-semibold text-sm sm:text-base">
-              {formatGhs(product.discountedPrice)}
-            </span>
-            {hasDiscount && product.originalPrice && (
-              <span className="text-gray-400 text-xs sm:text-sm line-through">
-                {formatGhs(product.originalPrice)}
-              </span>
-            )}
-          </div>
-
-          {/* Rating */}
-          <SimpleStarRating
-            rating={Math.round(product.averageRating || 0)}
-            totalReviews={product.totalReviews || product._count?.reviews || 0}
-            size={12}
-          />
-        </div>
-
-        {/* Add to Cart - stays bottom */}
-        <div className="mt-auto pt-1">
-          <AddToCartButton
-            productId={product.id}
-            quantity={1}
-            variant="small"
-            className="w-full"
-            onSuccess={() => console.log(`✅ ${product.title} added to cart`)}
-            onError={(msg) => console.error(`❌ Failed to add ${product.title}:`, msg)}
-          />
-        </div>
-      </div>
-    </div>
+    </Link>
   );
 }
 
@@ -193,5 +160,4 @@ function ProductsGrid({ products }: ProductsGridProps) {
   );
 }
 
-export default ProductCard;
 export { ProductsGrid, SimpleStarRating };
