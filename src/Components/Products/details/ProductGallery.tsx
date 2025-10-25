@@ -19,14 +19,7 @@ export default function ProductGallery({
   const imagesToShow = images.length ? images : [placeholderImage];
   const primaryImage = imagesToShow[selectedImageIndex] || placeholderImage;
 
-  function scrollThumbnail(idx: number) {
-    onImageSelect(idx);
-    const container = carouselRef.current;
-    const node = container?.querySelector<HTMLButtonElement>(
-      `button[data-idx="${idx}"]`
-    );
-    node?.scrollIntoView({ behavior: "smooth", inline: "center" });
-  }
+
 
   return (
     <section className="bg-white rounded-xl shadow-sm overflow-hidden w-full">
@@ -40,7 +33,7 @@ export default function ProductGallery({
       </div>
 
       {/* Thumbnail Navigation */}
-      <div className="px-2 sm:px-4 py-3 border-t">
+      <div className="px-2 sm:px-4 py-3 border-t border-gray-200">
         <div
           ref={carouselRef}
           className="flex gap-2 sm:gap-3 overflow-x-auto py-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
@@ -49,10 +42,9 @@ export default function ProductGallery({
             <button
               key={idx}
               data-idx={idx}
-              onClick={() => scrollThumbnail(idx)}
               className={`flex-shrink-0 rounded-lg overflow-hidden transition-all duration-200 border-2 ${
                 idx === selectedImageIndex
-                  ? "border-red-500 scale-105 shadow-sm"
+                  ? "hover:scale-105  border-gray-100 "
                   : "border-gray-200 hover:border-gray-300"
               } w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20`}
             >
