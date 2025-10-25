@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { DotLoader } from '@/Components/Loaders';
 
 /**
  * ProtectedRoute Component
@@ -87,10 +87,10 @@ export default function ProtectedRoute({
     return (
       fallback || (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <Loader2 className="animate-spin h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-gray-600 font-medium">Verifying authentication...</p>
-          </div>
+              <div className="text-center">
+                <DotLoader size={48} color="#E43C3C" ariaLabel="Verifying authentication" />
+                <p className="text-gray-600 font-medium">Please wait</p>
+              </div>
         </div>
       )
     );

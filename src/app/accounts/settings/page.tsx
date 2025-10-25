@@ -6,14 +6,13 @@ import {
   Mail,
   Phone,
   Upload,
-  Loader2,
   Camera,
   CheckCircle,
   XCircle,
   Save,
   Store,
- 
 } from 'lucide-react';
+import { DotLoader } from '@/Components/Loaders';
 import { MdOutlineFileDownload } from "react-icons/md";
 import {
   userService,
@@ -172,7 +171,7 @@ export default function ProfileSettings() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-red-600 animate-spin mx-auto mb-4" />
+          <DotLoader size={48} color="#E43C3C" ariaLabel="Loading profile" />
           <p className="text-gray-600">Loading your profile...</p>
         </div>
       </div>
@@ -252,7 +251,7 @@ export default function ProfileSettings() {
                       className="absolute inset-0 bg-black bg-opacity-60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
                     >
                       {uploading ? (
-                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                        <DotLoader size={18} ariaLabel="Uploading profile picture" />
                       ) : (
                         <Camera className="w-6 h-6 text-white" />
                       )}
@@ -387,7 +386,7 @@ export default function ProfileSettings() {
               >
                 {saving ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <DotLoader size={14} ariaLabel="Saving" />
                     Saving...
                   </>
                 ) : (

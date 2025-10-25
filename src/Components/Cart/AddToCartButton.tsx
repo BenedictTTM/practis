@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ShoppingCart, Check, Loader2 } from 'lucide-react';
+import { ShoppingCart, Check } from 'lucide-react';
+import { DotLoader } from '@/Components/Loaders';
 import { addToCart } from '@/lib/cart';
 import { useCartStore } from '@/store/cartStore';
 
@@ -77,7 +78,7 @@ export default function AddToCartButton({
         aria-label="Add to cart"
       >
         {loading ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <DotLoader size={18} ariaLabel="Adding to cart" />
         ) : success ? (
           <Check className="h-5 w-5 text-green-300" />
         ) : (
@@ -95,12 +96,12 @@ export default function AddToCartButton({
         disabled={loading || success}
         className={`${baseStyle} px-6 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 ${className}`}
       >
-        {loading ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Adding...
-          </>
-        ) : success ? (
+          {loading ? (
+            <>
+              <DotLoader size={14} ariaLabel="Adding" />
+              Adding...
+            </>
+          ) : success ? (
           <>
             <Check className="h-4 w-4 text-green-300" />
             Added!
@@ -122,12 +123,12 @@ export default function AddToCartButton({
       disabled={loading || success}
       className={`${baseStyle} w-full px-6 py-3 text-sm sm:text-base bg-gradient-to-r from-red-500 to-red-600 ${className}`}
     >
-      {loading ? (
-        <>
-          <Loader2 className="h-5 w-5 animate-spin" />
-          Adding...
-        </>
-      ) : success ? (
+          {loading ? (
+            <>
+              <DotLoader size={18} ariaLabel="Adding to cart" />
+              Adding...
+            </>
+          ) : success ? (
         <>
           <Check className="h-5 w-5 text-green-300" />
           Added!

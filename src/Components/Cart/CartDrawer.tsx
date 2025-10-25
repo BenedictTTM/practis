@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, Fragment } from 'react';
-import { X, ShoppingCart, Trash2, Plus, Minus, Loader2 } from 'lucide-react';
+import { X, ShoppingCart, Trash2, Plus, Minus } from 'lucide-react';
+import { DotLoader } from '@/Components/Loaders';
 import Link from 'next/link';
 import { fetchCart, updateCartItem, removeCartItem } from '@/lib/cart';
 import { Cart } from '@/types/cart';
@@ -117,7 +118,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         <div className="flex flex-col h-[calc(100%-80px)]">
           {loading ? (
             <div className="flex-1 flex items-center justify-center">
-              <Loader2 className="h-12 w-12 animate-spin text-red-500" />
+              <DotLoader size={48} color="#E43C3C" ariaLabel="Loading cart" />
             </div>
           ) : cart && cart.items.length > 0 ? (
             <>

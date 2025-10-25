@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Trash2, Minus, Plus, ArrowRight, ShoppingCart as CartIcon, Loader2 } from 'lucide-react';
+import { Trash2, Minus, Plus, ArrowRight, ShoppingCart as CartIcon } from 'lucide-react';
+import { DotLoader } from '@/Components/Loaders';
 import Link from 'next/link';
 import Image from 'next/image';
 import { fetchCart, updateCartItem, removeCartItem, clearCart } from '@/lib/cart';
@@ -89,10 +90,10 @@ export default function ShoppingCart() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="text-center">
-          <Loader2 className="animate-spin h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-gray-600">Loading cart...</p>
-        </div>
+          <div className="text-center">
+            <DotLoader size={48} color="#E43C3C" ariaLabel="Loading cart" />
+            <p className="text-gray-600">Loading cart...</p>
+          </div>
       </div>
     );
   }
@@ -213,7 +214,7 @@ export default function ShoppingCart() {
                                 aria-label="Remove item"
                               >
                                 {isUpdating ? (
-                                  <Loader2 size={18} className="animate-spin" />
+                                  <DotLoader size={18} ariaLabel="Updating item" />
                                 ) : (
                                   <Trash2 size={18} />
                                 )}

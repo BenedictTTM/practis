@@ -1,9 +1,14 @@
-import React from 'react'
+"use client";
 
-const loading = () => {
+import React from 'react';
+import DotLoader from '@/Components/Loaders/DotLoader';
+
+const Loading = () => {
   return (
-    <div>loading</div>
-  )
-}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <DotLoader size={64} ariaLabel="Loading application" />
+    </div>
+  );
+};
 
-export default loading
+export default Loading;

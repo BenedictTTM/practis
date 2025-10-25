@@ -10,8 +10,9 @@
 'use client';
 
 import React from 'react';
-import { DotLoader as ReactSpinnerDotLoader } from 'react-spinners';
+import { ClipLoader as ReactSpinnerDotLoader } from 'react-spinners';
 import type { CSSProperties } from 'react';
+ 
 
 // ============================================================================
 // TYPE DEFINITIONS

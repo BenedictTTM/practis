@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, X } from 'lucide-react';
+import { DotLoader } from '@/Components/Loaders';
 import { useRouter } from 'next/navigation';
 import { getAutocompleteSuggestions } from '@/services/searchService';
 
@@ -133,7 +134,7 @@ const SearchComponent = () => {
         <div className="flex items-center gap-2">
           {/* Loading spinner */}
           {isLoading && (
-            <Loader2 className="w-4 h-4 text-gray-500 animate-spin" />
+            <DotLoader size={16} color="#6B7280" ariaLabel="Searching" />
           )}
           
           {/* Clear button */}
