@@ -1,4 +1,5 @@
 // Frontend API service for user profile management
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -212,3 +213,96 @@ export async function updateProfilePictureUrl(
     };
   }
 }
+
+// ---------- React Query hooks (typed, small surface) ----------
+
+/**
+ * Hook: fetch user profile
+ * Returns: useQuery result where data is UserProfile | undefined
+ */
+export const useUserProfile = (userId?: number) => {
+  return useQuery<UserProfile | undefined, Error>({
+    queryKey: ['userProfile', userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) throw new Error('Missing userId');
+      const res = await getUserProfile(userId);
+      if (!res.success) throw new Error(res.error || res.message || 'Failed to fetch user profile');
+      return res.data as UserProfile;
+    },
+  // keep previous data behavior controlled via QueryClient defaults; avoid incompatible option name
+  });
+};
+
+/**
+ * Hook: update user profile with optimistic update
+ */
+export const useUpdateUserProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ userId, profileData }: { userId: number; profileData: UpdateProfileData }) => {
+      const res = await updateUserProfile(userId, profileData);
+      if (!res.success) throw new Error(res.error || res.message || 'Failed to update profile');
+      return res.data as UserProfile;
+    },
+    // Optimistic update: snapshot previous and set new profile immediately
+    onMutate: async (variables) => {
+      const { userId, profileData } = variables as { userId: number; profileData: UpdateProfileData };
+      await queryClient.cancelQueries({ queryKey: ['userProfile', userId] });
+      const previous = queryClient.getQueryData<UserProfile>(['userProfile', userId]);
+
+      if (previous) {
+        const optimistic = { ...previous, ...profileData } as UserProfile;
+        queryClient.setQueryData(['userProfile', userId], optimistic);
+      }
+
+      return { previous };
+    },
+    onError: (err, variables, context: any) => {
+      const { userId } = variables as { userId: number; profileData: UpdateProfileData };
+      if (context?.previous) {
+        queryClient.setQueryData(['userProfile', userId], context.previous);
+      }
+    },
+    onSettled: (data, error, variables) => {
+      const { userId } = variables as { userId: number; profileData: UpdateProfileData };
+      queryClient.invalidateQueries({ queryKey: ['userProfile', userId] });
+    },
+  });
+};
+
+/**
+ * Hook: upload profile picture and refresh profile on success
+ */
+export const useUploadProfilePicture = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, file }: { userId: number; file: File }) => {
+      const res = await uploadProfilePicture(userId, file);
+      if (!res.success) throw new Error(res.error || res.message || 'Failed to upload profile picture');
+      return res.data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile', (variables as any).userId] });
+    },
+  });
+};
+
+/**
+ * Hook: update profile picture URL
+ */
+export const useUpdateProfilePictureUrl = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, imageUrl }: { userId: number; imageUrl: string }) => {
+      const res = await updateProfilePictureUrl(userId, imageUrl);
+      if (!res.success) throw new Error(res.error || res.message || 'Failed to update profile picture URL');
+      return res.data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile', (variables as any).userId] });
+    },
+  });
+};
+

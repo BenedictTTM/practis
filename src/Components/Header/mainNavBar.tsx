@@ -6,6 +6,7 @@ import { IoMdHelpCircleOutline } from "react-icons/io";
 import { IoPersonCircleSharp } from "react-icons/io5";
 
 import NavLinks from '../Navigation/navLinks' // Import your navLinks component
+import Sidebar from '../Navigation/mobileNav';
 import { PiPlug } from "react-icons/pi";
 import SearchComponet from './searchComponent';
 import { useCartStore } from '@/store/cartStore';
@@ -119,39 +120,12 @@ const MainNavBar = () => {
 
       {/* Mobile Menu Slide-in */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed top-0 right-0 h-full w-80 z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex flex-col h-full">
-          {/* Mobile Menu Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <span className="text-lg font-bold text-gray-700">Menu</span>
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="p-2 text-gray-700 hover:text-red-500"
-              aria-label="Close menu"
-            >
-              <HiX className="text-2xl" />
-            </button>
-          </div>
-
-          {/* Mobile Menu Items */}
-          <div className="flex flex-col p-4 space-y-1">
-            <MobileNavLink
-              href="/main/help"
-              icon={<IoMdHelpCircleOutline className="text-xl" />}
-              label="Help"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-            <MobileNavLink
-              href="/accounts/addProducts"
-              icon={<IoPersonCircleSharp className="text-xl" />}
-              label="Account"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-          </div>
-        </div>
+        {/* Render the mobile sidebar component and let it call onClose when user clicks X */}
+        <Sidebar onClose={() => setIsMobileMenuOpen(false)} />
       </div>
     </nav>
   );
