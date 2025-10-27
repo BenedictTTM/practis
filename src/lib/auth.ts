@@ -2,8 +2,9 @@ import { User, LoginRequest, SignupRequest, AuthResponse } from '@/types/auth';
 import { fetchWithTokenRefresh } from './token-refresh';
 
 // Use Next.js API proxy routes so cookies are scoped to :3000
-const API_URL = '/api';
-
+//const API_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = `${BACKEND_URL}`;
 type PasswordResetRequest = { email: string };
 type PasswordResetPayload = { token: string; newPassword: string };
 

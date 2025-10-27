@@ -21,7 +21,7 @@ export interface ProductResponse {
 /**
  * Fetch all products for the authenticated user
  * Requires user to be logged in (uses HTTP-only cookies)
- * 
+ *
  * @returns Promise<ProductsResponse> - Array of user's products
  * 
  * @example
