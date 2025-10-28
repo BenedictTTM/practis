@@ -15,9 +15,18 @@ export default function Page() {
   if (!user) return <div>No authenticated user</div>;
 
   return (
-    <div>
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <h1>Welcome, {user.firstName ?? user.email}</h1>
-      <p>User id: {user.id}</p>
+      <p>User ID: {user.id}</p>
+      
+      <h2>Slot Information</h2>
+      <div style={{ marginBottom: '20px' }}>
+        <p><strong>Available Slots:</strong> {user.availableSlots ?? 0}</p>
+        <p><strong>Used Slots:</strong> {user.usedSlots ?? 0}</p>
+        <p><strong>Total Slots:</strong> {(user.availableSlots ?? 0) + (user.usedSlots ?? 0)}</p>
+      </div>
+
+      <h3>User Details</h3>
       <pre>{JSON.stringify(user, null, 2)}</pre>
     </div>
   );
