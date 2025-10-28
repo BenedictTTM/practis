@@ -2,15 +2,17 @@
  * Integration Examples - Copy these patterns into your existing components
  */
 
+'use client';
+
+import { useState, useEffect } from 'react';
+import SlotIndicator from '@/Components/slots/SlotIndicator';
+import PurchaseSlotsModal from '@/Components/slots/PurchaseSlotsModal';
+import SlotBalance from '@/Components/slots/SlotBalance';
+import { slotService } from '@/services/slotService';
+
 // ============================================================================
 // Example 1: Navigation Bar Integration
 // ============================================================================
-
-'use client';
-
-import { useState } from 'react';
-import SlotIndicator from '@/Components/slots/SlotIndicator';
-import PurchaseSlotsModal from '@/Components/slots/PurchaseSlotsModal';
 
 export function NavbarWithSlots({ userId }: { userId: number }) {
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
@@ -62,12 +64,6 @@ export function NavbarWithSlots({ userId }: { userId: number }) {
 // Example 2: Dashboard Sidebar Integration
 // ============================================================================
 
-'use client';
-
-import { useState } from 'react';
-import SlotBalance from '@/Components/slots/SlotBalance';
-import PurchaseSlotsModal from '@/Components/slots/PurchaseSlotsModal';
-
 export function DashboardSidebarWithSlots({ userId }: { userId: number }) {
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
 
@@ -117,12 +113,6 @@ export function DashboardSidebarWithSlots({ userId }: { userId: number }) {
 // ============================================================================
 // Example 3: Product Listing Page with Slot Check
 // ============================================================================
-
-'use client';
-
-import { useState, useEffect } from 'react';
-import { slotService } from '@/services/slotService';
-import PurchaseSlotsModal from '@/Components/slots/PurchaseSlotsModal';
 
 export function ProductListingPageWithSlotCheck({ userId }: { userId: number }) {
   const [availableSlots, setAvailableSlots] = useState<number | null>(null);
@@ -253,12 +243,6 @@ export function ProductListingPageWithSlotCheck({ userId }: { userId: number }) 
 // Example 4: Settings/Profile Page Integration
 // ============================================================================
 
-'use client';
-
-import { useState } from 'react';
-import SlotBalance from '@/Components/slots/SlotBalance';
-import PurchaseSlotsModal from '@/Components/slots/PurchaseSlotsModal';
-
 export function SettingsPageWithSlots({ userId }: { userId: number }) {
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
 
@@ -297,8 +281,6 @@ export function SettingsPageWithSlots({ userId }: { userId: number }) {
 // Example 5: Using the Slot Service Directly (Advanced)
 // ============================================================================
 
-import { slotService } from '@/services/slotService';
-
 export async function customSlotPurchaseFlow(userId: number, slots: number) {
   try {
     // 1. Check current slots
@@ -328,9 +310,6 @@ export async function customSlotPurchaseFlow(userId: number, slots: number) {
 // ============================================================================
 // Example 6: React Hook for Slot Management (Custom Hook)
 // ============================================================================
-
-import { useState, useEffect } from 'react';
-import { slotService } from '@/services/slotService';
 
 export function useSlots(userId: number) {
   const [slots, setSlots] = useState<number | null>(null);

@@ -155,7 +155,7 @@ export default function ProductList() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Product List</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-red-900 mt-1">
             Track stock levels, availability, and restocking needs in real time.
           </p>
         </div>
