@@ -1,142 +1,169 @@
 'use client'
-import React, { useEffect , useState } from 'react'
-import SearchComponent from './searchComponent'
-import { IoCartOutline } from "react-icons/io5";
-import { IoMdHelpCircleOutline } from "react-icons/io";
-import { IoPersonCircleSharp } from "react-icons/io5";
 
-import NavLinks from '../Navigation/navLinks' // Import your navLinks component
-import Sidebar from '../Navigation/mobileNav';
-import { PiPlug } from "react-icons/pi";
-import SearchComponet from './searchComponent';
-import { useCartStore } from '@/store/cartStore';
-import Link from 'next/link';
-import { HiMenu, HiX } from "react-icons/hi";
+import React, { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
+import { IoCartOutline, IoPersonCircleSharp } from 'react-icons/io5'
+import { IoMdHelpCircleOutline } from 'react-icons/io'
+import { HiMenu, HiX } from 'react-icons/hi'
+import { PiPlug } from 'react-icons/pi'
+
+import SearchComponent from './searchComponent'
+import Sidebar from '../Navigation/mobileNav'
+import { useCartStore } from '@/store/cartStore'
 
 
 const MainNavBar = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const itemCount = useCartStore((state) => state.itemCount);
-  const fetchItemCount = useCartStore((state) => state.fetchItemCount);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const itemCount = useCartStore((state) => state.itemCount)
+  const fetchItemCount = useCartStore((state) => state.fetchItemCount)
 
+  // Memoized toggle handler
+  const toggleMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen((prev) => !prev)
+  }, [])
+
+  const closeMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(false)
+  }, [])
+
+  // Fetch cart count on mount
   useEffect(() => {
-    fetchItemCount();
-  }, [fetchItemCount]);
+    fetchItemCount()
+  }, [fetchItemCount])
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden'
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = 'unset'
     }
+    
     return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isMobileMenuOpen]);
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobileMenuOpen])
+
+  const menuButtonClass = 'p-1.5 sm:p-2 text-gray-700 hover:text-red-500 active:text-red-600 transition-colors touch-manipulation'
 
   return (
-    <nav className="md:sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl">
-        <div className="flex items-center justify-between h-16 sm:h-20">
-          {/* Logo */}
+    <nav className="md:sticky bg-gray-50 top-0 z-50   ">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 max-w-7xl">
+        <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 lg:h-20">
+          {/* Logo - Responsive sizing */}
           <Link 
             href="/"
-            className="flex items-center text-xl sm:text-2xl font-bold text-gray-700 hover:opacity-80 transition-opacity flex-shrink-0"
+            className="flex items-center text-lg sm:text-xl md:text-2xl font-bold text-gray-700 hover:opacity-80 transition-opacity flex-shrink-0"
+            aria-label="myPlug Home"
           >
-            <span className='text-red-500'>my</span>
-            <span className="ml-1">Plug</span>
-            <PiPlug className="text-xl sm:text-2xl text-gray-700 ml-1 sm:ml-2" />
+            <h1 className="text-red-500 font-heading">my</h1>
+            <span className="ml-0.5 sm:ml-1 font-heading">Plug</span>
+            <PiPlug className="text-lg sm:text-xl md:text-2xl text-gray-700 ml-1 sm:ml-2" />
+           
           </Link>
 
-          {/* Desktop Search - Hidden on mobile/tablet */}
-          <div className="hidden lg:flex flex-1 max-w-xl mx-8">
+          {/* Desktop/Tablet Search - Hidden on mobile */}
+          <div className=" top-0 hidden md:flex flex-1 max-w-md lg:max-w-xl mx-4 lg:mx-8">
             <SearchComponent />
           </div>
 
-          {/* Desktop Icons */}
-          <div className="hidden md:flex items-center gap-4 lg:gap-8">
+          {/* Desktop Navigation Icons - Hidden on mobile/small tablet */}
+          <div className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8">
             <NavIcon 
               href="/main/cart" 
-              icon={<IoCartOutline className="text-2xl mb-1" />}
+              icon={<IoCartOutline className="text-xl lg:text-2xl" />}
               label="Cart"
               badge={itemCount}
             />
             <NavIcon 
               href="/main/help" 
-              icon={<IoMdHelpCircleOutline className="text-2xl mb-1" />}
+              icon={<IoMdHelpCircleOutline className="text-xl lg:text-2xl" />}
               label="Help"
             />
             <NavIcon 
               href="/accounts/addProducts" 
-              icon={<IoPersonCircleSharp className="text-2xl mb-1" />}
+              icon={<IoPersonCircleSharp className="text-xl lg:text-2xl" />}
               label="Account"
             />
           </div>
 
-          {/* Mobile Menu Button & Cart */}
-          <div className="flex md:hidden items-center gap-3">
-            {/* Mobile Cart Icon */}
+          {/* Mobile Actions - Cart & Menu Button */}
+          <div className="flex md:hidden items-center gap-2 sm:gap-3">
+            {/* Mobile Cart Icon with Badge */}
             <Link 
               href="/main/cart"
-              className="relative p-2 text-gray-700 hover:text-red-500 transition-colors"
+              className="relative p-1.5 sm:p-2 text-gray-700 hover:text-red-500 active:text-red-600 transition-colors touch-manipulation"
+              aria-label={`Shopping cart with ${itemCount} items`}
             >
-              <IoCartOutline className="text-2xl" />
+              <IoCartOutline className="text-xl sm:text-2xl" />
               {itemCount > 0 && (
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center">
                   {itemCount > 9 ? '9+' : itemCount}
                 </span>
               )}
             </Link>
 
-            {/* Hamburger Menu */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-gray-700 hover:text-red-500 transition-colors"
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? (
-                <HiX className="text-3xl" />
-              ) : (
-                <HiMenu className="text-3xl" />
-              )}
-            </button>
+            {/* Mobile Menu Toggle Button */}
+            {isMobileMenuOpen ? (
+              <button
+                onClick={toggleMobileMenu}
+                className={menuButtonClass}
+                aria-label="Close menu"
+                aria-expanded="true"
+                type="button"
+              >
+                <HiX className="text-2xl sm:text-3xl" />
+              </button>
+            ) : (
+              <button
+                onClick={toggleMobileMenu}
+                className={menuButtonClass}
+                aria-label="Open menu"
+                aria-expanded="false"
+                type="button"
+              >
+                <HiMenu className="text-2xl sm:text-3xl" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Mobile/Tablet Search - Below navbar on small screens, hidden on desktop */}
-        <div className="lg:hidden pb-4 pt-2">
+        {/* Mobile/Small Tablet Search - Below navbar, hidden on desktop */}
+        <div className=" md:hidden pb-3 sm:pb-4 pt-2">
           <SearchComponent />
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay - Backdrop */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+          onClick={closeMobileMenu}
+          aria-hidden="true"
         />
       )}
 
-      {/* Mobile Menu Slide-in */}
+      {/* Mobile Menu Slide-in Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed top-0 right-0 h-full w-full max-w-sm z-50 transform transition-transform duration-300 ease-out md:hidden ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mobile navigation menu"
       >
-        {/* Render the mobile sidebar component and let it call onClose when user clicks X */}
-        <Sidebar onClose={() => setIsMobileMenuOpen(false)} />
+        <Sidebar onClose={closeMobileMenu} />
       </div>
     </nav>
-  );
+  )
 }
 
 // Desktop Navigation Icon Component
 interface NavIconProps {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-  badge?: number;
+  href: string
+  icon: React.ReactNode
+  label: string
+  badge?: number
 }
 
 const NavIcon = ({ href, icon, label, badge }: NavIconProps) => (
@@ -156,25 +183,6 @@ const NavIcon = ({ href, icon, label, badge }: NavIconProps) => (
       {label}
     </span>
   </Link>
-);
-
-// Mobile Navigation Link Component
-interface MobileNavLinkProps {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}
-
-const MobileNavLink = ({ href, icon, label, onClick }: MobileNavLinkProps) => (
-  <Link
-    href={href}
-    onClick={onClick}
-    className="flex items-center gap-4 p-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-red-500 transition-colors"
-  >
-    {icon}
-    <span className="text-base font-medium">{label}</span>
-  </Link>
-);
+)
 
 export default MainNavBar

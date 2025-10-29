@@ -492,7 +492,7 @@ export default function ProductsPage() {
                 </div>
                 <h2 
                   id="products-heading"
-                  className="text-3xl md:text-4xl font-bold text-gray-900"
+                  className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900"
                 >
                   Browse Our Products
                 </h2>

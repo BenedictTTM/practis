@@ -231,7 +231,7 @@ export default function FlashSalesCountdown({
           <div className="flex items-end gap-3 sm:gap-4 flex-wrap">
             <h2
               id="flash-sales-heading"
-              className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-[#1A1A1A]"
+              className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight text-[#1A1A1A]"
             >
               Flash Sales
             </h2>

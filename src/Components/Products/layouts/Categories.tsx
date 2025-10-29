@@ -35,7 +35,7 @@ export default function CategoryBrowser() {
           <div className="w-1 h-6 bg-red-500 rounded"></div>
           <span className="text-red-500 font-semibold">Categories</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900">
           Browse By Category
         </h2>
       </div>

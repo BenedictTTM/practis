@@ -1,20 +1,20 @@
-
-
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/Components/Toast/toast";
 import ReactQueryProvider from "@/Components/Providers/ReactQueryProvider";
 
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-body",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const poppins = Poppins({
+  variable: "--font-heading",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -28,21 +28,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
-      >
+    <html lang="en" className={poppins.variable}>
+      <body className={`${inter.variable} antialiased bg-gray-50`}>
         <ReactQueryProvider>
-        {children}
-        {/* Keep ToastProvider at root level for global notifications */}
-        <ToastProvider 
-          position="top-right"
-          richColors={true}
-          closeButton={true}
-          expand={true}
-          duration={3000}
-          theme="light"
-        />
+          {children}
+          {/* Keep ToastProvider at root level for global notifications */}
+          <ToastProvider
+            position="top-right"
+            richColors={true}
+            closeButton={true}
+            expand={true}
+            duration={3000}
+            theme="light"
+          />
         </ReactQueryProvider>
       </body>
     </html>

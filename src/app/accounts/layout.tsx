@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ProtectedRoute from '@/Components/Auth/ProtectedRoute';
 import VerticalNavigation from '@/Components/Navigation/verticalProductNav';
+import MobileNavigation from '@/Components/Navigation/mobileNav';
 import Footer from '@/Components/Footer/footer';
 import { Menu } from 'lucide-react';
 
@@ -36,30 +37,21 @@ export default function AccountsLayout({
           <VerticalNavigation />
         </aside>
 
-        {/* Sidebar drawer for mobile */}
-        <div
-          className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-50 border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:hidden
-            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          `}
+        {/* Mobile Navigation Sidebar (slide-in from right) */}
+        <aside
+          className={`fixed inset-y-0 right-0 z-50 w-80 transform transition-transform duration-300 ease-in-out lg:hidden ${
+            isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
         >
-          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-800">Menu</h2>
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition"
-              aria-label="Close navigation"
-            >
-              ✕
-            </button>
-          </div>
-          <VerticalNavigation />
-        </div>
+          <MobileNavigation onClose={() => setIsSidebarOpen(false)} />
+        </aside>
 
-        {/* Overlay for mobile sidebar */}
+        {/* Backdrop overlay for mobile nav */}
         {isSidebarOpen && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-30 z-30 lg:hidden"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
+            aria-label="Close navigation"
           />
         )}
 
