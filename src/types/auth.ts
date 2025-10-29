@@ -3,6 +3,7 @@ export interface User {
   email: string;
   firstName?: string;
   lastName?: string;
+  profilePic?: string | null;
   role: string;
   premiumTier?: string;
   availableSlots?: number;
