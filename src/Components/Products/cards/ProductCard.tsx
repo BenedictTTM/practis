@@ -101,7 +101,7 @@ function ProductCard({ product }: ProductCardProps) {
           </button>
         </div>
 
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/main/products/${product.id}`}>
           <Image
             src={imageUrl}
             alt={product.title}
@@ -119,7 +119,7 @@ function ProductCard({ product }: ProductCardProps) {
       {/* Product Details */}
       <div className="flex flex-col justify-between flex-1 p-2.5 sm:p-3">
         {/* Title */}
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/main/products/${product.id}`}>
           <h3 className="font-medium text-[#2E2E2E] mb-1 text-[12px] sm:text-sm hover:text-[#E43C3C] transition-colors line-clamp-2 leading-snug h-[2.4em]">
             {product.title}
           </h3>

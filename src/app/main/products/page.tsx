@@ -625,9 +625,3 @@ export default function ProductsPage() {
   );
 }
 
-// ============================================================================
-// PERFORMANCE OPTIMIZATIONS
-// ============================================================================
-
-// Prevent unnecessary re-renders
-// export default React.memo(ProductsPage);
