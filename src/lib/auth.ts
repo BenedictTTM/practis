@@ -1,10 +1,9 @@
 import { User, LoginRequest, SignupRequest, AuthResponse } from '@/types/auth';
 import { fetchWithTokenRefresh } from './token-refresh';
 
-// Use Next.js API proxy routes so cookies are scoped to :3000
-//const API_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const API_URL = `${BACKEND_URL}`;
+// Use Next.js API proxy routes for all auth requests
+// This ensures cookies are properly scoped to the frontend domain
+const API_URL = '/api';
 type PasswordResetRequest = { email: string };
 type PasswordResetPayload = { token: string; newPassword: string };
 
@@ -204,18 +203,25 @@ export class AuthService {
   // Get current user data
   static async getUser(): Promise<User | null> {
     try {
-      const response = await fetch(`${API_URL}/auth/me`, {
+      console.log('🔐 [AUTH] Fetching current user via /api/auth/me');
+      
+      const response = await fetch('/api/auth/me', {
         credentials: 'include',
+        cache: 'no-store',
       });
 
+      console.log('📡 [AUTH] Response status:', response.status);
+
       if (!response.ok) {
+        console.warn('⚠️ [AUTH] Failed to fetch user:', response.status);
         return null;
       }
 
       const data = await response.json();
+      console.log('✅ [AUTH] User data received:', data);
       return data.user || null;
     } catch (error) {
-      console.error('Get user error:', error);
+      console.error('💥 [AUTH] Get user error:', error);
       return null;
     }
   }
@@ -223,14 +229,17 @@ export class AuthService {
   // Check if user is authenticated
   static async isAuthenticated(): Promise<boolean> {
     try {
-      const response = await fetch(`${API_URL}/auth/session`, {
+      console.log('🔐 [AUTH] Checking authentication via /api/auth/session');
+      
+      const response = await fetch('/api/auth/session', {
         credentials: 'include',
         cache: 'no-store',
       });
 
+      console.log('📡 [AUTH] Session check status:', response.status);
       return response.ok;
     } catch (error) {
-      console.error('Auth check error:', error);
+      console.error('💥 [AUTH] Auth check error:', error);
       return false;
     }
   }
