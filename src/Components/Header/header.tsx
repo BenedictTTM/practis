@@ -5,7 +5,7 @@ import MainNavBar from './mainNavBar'
 const header = () => {
   return (
     <>
-       <Topbar />
+   
        <MainNavBar/>    
     </>
   )
