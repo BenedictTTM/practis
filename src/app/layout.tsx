@@ -1,19 +1,13 @@
 import type { Metadata } from "next";
-import { Inter, Poppins } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/Components/Toast/toast";
 import ReactQueryProvider from "@/Components/Providers/ReactQueryProvider";
 
-const inter = Inter({
-  variable: "--font-body",
-  subsets: ["latin"],
-  display: "swap",
-});
-
 const poppins = Poppins({
-  variable: "--font-heading",
+  variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -29,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={poppins.variable}>
-      <body className={`${inter.variable} antialiased bg-gray-50`}>
+      <body className={`${poppins.className} antialiased bg-gray-50`}>
         <ReactQueryProvider>
           {children}
           {/* Keep ToastProvider at root level for global notifications */}
