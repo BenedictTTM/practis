@@ -22,17 +22,43 @@ export default function PaymentSuccessPage() {
 
     setReference(ref);
 
-    // Simulate verification (in production, you'd verify with backend)
-    const timer = setTimeout(() => {
-      setStatus('success');
-      setMessage('Payment successful! Your slots have been credited.');
-    }, 2000);
+    // Verify payment with backend
+    const verifyPayment = async () => {
+      try {
+        // Give the webhook a moment to process
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Call verification endpoint
+        const response = await fetch('/api/payments/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ reference: ref }),
+        });
 
-    return () => clearTimeout(timer);
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          setStatus('success');
+          setMessage('Payment successful! Your slots have been credited to your account.');
+        } else {
+          setStatus('error');
+          setMessage(data.error || 'Payment verification failed. Please contact support if payment was deducted.');
+        }
+      } catch (error) {
+        console.error('Payment verification error:', error);
+        setStatus('error');
+        setMessage('Failed to verify payment. Please contact support if slots were not credited.');
+      }
+    };
+
+    verifyPayment();
   }, [searchParams]);
 
   const handleContinue = () => {
-    router.push('/dashboard'); // Redirect to dashboard or products page
+    router.push('/accounts/slots-dashboard'); // Redirect to slots dashboard
   };
 
   return (
@@ -88,10 +114,10 @@ export default function PaymentSuccessPage() {
             <p className="text-gray-600 mb-6">{message}</p>
             
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/accounts/slots-dashboard')}
               className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
-              Go to Dashboard
+              Go to Slots Dashboard
             </button>
           </div>
         )}

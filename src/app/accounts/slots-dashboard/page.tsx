@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AuthService } from '@/lib/auth';
+import PurchaseSlotsModal from '@/Components/slots/PurchaseSlotsModal';
 
 interface User {
   id: number;
@@ -256,20 +257,21 @@ export default function SlotsDashboardPage() {
         </div>
       </div>
 
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-3 z-50">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Purchase Slots</h3>
-            <p className="text-sm text-gray-600 mb-4">Select the number of slots you'd like to purchase.</p>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="w-full px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 text-sm transition"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+      {/* Purchase Slots Modal */}
+      {user && (
+        <PurchaseSlotsModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          userId={user.id}
+          currentSlots={availableSlots}
+          onSuccess={async () => {
+            // Refetch slots data after successful purchase
+            if (user.id) {
+              await fetchSlotsData(user.id);
+            }
+            setIsModalOpen(false);
+          }}
+        />
       )}
     </div>
   );
