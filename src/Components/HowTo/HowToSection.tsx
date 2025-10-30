@@ -10,17 +10,20 @@ type HowToProps = {
 
 function HowTo({ imageSrc, altText, title }: HowToProps) {
   return (
-    <div className="flex flex-col items-center text-center w-1/2 p-2">
-      <Image
-        src={imageSrc}
-        alt={altText}
-        width={90}
-        height={90}
-        className="transition-transform duration-300 hover:scale-105 object-contain sm:w-[120px] sm:h-[120px] md:w-[180px] md:h-[180px]"
-      />
-      <h3 className="mt-2 text-xs sm:text-sm md:text-base font-semibold text-gray-800">
-        {title}
-      </h3>
+    <div className="flex flex-col items-center text-center w-1/2 p-2 relative">
+      <div className="flex flex-col items-center">
+        <Image
+          src={imageSrc}
+          alt={altText}
+          width={90}
+          height={90}
+          className="transition-transform duration-300 hover:scale-105 object-contain sm:w-[120px] sm:h-[120px] md:w-[180px] md:h-[180px]"
+        />
+        <h3 className="mt-2 text-xs sm:text-sm md:text-base font-semibold text-gray-700 italic">
+          {title}
+        </h3>
+      </div>
+     
     </div>
   );
 }

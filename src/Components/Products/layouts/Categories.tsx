@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import {
   Smartphone,
   Shirt,
@@ -25,7 +25,86 @@ const categories = [
 
 export default function CategoryBrowser() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const animationRef = useRef<number | null>(null);
   const duplicatedCategories = [...categories, ...categories];
+
+  // Auto-scroll animation using RAF instead of CSS
+  useEffect(() => {
+    if (!containerRef.current || isPaused) return;
+
+    let scrollPosition = containerRef.current.scrollLeft;
+    const scrollSpeed = 0.5; // pixels per frame
+
+    const animate = () => {
+      if (!containerRef.current || isPaused) return;
+
+      scrollPosition += scrollSpeed;
+      
+      // Reset to beginning when reached halfway (seamless loop)
+      const maxScroll = containerRef.current.scrollWidth / 2;
+      if (scrollPosition >= maxScroll) {
+        scrollPosition = 0;
+      }
+
+      containerRef.current.scrollLeft = scrollPosition;
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [isPaused]);
+
+  // Handle mouse down
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    setIsDragging(true);
+    setIsPaused(true);
+    setStartX(e.pageX - containerRef.current.offsetLeft);
+    setScrollLeft(containerRef.current.scrollLeft);
+  };
+
+  // Handle mouse leave
+  const handleMouseLeave = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      setIsPaused(false);
+    }
+  };
+
+  // Handle mouse up
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsPaused(false);
+  };
+
+  // Handle mouse move
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !containerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Scroll speed multiplier
+    containerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  // Handle hover to pause animation
+  const handleMouseEnter = () => {
+    setIsPaused(true);
+  };
+
+  const handleMouseLeaveContainer = () => {
+    if (!isDragging) {
+      setIsPaused(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -44,18 +123,23 @@ export default function CategoryBrowser() {
       <div className="relative overflow-hidden">
         <div
           ref={containerRef}
-          className="flex gap-3 sm:gap-4 animate-scroll-left"
+          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeaveContainer}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
         >
           {duplicatedCategories.map((category, index) => {
             const Icon = category.icon;
             return (
               <div
                 key={`${category.id}-${index}`}
-                className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] border border-gray-200 rounded-xl p-4 sm:p-5 md:p-6 bg-white hover:border-red-500 hover:shadow-lg transition-all cursor-pointer group"
+                className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] border border-gray-200 rounded-xl p-4 sm:p-5 md:p-6 bg-white hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer group select-none"
               >
                 <div className="flex flex-col items-center justify-center h-full gap-3 sm:gap-4">
                   <Icon className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 group-hover:text-red-500 transition-colors" />
-                  <span className="text-center text-gray-700 text-xs sm:text-sm md:text-base group-hover:text-red-500 transition-colors">
+                  <span className="text-center text-gray-700 text-xs sm:text-sm md:text-base group-hover:text-red-900 transition-colors">
                     {category.name}
                   </span>
                 </div>
@@ -67,23 +151,12 @@ export default function CategoryBrowser() {
 
       {/* CSS Animation */}
       <style jsx>{`
-        @keyframes scroll-left {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
+        .cursor-grab {
+          cursor: grab;
         }
 
-        .animate-scroll-left {
-          display: flex;
-          animation: scroll-left 30s linear infinite;
-          will-change: transform;
-        }
-
-        .animate-scroll-left:hover {
-          animation-play-state: paused;
+        .cursor-grab:active {
+          cursor: grabbing;
         }
       `}</style>
     </div>
