@@ -3,72 +3,77 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * OAuth Callback Proxy
  * 
- * This route acts as a proxy for OAuth callbacks to properly handle cookies
- * in cross-origin scenarios (Vercel frontend + Render backend).
+ * This route receives OAuth tokens from the backend and sets them as
+ * same-origin cookies on the frontend domain.
  * 
  * Flow:
- * 1. Backend OAuth callback redirects to THIS endpoint
- * 2. This endpoint receives the OAuth result (success/error)
- * 3. Fetches session from backend (which sets cookies)
- * 4. Forwards cookies to the browser
- * 5. Redirects to the OAuth callback page
+ * 1. Backend OAuth callback generates tokens
+ * 2. Backend redirects HERE with tokens in URL
+ * 3. This proxy extracts tokens and sets them as HTTP-only cookies
+ * 4. Redirects to the OAuth callback page
  * 
- * This ensures cookies from backend are properly forwarded to the frontend domain.
+ * This solves cross-origin cookie issues where cookies from backend domain
+ * (onrender.com) cannot be accessed by frontend domain (vercel.app).
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const oauthStatus = searchParams.get('oauth');
+  const tokensParam = searchParams.get('tokens');
   const errorMessage = searchParams.get('message');
 
   console.log('🔄 [OAUTH-PROXY] Processing OAuth callback');
   console.log('📊 [OAUTH-PROXY] Status:', oauthStatus);
+  console.log('🔑 [OAUTH-PROXY] Has tokens:', !!tokensParam);
   console.log('❌ [OAUTH-PROXY] Error:', errorMessage);
 
   try {
-    if (oauthStatus === 'success') {
-      // OAuth succeeded - fetch session from backend to establish cookies
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
+    if (oauthStatus === 'success' && tokensParam) {
+      // Decode tokens from URL
+      const tokens = JSON.parse(decodeURIComponent(tokensParam));
       
-      console.log('🔐 [OAUTH-PROXY] Fetching session from backend:', backendUrl);
+      console.log('✅ [OAUTH-PROXY] Tokens received');
+      console.log('🔑 [OAUTH-PROXY] Access token length:', tokens.access_token?.length);
+      console.log('🔑 [OAUTH-PROXY] Refresh token length:', tokens.refresh_token?.length);
 
-      const sessionResponse = await fetch(`${backendUrl}/auth/session`, {
-        method: 'GET',
-        credentials: 'include', // Important: include credentials
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      // Create response with redirect
+      const response = NextResponse.redirect(
+        new URL('/auth/oauth-callback?oauth=success', request.url)
+      );
+
+      // Set tokens as HTTP-only cookies on the frontend domain
+      // These cookie settings match what the backend would set
+      const isProduction = process.env.NODE_ENV === 'production';
+      const cookieOptions = {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'lax' as const, // Same-origin now, so 'lax' works
+        path: '/',
+      };
+
+      // Access token (45 minutes)
+      response.cookies.set('access_token', tokens.access_token, {
+        ...cookieOptions,
+        maxAge: 45 * 60, // 45 minutes in seconds
       });
 
-      if (sessionResponse.ok) {
-        // Extract cookies from backend response
-        const setCookieHeader = sessionResponse.headers.get('set-cookie');
-        
-        console.log('✅ [OAUTH-PROXY] Session fetched successfully');
-        console.log('🍪 [OAUTH-PROXY] Cookies from backend:', setCookieHeader ? 'present' : 'missing');
+      // Refresh token (7 days)
+      response.cookies.set('refresh_token', tokens.refresh_token, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      });
 
-        // Create response with redirect
-        const response = NextResponse.redirect(
-          new URL('/auth/oauth-callback?oauth=success', request.url)
-        );
+      console.log('✅ [OAUTH-PROXY] Cookies set on frontend domain');
+      console.log('🧭 [OAUTH-PROXY] Redirecting to /auth/oauth-callback');
 
-        // Forward cookies from backend to frontend
-        if (setCookieHeader) {
-          response.headers.set('Set-Cookie', setCookieHeader);
-          console.log('✅ [OAUTH-PROXY] Cookies forwarded to frontend');
-        }
-
-        return response;
-      } else {
-        console.error('❌ [OAUTH-PROXY] Failed to fetch session:', sessionResponse.status);
-      }
+      return response;
     }
 
-    // OAuth failed or session fetch failed - redirect with error
+    // OAuth failed or no tokens - redirect with error
     const redirectUrl = errorMessage
       ? `/auth/oauth-callback?message=${errorMessage}`
       : '/auth/oauth-callback?message=Authentication failed';
 
-    console.log('🧭 [OAUTH-PROXY] Redirecting to:', redirectUrl);
+    console.log('⚠️ [OAUTH-PROXY] No tokens or OAuth failed, redirecting to:', redirectUrl);
     
     return NextResponse.redirect(new URL(redirectUrl, request.url));
   } catch (error) {
