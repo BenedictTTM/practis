@@ -29,7 +29,19 @@ export default function OAuthCallbackPage() {
     const oauthStatus = searchParams.get('oauth');
     const errorMessage = searchParams.get('message');
 
+    console.log('🔍 [OAUTH-CALLBACK] Processing OAuth callback');
+    console.log('🔍 [OAUTH-CALLBACK] Status:', oauthStatus);
+    console.log('🔍 [OAUTH-CALLBACK] Error message:', errorMessage);
+    console.log('🍪 [OAUTH-CALLBACK] Document cookies:', document.cookie);
+
     if (oauthStatus === 'success') {
+      console.log('✅ [OAUTH-CALLBACK] OAuth success detected');
+      
+      // Check if cookies are present
+      const hasCookies = document.cookie.includes('access_token') || document.cookie.includes('refresh_token');
+      console.log('🍪 [OAUTH-CALLBACK] Has auth cookies:', hasCookies);
+      console.log('🍪 [OAUTH-CALLBACK] All cookies:', document.cookie);
+      
       setStatus('success');
       showSuccess('Welcome!', {
         description: 'You have successfully logged in with Google.',
@@ -37,9 +49,11 @@ export default function OAuthCallbackPage() {
 
       // Redirect to dashboard after 1.5 seconds
       setTimeout(() => {
+        console.log('🧭 [OAUTH-CALLBACK] Redirecting to /main/products');
         router.push('/main/products');
       }, 1500);
     } else if (errorMessage) {
+      console.error('❌ [OAUTH-CALLBACK] OAuth error:', decodeURIComponent(errorMessage));
       setStatus('error');
       showError('Authentication Failed', {
         description: decodeURIComponent(errorMessage),
@@ -47,9 +61,11 @@ export default function OAuthCallbackPage() {
 
       // Redirect to login after 3 seconds
       setTimeout(() => {
+        console.log('🧭 [OAUTH-CALLBACK] Redirecting to /auth/login');
         router.push('/auth/login');
       }, 3000);
     } else {
+      console.warn('⚠️ [OAUTH-CALLBACK] No OAuth status found, redirecting home');
       // No status found, redirect to home
       router.push('/');
     }

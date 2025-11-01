@@ -42,6 +42,7 @@ src/
 **Location**: `src/Components/AuthSubmitButton/signInWithGoogle.tsx`
 
 **Features**:
+
 - ✅ Material Design compliant
 - ✅ Google branding guidelines
 - ✅ Loading states
@@ -53,15 +54,16 @@ src/
 - ✅ Icon-only option
 
 **Usage**:
+
 ```tsx
-import { GoogleSignInButton } from '@/Components/AuthSubmitButton/signInWithGoogle';
+import { GoogleSignInButton } from "@/Components/AuthSubmitButton/signInWithGoogle";
 
 <GoogleSignInButton
   text="Continue with Google"
   variant="outline"
   fullWidth
   onError={(error) => console.error(error)}
-/>
+/>;
 ```
 
 ### **2. OAuth Callback Handler**
@@ -69,6 +71,7 @@ import { GoogleSignInButton } from '@/Components/AuthSubmitButton/signInWithGoog
 **Location**: `src/app/auth/oauth-callback/page.tsx`
 
 **Features**:
+
 - ✅ Success/error state handling
 - ✅ Automatic redirects
 - ✅ Toast notifications
@@ -76,6 +79,7 @@ import { GoogleSignInButton } from '@/Components/AuthSubmitButton/signInWithGoog
 - ✅ Error recovery
 
 **Flow**:
+
 1. Backend redirects here after OAuth
 2. Reads success/error from URL params
 3. Shows appropriate UI feedback
@@ -86,6 +90,7 @@ import { GoogleSignInButton } from '@/Components/AuthSubmitButton/signInWithGoog
 **Location**: `src/lib/oauth.ts`
 
 **Features**:
+
 - ✅ OAuth flow initiation
 - ✅ State management
 - ✅ Callback handling
@@ -93,9 +98,10 @@ import { GoogleSignInButton } from '@/Components/AuthSubmitButton/signInWithGoog
 - ✅ User session management
 
 **Methods**:
+
 ```typescript
 // Initiate OAuth
-OAuthService.initiateOAuth({ provider: 'google' });
+OAuthService.initiateOAuth({ provider: "google" });
 
 // Handle callback
 OAuthService.handleCallback(searchParams);
@@ -110,11 +116,13 @@ await OAuthService.getCurrentUser();
 ### **4. Updated Auth Pages**
 
 **Login Page**: `src/app/auth/login/page.tsx`
+
 - ✅ Added Google OAuth button
 - ✅ "Or continue with" divider
 - ✅ Maintains existing email/password flow
 
 **Sign Up Page**: `src/app/auth/signUp/page.tsx`
+
 - ✅ Added Google OAuth button
 - ✅ "Or sign up with" divider
 - ✅ Maintains existing registration flow
@@ -176,11 +184,13 @@ await OAuthService.getCurrentUser();
 ### **1. Environment Setup**
 
 Your `.env.local` is already configured:
+
 ```bash
 NEXT_PUBLIC_API_URL=https://sellr-backend-1.onrender.com
 ```
 
 For local development, create `.env.local`:
+
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
@@ -190,11 +200,13 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 Add these authorized redirect URIs:
 
 **Development**:
+
 ```
 http://localhost:3001/auth/oauth/google/callback
 ```
 
 **Production**:
+
 ```
 https://sellr-backend-1.onrender.com/auth/oauth/google/callback
 ```
@@ -202,12 +214,14 @@ https://sellr-backend-1.onrender.com/auth/oauth/google/callback
 Add these authorized JavaScript origins:
 
 **Development**:
+
 ```
 http://localhost:3000
 http://localhost:3001
 ```
 
 **Production**:
+
 ```
 https://sellr-front-end.vercel.app
 https://sellr-backend-1.onrender.com
@@ -228,6 +242,7 @@ npm run dev
 ```
 
 Navigate to:
+
 ```
 http://localhost:3000/auth/login
 ```
@@ -241,20 +256,18 @@ Click "Continue with Google" and test the flow!
 ### **Basic Google Button**
 
 ```tsx
-import { GoogleSignInButton } from '@/Components/AuthSubmitButton/signInWithGoogle';
+import { GoogleSignInButton } from "@/Components/AuthSubmitButton/signInWithGoogle";
 
 export default function LoginPage() {
-  return (
-    <GoogleSignInButton />
-  );
+  return <GoogleSignInButton />;
 }
 ```
 
 ### **With Error Handling**
 
 ```tsx
-import { GoogleSignInButton } from '@/Components/AuthSubmitButton/signInWithGoogle';
-import { useToast } from '@/Components/Toast/toast';
+import { GoogleSignInButton } from "@/Components/AuthSubmitButton/signInWithGoogle";
+import { useToast } from "@/Components/Toast/toast";
 
 export default function LoginPage() {
   const { showError } = useToast();
@@ -262,12 +275,12 @@ export default function LoginPage() {
   return (
     <GoogleSignInButton
       onError={(error) => {
-        showError('OAuth Failed', {
-          description: error.message
+        showError("OAuth Failed", {
+          description: error.message,
         });
       }}
       onOAuthStart={() => {
-        console.log('OAuth flow starting...');
+        console.log("OAuth flow starting...");
       }}
     />
   );
@@ -277,7 +290,7 @@ export default function LoginPage() {
 ### **Icon Only Button**
 
 ```tsx
-import { GoogleSignInIconButton } from '@/Components/AuthSubmitButton/signInWithGoogle';
+import { GoogleSignInIconButton } from "@/Components/AuthSubmitButton/signInWithGoogle";
 
 export default function QuickLogin() {
   return (
@@ -307,21 +320,25 @@ export default function QuickLogin() {
 ### **Frontend Security**
 
 ✅ **No Token Exposure**
+
 - Tokens stored in HTTP-only cookies
 - Not accessible via JavaScript
 - Protected from XSS attacks
 
 ✅ **CSRF Protection**
+
 - State parameter validation (backend)
 - SameSite cookie attribute
 - Origin validation
 
 ✅ **Secure Redirects**
+
 - Whitelisted redirect URLs
 - URL encoding for parameters
 - No open redirects
 
 ✅ **Error Handling**
+
 - Safe error messages (no sensitive data)
 - Graceful degradation
 - User-friendly feedback
@@ -365,6 +382,7 @@ export default function QuickLogin() {
 ### **Manual Testing**
 
 1. **Success Flow**
+
    - Click "Continue with Google"
    - Select Google account
    - Authorize app
@@ -372,6 +390,7 @@ export default function QuickLogin() {
    - Check cookies in DevTools
 
 2. **Error Flow**
+
    - Deny OAuth consent
    - Verify error message shown
    - Verify redirect to login
@@ -385,6 +404,7 @@ export default function QuickLogin() {
 ### **Browser Testing**
 
 Test in:
+
 - ✅ Chrome
 - ✅ Firefox
 - ✅ Safari
@@ -406,6 +426,7 @@ DevTools → Application → Cookies
 ### **Issue**: Button does nothing
 
 **Solution**:
+
 ```bash
 # Check environment variable
 echo $NEXT_PUBLIC_API_URL
@@ -417,6 +438,7 @@ echo $NEXT_PUBLIC_API_URL
 ### **Issue**: "CORS error"
 
 **Solution**:
+
 - Check backend CORS settings in `main.ts`
 - Add frontend URL to allowed origins
 - Restart backend server
@@ -424,6 +446,7 @@ echo $NEXT_PUBLIC_API_URL
 ### **Issue**: "Redirect URI mismatch"
 
 **Solution**:
+
 - Go to Google Cloud Console
 - Verify redirect URIs match exactly:
   - `https://sellr-backend-1.onrender.com/auth/oauth/google/callback`
@@ -432,6 +455,7 @@ echo $NEXT_PUBLIC_API_URL
 ### **Issue**: Infinite redirect loop
 
 **Solution**:
+
 - Clear browser cookies
 - Check callback page routing
 - Verify `FRONTEND_URL` in backend `.env`
@@ -446,16 +470,16 @@ echo $NEXT_PUBLIC_API_URL
 <GoogleSignInButton
   onOAuthStart={() => {
     // Track OAuth initiation
-    analytics.track('oauth_initiated', {
-      provider: 'google',
-      page: 'login'
+    analytics.track("oauth_initiated", {
+      provider: "google",
+      page: "login",
     });
   }}
   onError={(error) => {
     // Track OAuth errors
-    analytics.track('oauth_error', {
-      provider: 'google',
-      error: error.message
+    analytics.track("oauth_error", {
+      provider: "google",
+      error: error.message,
     });
   }}
 />
@@ -466,16 +490,16 @@ echo $NEXT_PUBLIC_API_URL
 ```typescript
 // In OAuth callback page
 useEffect(() => {
-  const oauthStatus = searchParams.get('oauth');
-  
-  if (oauthStatus === 'success') {
-    analytics.track('oauth_success', {
-      provider: 'google'
+  const oauthStatus = searchParams.get("oauth");
+
+  if (oauthStatus === "success") {
+    analytics.track("oauth_success", {
+      provider: "google",
     });
   } else {
-    analytics.track('oauth_failure', {
-      provider: 'google',
-      reason: searchParams.get('message')
+    analytics.track("oauth_failure", {
+      provider: "google",
+      reason: searchParams.get("message"),
     });
   }
 }, [searchParams]);
@@ -488,23 +512,27 @@ useEffect(() => {
 ### **Vercel Deployment**
 
 1. **Environment Variables**:
+
 ```bash
 NEXT_PUBLIC_API_URL=https://sellr-backend-1.onrender.com
 ```
 
 2. **Deploy**:
+
 ```bash
 git push origin main
 # Vercel auto-deploys
 ```
 
 3. **Update Google Console**:
+
 - Add production redirect URI
 - Add production JavaScript origins
 
 ### **Backend Configuration**
 
 Ensure backend `.env` has:
+
 ```bash
 FRONTEND_URL=https://sellr-front-end.vercel.app
 GOOGLE_CALLBACK_URL=https://sellr-backend-1.onrender.com/auth/oauth/google/callback

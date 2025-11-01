@@ -110,7 +110,15 @@ const Sidebar = ({ onClose }: MobileNavProps) => {
   };
 
   return (
-  <div className="h-screen w-full max-w-sm bg-white text-gray-800 shadow-2xl flex flex-col relative overflow-hidden">
+    <>
+      {/* Backdrop: covers the whole screen and applies a blur (clicking it closes the sidebar) */}
+      <div
+        onClick={() => onClose?.()}
+        aria-hidden="true"
+        className="fixed inset-0  backdrop-blur-sm transition-opacity duration-200 z-40"
+      />
+
+      <div className="fixed left-0 top-0 h-screen w-full max-w-sm bg-white text-gray-800 shadow-2xl flex flex-col overflow-hidden z-50">
       {/* Header with improved styling */}
       <div className="p-6 bg-gradient-to-br from-gray-50 to-white relative">
         <div className="flex items-center justify-between mb-4">
@@ -234,7 +242,8 @@ const Sidebar = ({ onClose }: MobileNavProps) => {
           © 2025 <span className="text-red-500 font-bold">Buddies</span>. All rights reserved.
         </p>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
