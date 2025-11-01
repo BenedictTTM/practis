@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthService } from '@/lib/auth';
 import { useToast } from '@/Components/Toast/toast';
 import { SubmitButton } from '@/Components/AuthSubmitButton/SubmitButton';
+import { GoogleSignInButton } from '@/Components/AuthSubmitButton/signInWithGoogle';
 import { FormInput } from '@/Components/FormInput/fromInput';
 import Image from 'next/image';
 import CartImage from '../../../../public/CartImage2.png';
@@ -113,6 +114,28 @@ export default function LogInPage() {
               </a>
             </div>
           </form>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          {/* Google OAuth Button */}
+          <GoogleSignInButton
+            text="Continue with Google"
+            variant="outline"
+            fullWidth
+            onError={(error) => {
+              showError('OAuth Error', {
+                description: error.message,
+              });
+            }}
+          />
 
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
