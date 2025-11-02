@@ -152,6 +152,7 @@ function ProductCard({ product }: ProductCardProps) {
             quantity={1}
             variant="small"
             className="w-full text-[11px] sm:text-xs py-1.5"
+            productData={product}
           />
         </div>
       </div>

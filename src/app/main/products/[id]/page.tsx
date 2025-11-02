@@ -184,6 +184,7 @@ export default function ProductDetailPage() {
               onIncreaseQuantity={increaseQuantity}
               onDecreaseQuantity={decreaseQuantity}
               onAddToCart={addToCart}
+              productData={product}
             />
 
             <ProductDetails product={product} />

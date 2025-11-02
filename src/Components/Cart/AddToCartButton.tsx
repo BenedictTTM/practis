@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { ShoppingCart, Check } from 'lucide-react';
 import { DotLoader } from '@/Components/Loaders';
 import { addToCart } from '@/lib/cart';
+import { addToLocalCart } from '@/lib/localCart';
 import { useCartStore } from '@/store/cartStore';
 
 interface AddToCartButtonProps {
@@ -14,10 +15,14 @@ interface AddToCartButtonProps {
   className?: string;
   onSuccess?: () => void;
   onError?: (message: string) => void;
+  productData?: any; // Full product data for local storage (used when not authenticated)
 }
 
 /**
  * Improved AddToCartButton
+ * - Supports both authenticated and anonymous users
+ * - Authenticated: Adds to server cart
+ * - Anonymous: Adds to local storage cart
  * - Prevents multi-line text wrapping
  * - Uses gradient background, smooth hover, and consistent sizing
  * - Shows loader and success feedback
@@ -29,6 +34,7 @@ export default function AddToCartButton({
   className = '',
   onSuccess,
   onError,
+  productData,
 }: AddToCartButtonProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -40,22 +46,49 @@ export default function AddToCartButton({
     setLoading(true);
     setSuccess(false);
 
-    const result = await addToCart(productId, quantity);
+    try {
+      // Try adding to server cart first
+      console.log('� Attempting to add to cart...');
+      const result = await addToCart(productId, quantity);
 
-    if (result.success) {
-      setSuccess(true);
-      await fetchItemCount();
-      onSuccess?.();
-      setTimeout(() => setSuccess(false), 2000);
-    } else {
-      if (result.statusCode === 401) {
-        router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
-        return;
+      if (result.success) {
+        // ✅ Successfully added to server cart (user is authenticated)
+        console.log('✅ Added to server cart (authenticated)');
+        setSuccess(true);
+        await fetchItemCount();
+        onSuccess?.();
+        setTimeout(() => setSuccess(false), 2000);
+      } else if (result.statusCode === 401) {
+        // ❌ Unauthorized - user is not authenticated
+        // Add to local storage instead
+        console.log('📦 User not authenticated, adding to local cart');
+        
+        if (!productData) {
+          console.error('❌ Product data is required for anonymous cart');
+          onError?.('Product data is required');
+          setLoading(false);
+          return;
+        }
+
+        addToLocalCart(productData, quantity);
+        setSuccess(true);
+        
+        // Update cart count to reflect local cart
+        await fetchItemCount();
+        
+        onSuccess?.();
+        setTimeout(() => setSuccess(false), 2000);
+      } else {
+        // Other errors
+        console.error('❌ Add to cart failed:', result.message);
+        onError?.(result.message || 'Failed to add to cart');
       }
-      onError?.(result.message || 'Failed to add to cart');
+    } catch (error: any) {
+      console.error('❌ Add to cart error:', error);
+      onError?.(error.message || 'Failed to add to cart');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   // Shared base styles

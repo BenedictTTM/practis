@@ -10,6 +10,7 @@ interface ProductActionsProps {
   onIncreaseQuantity: () => void;
   onDecreaseQuantity: () => void;
   onAddToCart?: () => void;
+  productData?: any; // Full product data for local storage cart
 }
 
 export default function ProductActions({
@@ -20,6 +21,7 @@ export default function ProductActions({
   onIncreaseQuantity,
   onDecreaseQuantity,
   onAddToCart,
+  productData,
 }: ProductActionsProps) {
   return (
     <section className="mt-8 w-full px-2 sm:px-4 md:px-6 space-y-5 sm:space-y-6">
@@ -49,6 +51,7 @@ export default function ProductActions({
           productId={productId}
           quantity={quantity}
           variant="default"
+          productData={productData}
           onSuccess={() => {
             console.log(`✅ Added ${quantity} item(s) to cart`);
             onAddToCart?.();
