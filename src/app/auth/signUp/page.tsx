@@ -5,6 +5,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthService } from '@/lib/auth';
+import { mergeAnonymousCart, hasLocalCartItems } from '@/lib/cartMerge';
 import { PasswordStrengthMeter } from '@/Components/PasswordStrengthMeter/passwordstrengthmeter';
 import { useToast } from '@/Components/Toast/toast';
 import { SubmitButton } from '@/Components/AuthSubmitButton/SubmitButton';
@@ -44,9 +45,27 @@ export default function SignUpPage() {
       console.log('✅ Signup successful:', response);
 
       if (response?.success) {
-        showSuccess('Account created successfully!', {
-          description: 'Welcome to our platform!',
-        });
+        // Check if user had items in local cart before signup
+        const hadLocalCart = hasLocalCartItems();
+
+        // Merge anonymous cart if exists
+        if (hadLocalCart) {
+          const mergeResult = await mergeAnonymousCart();
+          
+          if (mergeResult.success && mergeResult.itemCount! > 0) {
+            showSuccess('Account created successfully!', {
+              description: `Welcome to our platform! ${mergeResult.message}`,
+            });
+          } else {
+            showSuccess('Account created successfully!', {
+              description: 'Welcome to our platform!',
+            });
+          }
+        } else {
+          showSuccess('Account created successfully!', {
+            description: 'Welcome to our platform!',
+          });
+        }
 
         setTimeout(() => {
           console.log('🚀 Redirecting to /products...');

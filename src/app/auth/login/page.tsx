@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthService } from '@/lib/auth';
+import { mergeAnonymousCart, hasLocalCartItems } from '@/lib/cartMerge';
 import { useToast } from '@/Components/Toast/toast';
 import { SubmitButton } from '@/Components/AuthSubmitButton/SubmitButton';
 import { GoogleSignInButton } from '@/Components/AuthSubmitButton/signInWithGoogle';
@@ -35,11 +36,18 @@ export default function LogInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [redirectUrl, setRedirectUrl] = useState<string>('/main/products');
+  const [isCheckout, setIsCheckout] = useState(false);
 
   useEffect(() => {
     const redirect = searchParams.get('redirect');
+    const checkout = searchParams.get('checkout');
+    
     if (redirect) {
       setRedirectUrl(decodeURIComponent(redirect));
+    }
+    
+    if (checkout === 'true') {
+      setIsCheckout(true);
     }
   }, [searchParams]);
 
@@ -48,12 +56,33 @@ export default function LogInPage() {
       const response = await AuthService.login(data);
       console.log('✅ Login response:', response);
 
-      showSuccess('Logged in successfully!', {
-        description: 'Welcome back to our platform!',
-      });
+      // Check if user had items in local cart before login
+      const hadLocalCart = hasLocalCartItems();
+
+      // Merge anonymous cart if exists
+      if (hadLocalCart) {
+        const mergeResult = await mergeAnonymousCart();
+        
+        if (mergeResult.success && mergeResult.itemCount! > 0) {
+          showSuccess('Logged in successfully!', {
+            description: `Welcome back! ${mergeResult.message}`,
+          });
+        } else {
+          showSuccess('Logged in successfully!', {
+            description: 'Welcome back to our platform!',
+          });
+        }
+      } else {
+        showSuccess('Logged in successfully!', {
+          description: 'Welcome back to our platform!',
+        });
+      }
+
+      // Redirect to checkout if coming from checkout flow, otherwise use redirect URL
+      const finalRedirect = isCheckout ? '/main/checkout' : redirectUrl;
 
       setTimeout(() => {
-        router.push(redirectUrl);
+        router.push(finalRedirect);
       }, 1500);
 
       reset();
