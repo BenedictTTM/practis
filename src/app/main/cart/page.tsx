@@ -5,46 +5,137 @@ import { Trash2, Minus, Plus, ArrowRight, ShoppingCart as CartIcon } from 'lucid
 import { DotLoader } from '@/Components/Loaders';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { fetchCart, updateCartItem, removeCartItem, clearCart } from '@/lib/cart';
+import { 
+  getLocalCartData, 
+  updateLocalCartItem, 
+  removeFromLocalCart, 
+  clearLocalCart,
+  calculateLocalCartSubtotal 
+} from '@/lib/localCart';
+import { AuthService } from '@/lib/auth';
 import { Cart, CartItem } from '@/types/cart';
 import { formatGhs } from '@/utilities/formatGhs';
 
+interface DisplayCartItem {
+  id: number | string; // Can be number (server) or string (local: productId)
+  productId: number;
+  quantity: number;
+  product: {
+    id: number;
+    title: string;
+    imageUrl: string | string[];
+    originalPrice: number;
+    discountedPrice?: number;
+    condition?: string;
+    stock?: number;
+  };
+}
+
 export default function ShoppingCart() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [cart, setCart] = useState<Cart | null>(null);
+  const [displayItems, setDisplayItems] = useState<DisplayCartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
+  const [updatingItems, setUpdatingItems] = useState<Set<number | string>>(new Set());
   const [couponCode, setCouponCode] = useState('');
 
-  // Fetch cart on mount
+  // Check authentication and load appropriate cart on mount
   useEffect(() => {
-    loadCart();
+    initializeCart();
   }, []);
 
-  const loadCart = async () => {
+  const initializeCart = async () => {
     setLoading(true);
     setError(null);
-    const result = await fetchCart();
 
-    if (result.success) {
-      setCart(result.data || null);
+    // Check if user is authenticated
+    const authenticated = await AuthService.isAuthenticated();
+    setIsAuthenticated(authenticated);
+
+    if (authenticated) {
+      // Load server-side cart for authenticated users
+      await loadServerCart();
     } else {
-      setError(result.message || 'Failed to load cart');
+      // Load local storage cart for anonymous users
+      loadLocalCart();
     }
+
     setLoading(false);
   };
 
-  const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
+  const loadServerCart = async () => {
+    const result = await fetchCart();
+
+    if (result.success && result.data) {
+      setCart(result.data);
+      // Convert server cart to display format
+      const items: DisplayCartItem[] = result.data.items.map(item => ({
+        id: item.id,
+        productId: item.product.id,
+        quantity: item.quantity,
+        product: item.product,
+      }));
+      setDisplayItems(items);
+    } else {
+      // User is authenticated but has no cart or error occurred
+      setCart(null);
+      setDisplayItems([]);
+      if (result.message && !result.message.includes('Cart not found')) {
+        setError(result.message || 'Failed to load cart');
+      }
+    }
+  };
+
+  const loadLocalCart = () => {
+    const localCart = getLocalCartData();
+    
+    // Convert local cart to display format
+    const items: DisplayCartItem[] = localCart.items.map(item => ({
+      id: `local-${item.productId}`, // Use string ID for local items
+      productId: item.productId,
+      quantity: item.quantity,
+      product: item.product,
+    }));
+    
+    setDisplayItems(items);
+    console.log('📦 Loaded local cart:', { itemCount: items.length });
+  };
+
+  const handleUpdateQuantity = async (itemId: number | string, productId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
 
     setUpdatingItems(prev => new Set(prev).add(itemId));
 
-    const result = await updateCartItem(itemId, newQuantity);
+    if (isAuthenticated && typeof itemId === 'number') {
+      // Update server cart
+      const result = await updateCartItem(itemId, newQuantity);
 
-    if (result.success && result.data) {
-      setCart(result.data);
+      if (result.success && result.data) {
+        setCart(result.data);
+        const items: DisplayCartItem[] = result.data.items.map(item => ({
+          id: item.id,
+          productId: item.product.id,
+          quantity: item.quantity,
+          product: item.product,
+        }));
+        setDisplayItems(items);
+      } else {
+        setError(result.message || 'Failed to update quantity');
+      }
     } else {
-      setError(result.message || 'Failed to update quantity');
+      // Update local cart
+      const updatedCart = updateLocalCartItem(productId, newQuantity);
+      const items: DisplayCartItem[] = updatedCart.items.map(item => ({
+        id: `local-${item.productId}`,
+        productId: item.productId,
+        quantity: item.quantity,
+        product: item.product,
+      }));
+      setDisplayItems(items);
     }
 
     setUpdatingItems(prev => {
@@ -54,17 +145,41 @@ export default function ShoppingCart() {
     });
   };
 
-  const handleRemoveItem = async (itemId: number) => {
+  const handleRemoveItem = async (itemId: number | string, productId: number) => {
     if (!confirm('Remove this item from cart?')) return;
 
     setUpdatingItems(prev => new Set(prev).add(itemId));
 
-    const result = await removeCartItem(itemId);
+    if (isAuthenticated && typeof itemId === 'number') {
+      // Remove from server cart
+      const result = await removeCartItem(itemId);
 
-    if (result.success) {
-      setCart(result.data || null);
+      if (result.success) {
+        setCart(result.data || null);
+        if (result.data) {
+          const items: DisplayCartItem[] = result.data.items.map(item => ({
+            id: item.id,
+            productId: item.product.id,
+            quantity: item.quantity,
+            product: item.product,
+          }));
+          setDisplayItems(items);
+        } else {
+          setDisplayItems([]);
+        }
+      } else {
+        setError(result.message || 'Failed to remove item');
+      }
     } else {
-      setError(result.message || 'Failed to remove item');
+      // Remove from local cart
+      const updatedCart = removeFromLocalCart(productId);
+      const items: DisplayCartItem[] = updatedCart.items.map(item => ({
+        id: `local-${item.productId}`,
+        productId: item.productId,
+        quantity: item.quantity,
+        product: item.product,
+      }));
+      setDisplayItems(items);
     }
 
     setUpdatingItems(prev => {
@@ -77,13 +192,32 @@ export default function ShoppingCart() {
   const handleClearCart = async () => {
     if (!confirm('Clear all items from cart?')) return;
 
-    const result = await clearCart();
+    if (isAuthenticated) {
+      // Clear server cart
+      const result = await clearCart();
 
-    if (result.success) {
-      setCart(null);
+      if (result.success) {
+        setCart(null);
+        setDisplayItems([]);
+      } else {
+        setError(result.message || 'Failed to clear cart');
+      }
     } else {
-      setError(result.message || 'Failed to clear cart');
+      // Clear local cart
+      clearLocalCart();
+      setDisplayItems([]);
     }
+  };
+
+  const handleCheckout = async () => {
+    if (!isAuthenticated) {
+      // Redirect to login with return URL
+      router.push('/auth/login?redirect=/main/cart&checkout=true');
+      return;
+    }
+
+    // User is authenticated, proceed to checkout
+    router.push('/main/checkout');
   };
 
   // Loading state
@@ -98,15 +232,19 @@ export default function ShoppingCart() {
     );
   }
 
+  // Calculate totals
   const shippingCost = 5.0;
-  const subtotal = cart?.subtotal || 0;
+  const subtotal = isAuthenticated 
+    ? (cart?.subtotal || 0)
+    : calculateLocalCartSubtotal();
   const total = subtotal + shippingCost;
+  const hasItems = displayItems.length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8 px-3 sm:px-6 lg:px-8 overflow-x-hidden">
       <div className="max-w-7xl mx-auto w-full">
         {/* Cart Items Section */}
-        {cart && cart.items.length > 0 ? (
+        {hasItems ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* Left Column - Cart Items */}
             <div className="lg:col-span-2 w-full min-w-0">
@@ -123,6 +261,15 @@ export default function ShoppingCart() {
                 </Link>
               </div>
 
+              {/* Auth Status Banner for Anonymous Users */}
+              {!isAuthenticated && (
+                <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-blue-800 text-xs sm:text-sm">
+                    🔒 You're browsing as a guest. <Link href="/auth/login" className="font-semibold underline hover:text-blue-900">Sign in</Link> to sync your cart across devices.
+                  </p>
+                </div>
+              )}
+
               {/* Error Message */}
               {error && (
                 <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -132,7 +279,7 @@ export default function ShoppingCart() {
 
               {/* Cart Items List */}
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                {cart.items.map((item, index) => {
+                {displayItems.map((item, index) => {
                   const isUpdating = updatingItems.has(item.id);
                   const product = item.product;
                   const imageUrl = Array.isArray(product.imageUrl)
@@ -144,7 +291,7 @@ export default function ShoppingCart() {
                     <div
                       key={item.id}
                       className={`p-3 sm:p-4 ${
-                        index !== cart.items.length - 1 ? 'border-b border-gray-100' : ''
+                        index !== displayItems.length - 1 ? 'border-b border-gray-100' : ''
                       } ${isUpdating ? 'opacity-50 pointer-events-none' : ''}`}
                     >
                       <div className="flex gap-2 sm:gap-3 min-w-0">
@@ -173,7 +320,7 @@ export default function ShoppingCart() {
                             </div>
                             {/* Delete Button - Top Right on Mobile */}
                             <button
-                              onClick={() => handleRemoveItem(item.id)}
+                              onClick={() => handleRemoveItem(item.id, item.productId)}
                               disabled={isUpdating}
                               className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 flex-shrink-0 sm:hidden"
                               aria-label="Remove item"
@@ -191,7 +338,7 @@ export default function ShoppingCart() {
                             {/* Quantity Controls */}
                             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                               <button
-                                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                                onClick={() => handleUpdateQuantity(item.id, item.productId, item.quantity - 1)}
                                 disabled={isUpdating || item.quantity <= 1}
                                 className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors border border-gray-300 rounded"
                                 aria-label="Decrease quantity"
@@ -204,7 +351,7 @@ export default function ShoppingCart() {
                               </span>
 
                               <button
-                                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                                onClick={() => handleUpdateQuantity(item.id, item.productId, item.quantity + 1)}
                                 disabled={
                                   isUpdating ||
                                   (product.stock !== undefined && item.quantity >= product.stock)
@@ -222,7 +369,7 @@ export default function ShoppingCart() {
                                 {formatGhs(displayPrice * item.quantity)}
                               </span>
                               <button
-                                onClick={() => handleRemoveItem(item.id)}
+                                onClick={() => handleRemoveItem(item.id, item.productId)}
                                 disabled={isUpdating}
                                 className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 hidden sm:block flex-shrink-0"
                                 aria-label="Remove item"
@@ -283,10 +430,20 @@ export default function ShoppingCart() {
                 </div>
 
                 {/* Checkout Button */}
-                <button className="w-full bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold py-2.5 sm:py-3 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 mb-3 sm:mb-4 text-sm sm:text-base shadow-sm hover:shadow-md">
+                <button 
+                  onClick={handleCheckout}
+                  className="w-full bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold py-2.5 sm:py-3 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 mb-3 sm:mb-4 text-sm sm:text-base shadow-sm hover:shadow-md"
+                >
+                  {!isAuthenticated && '🔒 '}
                   Proceed to Checkout
                   <ArrowRight size={18} className="sm:w-5 sm:h-5" />
                 </button>
+
+                {!isAuthenticated && (
+                  <p className="text-xs text-gray-500 text-center mb-3">
+                    You'll be asked to sign in before checkout
+                  </p>
+                )}
 
                 <Link
                   href="/main/products"
