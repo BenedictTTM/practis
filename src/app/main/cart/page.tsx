@@ -25,8 +25,8 @@ interface DisplayCartItem {
   product: {
     id: number;
     title: string;
-    imageUrl: string | string[];
-    originalPrice: number;
+    imageUrl?: string[];
+    originalPrice?: number;
     discountedPrice?: number;
     condition?: string;
     stock?: number;

@@ -61,7 +61,9 @@ export default function CheckoutPage() {
       if (user) {
         setShippingInfo(prev => ({
           ...prev,
-          fullName: user.fullName || user.username || '',
+          fullName: user.firstName && user.lastName 
+            ? `${user.firstName} ${user.lastName}` 
+            : user.firstName || user.lastName || '',
           email: user.email || '',
         }));
       }
