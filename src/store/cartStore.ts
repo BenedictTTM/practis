@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { getLocalCartItemCount } from '@/lib/localCart';
 
 interface CartStore {
   itemCount: number;
@@ -18,6 +19,7 @@ export const useCartStore = create<CartStore>((set) => ({
   
   fetchItemCount: async () => {
     try {
+      // Try fetching authenticated cart count
       const response = await fetch('/api/cart/count', {
         credentials: 'include',
       });
@@ -25,12 +27,18 @@ export const useCartStore = create<CartStore>((set) => ({
       if (response.ok) {
         const data = await response.json();
         set({ itemCount: data.count || 0 });
+      } else if (response.status === 401) {
+        // User not authenticated - use local cart count
+        const localCount = getLocalCartItemCount();
+        set({ itemCount: localCount });
       } else {
         set({ itemCount: 0 });
       }
     } catch (error) {
       console.error('Error fetching cart count:', error);
-      set({ itemCount: 0 });
+      // Fallback to local cart count
+      const localCount = getLocalCartItemCount();
+      set({ itemCount: localCount });
     }
   },
 }));

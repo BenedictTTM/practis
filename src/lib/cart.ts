@@ -355,3 +355,65 @@ export async function clearCart(): Promise<CartResponse> {
     };
   }
 }
+
+/**
+ * Merge anonymous cart with authenticated user's cart
+ * 
+ * Called after user logs in to merge their local cart items
+ * with their existing server-side cart.
+ * 
+ * @param items - Array of {productId, quantity} from local storage
+ * @returns Promise<CartResponse> - Merged cart data
+ * 
+ * @example
+ * ```typescript
+ * const localItems = getLocalCartForMerge();
+ * const result = await mergeCart(localItems);
+ * if (result.success) {
+ *   clearLocalCart(); // Clear local storage after successful merge
+ * }
+ * ```
+ */
+export async function mergeCart(
+  items: Array<{ productId: number; quantity: number }>
+): Promise<CartResponse> {
+  try {
+    console.log('🔄 Merging anonymous cart with user cart:', {
+      itemCount: items.length,
+    });
+
+    const response = await fetch('/api/cart/merge', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ items }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('❌ Cart merge failed:', data.message);
+      return {
+        success: false,
+        message: data.message || 'Failed to merge cart',
+        statusCode: response.status,
+      };
+    }
+
+    console.log('✅ Cart merged successfully');
+    return {
+      success: true,
+      data: data,
+      statusCode: response.status,
+    };
+  } catch (error) {
+    console.error('💥 Network error merging cart:', error);
+    return {
+      success: false,
+      message: 'Network error - Unable to connect to server',
+      statusCode: 0,
+    };
+  }
+}
