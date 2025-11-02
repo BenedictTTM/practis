@@ -51,7 +51,7 @@ export default function PurchaseSlotsModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm sm:max-w-md max-h-[82vh] overflow-y-auto relative">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-sm sm:max-w-md max-h-[82vh] overflow-y-auto relative">
         {onClose && (
           <button
             onClick={onClose}

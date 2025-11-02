@@ -72,14 +72,14 @@ export default function OAuthCallbackPage() {
   }, [searchParams, router, showSuccess, showError]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 sm:p-8 md:p-10 text-center transform transition-all duration-300 hover:shadow-3xl">
         {status === 'loading' && (
           <>
             {/* Loading State */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-6 sm:mb-8">
               <svg
-                className="animate-spin h-16 w-16 text-blue-600"
+                className="animate-spin h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 text-red-600"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -99,10 +99,10 @@ export default function OAuthCallbackPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
               Completing Sign In...
             </h2>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
               Please wait while we set up your account.
             </p>
           </>
@@ -111,10 +111,10 @@ export default function OAuthCallbackPage() {
         {status === 'success' && (
           <>
             {/* Success State */}
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <div className="flex justify-center mb-6 sm:mb-8">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-red-50 rounded-full flex items-center justify-center ring-4 ring-red-100 transition-transform duration-300 hover:scale-110">
                 <svg
-                  className="w-10 h-10 text-green-600"
+                  className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-red-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -128,14 +128,18 @@ export default function OAuthCallbackPage() {
                 </svg>
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
               Welcome Back!
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 leading-relaxed">
               You have successfully signed in with Google.
             </p>
-            <div className="text-sm text-gray-500">
-              Redirecting to your dashboard...
+            <div className="inline-flex items-center gap-2 text-xs sm:text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-full">
+              <svg className="animate-spin h-3 w-3 sm:h-4 sm:w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Redirecting to your dashboard...</span>
             </div>
           </>
         )}
@@ -143,10 +147,10 @@ export default function OAuthCallbackPage() {
         {status === 'error' && (
           <>
             {/* Error State */}
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+            <div className="flex justify-center mb-6 sm:mb-8">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-red-50 rounded-full flex items-center justify-center ring-4 ring-red-100 transition-transform duration-300 hover:scale-110">
                 <svg
-                  className="w-10 h-10 text-red-600"
+                  className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-red-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -160,15 +164,15 @@ export default function OAuthCallbackPage() {
                 </svg>
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
               Authentication Failed
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 leading-relaxed px-2">
               {searchParams.get('message') || 'Something went wrong during sign in.'}
             </p>
             <button
               onClick={() => router.push('/auth/login')}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-red-600 text-white text-sm sm:text-base font-semibold rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-red-300"
             >
               Back to Login
             </button>
