@@ -1,374 +1,357 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-
-import { DotLoader } from "@/Components/Loaders";
-import { useToast } from "@/Components/Toast/toast";
-import { AuthService } from "@/lib/auth";
-import { clearCart, fetchCart } from "@/lib/cart";
-import { placeOrder } from "@/lib/orders";
-import { formatGhs } from "@/utilities/formatGhs";
-import type { Cart, CartItem } from "@/types/cart";
-import {fetchmyorder} from "@/lib/orders";
-
-const phoneNumberSchema = z
-	.string()
-	.trim()
-	.min(8, "Phone number must be at least 8 characters long")
-	.regex(/^[0-9+\-\s()]+$/, "Only digits and + - ( ) characters are allowed");
-
-const CheckoutSchema = z.object({
-	hall: z
-		.string()
-		.trim()
-		.max(120, "Hall name must be 120 characters or less")
-		.optional()
-		.or(z.literal("")),
-	whatsappNumber: phoneNumberSchema,
-	callNumber: phoneNumberSchema,
-	message: z
-		.string()
-		.trim()
-		.max(400, "Message must be 400 characters or less")
-		.optional()
-		.or(z.literal("")),
-});
-
-type CheckoutFormValues = z.infer<typeof CheckoutSchema>;
-
-const FEES_RATE = 0.06;
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { placeOrder } from "../../../lib/orders";
+import type { Product } from "../../../types/products";
 
 export default function CheckoutPage() {
-	const router = useRouter();
-	const { showError, showSuccess, showWarning } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // URL params for product checkout
+  const productId = searchParams.get("productId");
+  const quantityParam = searchParams.get("quantity");
+  
+  // Product state
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loadingProduct, setLoadingProduct] = useState<boolean>(false);
+  const [productError, setProductError] = useState<string | null>(null);
+  
+  // Form state
+  const [quantity, setQuantity] = useState<number>(parseInt(quantityParam || "1", 10) || 1);
+  const [hall, setHall] = useState<string>("");
+  const [whatsapp, setWhatsapp] = useState<string>("");
+  const [callNumber, setCallNumber] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
+  
+  // UI state
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [orderSuccess, setOrderSuccess] = useState<boolean>(false);
+  
+  // Fetch product details
+  useEffect(() => {
+    if (!productId) {
+      setProductError("No product selected. Please return to products page.");
+      return;
+    }
 
-	const [cart, setCart] = useState<Cart | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [submitting, setSubmitting] = useState(false);
+    const controller = new AbortController();
+    const signal = controller.signal;
 
-	const {
-		register,
-		handleSubmit,
-		reset,
-		setValue,
-		formState: { errors },
-	} = useForm<CheckoutFormValues>({
-		resolver: zodResolver(CheckoutSchema),
-		defaultValues: {
-			hall: "",
-			whatsappNumber: "",
-			callNumber: "",
-			message: "",
-		},
-	});
+    (async () => {
+      setLoadingProduct(true);
+      setProductError(null);
+      
+      try {
+        const response = await fetch(`/api/products/${productId}`, { signal });
+        const body = await response.json().catch(() => null);
+        const payload = (body && (body.data ?? body)) ?? null;
 
-	useEffect(() => {
-		const initialize = async () => {
-			setLoading(true);
-			try {
-				const authenticated = await AuthService.isAuthenticated();
-				if (!authenticated) {
-					router.replace("/auth/login?redirect=/main/cart&checkout=true");
-					return;
-				}
+        if (!response.ok) {
+          const message = payload?.message ?? response.statusText ?? "Failed to fetch product";
+          setProductError(`Error: ${message}`);
+          setProduct(null);
+        } else {
+          setProduct(payload as Product);
+        }
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
+        console.error("Product fetch error:", err);
+        setProductError("Failed to load product details");
+      } finally {
+        setLoadingProduct(false);
+      }
+    })();
 
+    return () => controller.abort();
+  }, [productId]);
 
-			
+  // Validate form
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
 
-	const totals = useMemo(() => {
-		const subtotal = cart?.subtotal ?? 0;
-		const fees = subtotal > 0 ? Number((subtotal * FEES_RATE).toFixed(2)) : 0;
-		const total = Number((subtotal + fees).toFixed(2));
-		return { subtotal, fees, total };
-	}, [cart]);
+    if (!whatsapp.trim()) {
+      newErrors.whatsapp = "WhatsApp number is required";
+    } else if (!/^\+?[0-9\s()-]{8,}$/.test(whatsapp)) {
+      newErrors.whatsapp = "Please enter a valid phone number";
+    }
 
-	const onSubmit = handleSubmit(async (values) => {
-		if (!cart || cart.items.length === 0) {
-			showError("Your cart is empty", {
-				description: "Add items before placing an order.",
-			});
-			return;
-		}
+    if (!callNumber.trim()) {
+      newErrors.callNumber = "Call number is required";
+    } else if (!/^\+?[0-9\s()-]{8,}$/.test(callNumber)) {
+      newErrors.callNumber = "Please enter a valid phone number";
+    }
 
-		setSubmitting(true);
+    if (quantity < 1) {
+      newErrors.quantity = "Quantity must be at least 1";
+    }
 
-		const hallPayload = values.hall?.trim()
-			? values.hall.trim()
-			: undefined;
-		const trimmedMessage = values.message?.trim();
-		const messagePayload = trimmedMessage && trimmedMessage.length > 0 ? trimmedMessage : undefined;
+    if (product && quantity > (product.stock || 0)) {
+      newErrors.quantity = `Only ${product.stock} items available`;
+    }
 
-		const createdOrders: number[] = [];
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-		try {
-			// Place orders sequentially to keep stock checks consistent.
-			for (const item of cart.items) {
-				const response = await placeOrder({
-					productId: item.product.id,
-					quantity: item.quantity,
-					whatsappNumber: values.whatsappNumber.trim(),
-					callNumber: values.callNumber.trim(),
-					hall: hallPayload,
-					message: messagePayload,
-				});
+  // Handle order submission
+  const handleConfirm = async () => {
+    if (!productId || !product) {
+      alert("Product information is missing");
+      return;
+    }
 
-				if (!response.success) {
-					throw new Error(response.message || "Failed to place order");
-				}
+    if (!validateForm()) {
+      return;
+    }
 
-				const orderId = response.data?.id;
-				if (orderId) {
-					createdOrders.push(orderId);
-				}
-			}
+    setIsSubmitting(true);
+    setErrors({});
 
-			const clearResult = await clearCart();
-			if (clearResult.success) {
-				setCart(clearResult.data || null);
-			} else {
-				showWarning("Order placed but cart not cleared", {
-					description:
-						clearResult.message || "Please refresh the page to update your cart.",
-				});
-			}
+    try {
+      const result = await placeOrder({
+        productId: parseInt(productId, 10),
+        quantity,
+        whatsappNumber: whatsapp,
+        callNumber,
+        hall: hall.trim() || undefined,
+        message: message.trim() || undefined,
+      });
 
-			reset();
+      if (result.success) {
+        setOrderSuccess(true);
+        // Redirect to orders page after 2 seconds
+        setTimeout(() => {
+          router.push("/main/orders");
+        }, 2000);
+      } else {
+        setErrors({ submit: result.message || "Failed to place order" });
+      }
+    } catch (err: any) {
+      console.error("Order submission error:", err);
+      setErrors({ submit: "An unexpected error occurred. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-			const successDescription =
-				createdOrders.length > 1
-					? `Created ${createdOrders.length} orders. We'll reach out shortly to finalize delivery.`
-					: "Your order was submitted. Our team will reach out shortly.";
+  // Loading state
+  if (loadingProduct) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10 px-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-6">
+          Loaing
+        </div>
+      </div>
+    );
+  }
 
-			showSuccess("Order confirmed", { description: successDescription });
+  // Error state
+  if (productError || (!product && !loadingProduct)) {
+    const errorMessage = productError || (!productId 
+      ? "No product selected. To checkout, click 'Buy Now' on any product page." 
+      : "Product not found");
+    
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10 px-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-6 text-center">
+          <div className="text-red-600 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Unable to Load Product</h2>
+          <p className="text-gray-600 mb-6">{errorMessage}</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => router.push("/main/products")}
+              className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Browse Products
+            </button>
+            {productId && (
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+              >
+                Try Again
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-			setTimeout(() => {
-				router.push("/main/products");
-			}, 800);
-		} catch (error) {
-			const partialMessage =
-				createdOrders.length > 0
-					? ` Some orders were created (IDs: ${createdOrders.join(", ")}). Please contact support to confirm their status.`
-					: "";
+  // Success state
+  if (orderSuccess) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10 px-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-6 text-center">
+          <div className="text-green-600 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Order Placed Successfully!</h2>
+          <p className="text-gray-600 mb-2">Your order has been confirmed.</p>
+          <p className="text-sm text-gray-500 mb-6">Redirecting to your orders...</p>
+        </div>
+      </div>
+    );
+  }
 
-			showError("Unable to place order", {
-				description:
-					(error instanceof Error
-						? error.message
-						: "Unexpected error occurred while placing your order.") + partialMessage,
-			});
-		} finally {
-			setSubmitting(false);
-		}
-	});
+  const unitPrice = product.discountedPrice ?? product.originalPrice ?? 0;
+  const subtotal = unitPrice * quantity;
+  const currency = "GHS"; // Default currency
 
-	if (loading) {
-		return (
-					<div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
-						<DotLoader size={56} ariaLabel="Loading checkout" />
-						<p className="mt-4 text-sm text-gray-600">Preparing your checkout...</p>
-			</div>
-		);
-	}
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10 px-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-6 space-y-6">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-800">Checkout</h1>
+          <button
+            onClick={() => router.back()}
+            className="text-gray-500 hover:text-gray-700 text-sm"
+          >
+            ← Back
+          </button>
+        </div>
 
-	if (!cart || cart.items.length === 0) {
-		return (
-			<div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
-				Your cart is empty
-			</div>
-		);
-	}
+        {/* Order Summary */}
+        <div>
+          <h2 className="font-semibold text-gray-800 mb-3">Order Summary</h2>
+          <div className="flex justify-between items-start border rounded-xl px-4 py-3 bg-gray-50">
+            <div className="flex-1">
+              <p className="text-gray-700 font-medium">{product.title}</p>
+              <p className="text-sm text-gray-500 mt-1">Quantity: {quantity}</p>
+              {product.stock && product.stock < 10 && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Only {product.stock} left in stock
+                </p>
+              )}
+            </div>
+            <span className="font-semibold text-gray-800">
+              {currency} {unitPrice.toFixed(2)}
+            </span>
+          </div>
+        </div>
 
-	return (
-		<div className="min-h-screen bg-gray-50 py-8 sm:py-12">
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="mb-6">
-					<h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
-					<p className="text-sm text-gray-600 mt-2">
-						Provide your contact details and confirm your order.
-					</p>
-				</div>
+        <div className="border-t"></div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-					<div className="lg:col-span-2 space-y-6">
-						<form onSubmit={onSubmit} className="bg-white shadow-sm rounded-lg p-6 space-y-6">
-							<section>
-								<h2 className="text-lg font-semibold text-gray-900">Contact Information</h2>
-								<p className="text-xs text-gray-500 mt-1">
-									We&apos;ll use these details to coordinate delivery with you.
-								</p>
+        {/* Contact Information */}
+        <div>
+          <h2 className="font-semibold text-gray-800 mb-3">Contact Information</h2>
+          <div className="space-y-3">
+            <div>
+              <input
+                type="text"
+                value={hall}
+                onChange={(e) => setHall(e.target.value)}
+                placeholder="Hall / Hostel (Optional)"
+                className={`w-full px-4 py-3 border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                  errors.hall ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.hall && <p className="text-red-500 text-xs mt-1">{errors.hall}</p>}
+            </div>
 
-								<div className="mt-4 space-y-4">
-									<div>
-										<label htmlFor="hall" className="block text-sm font-medium text-gray-700">
-											Hall / Delivery Location (optional)
-										</label>
-										<input
-											id="hall"
-											type="text"
-											{...register("hall")}
-											placeholder="e.g., Grand Ballroom"
-											className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500"
-										/>
-										{errors.hall && (
-											<p className="mt-1 text-xs text-red-600">{errors.hall.message}</p>
-										)}
-									</div>
+            <div>
+              <input
+                type="tel"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                placeholder="WhatsApp Number *"
+                className={`w-full px-4 py-3 border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                  errors.whatsapp ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.whatsapp && <p className="text-red-500 text-xs mt-1">{errors.whatsapp}</p>}
+            </div>
 
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<div>
-											<label htmlFor="whatsappNumber" className="block text-sm font-medium text-gray-700">
-												WhatsApp Number
-											</label>
-											<input
-												id="whatsappNumber"
-												type="tel"
-												{...register("whatsappNumber")}
-												placeholder="+233 24 123 4567"
-												className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500"
-											/>
-											{errors.whatsappNumber && (
-												<p className="mt-1 text-xs text-red-600">{errors.whatsappNumber.message}</p>
-											)}
-										</div>
+            <div>
+              <input
+                type="tel"
+                value={callNumber}
+                onChange={(e) => setCallNumber(e.target.value)}
+                placeholder="Call Number *"
+                className={`w-full px-4 py-3 border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                  errors.callNumber ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.callNumber && <p className="text-red-500 text-xs mt-1">{errors.callNumber}</p>}
+            </div>
+          </div>
+        </div>
 
-										<div>
-											<label htmlFor="callNumber" className="block text-sm font-medium text-gray-700">
-												Call Number
-											</label>
-											<input
-												id="callNumber"
-												type="tel"
-												{...register("callNumber")}
-												placeholder="+233 20 765 4321"
-												className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500"
-											/>
-											{errors.callNumber && (
-												<p className="mt-1 text-xs text-red-600">{errors.callNumber.message}</p>
-											)}
-										</div>
-									</div>
+        <div className="border-t"></div>
 
-									<div>
-										<label htmlFor="message" className="block text-sm font-medium text-gray-700">
-											Message for Seller (optional)
-										</label>
-										<textarea
-											id="message"
-											rows={3}
-											{...register("message")}
-											placeholder="Share any delivery notes or special instructions"
-											className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500"
-										/>
-										{errors.message && (
-											<p className="mt-1 text-xs text-red-600">{errors.message.message}</p>
-										)}
-									</div>
-								</div>
-							</section>
+        {/* Additional Info */}
+        <div>
+          <h2 className="font-semibold text-gray-800 mb-3">Additional Information</h2>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Add any special requests or notes here..."
+            rows={4}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+          />
+        </div>
 
-							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-gray-200">
-								<p className="text-xs text-gray-500">
-									By confirming purchase you agree to our {" "}
-									<span className="font-medium text-gray-700">terms of sale</span>.
-								</p>
-								<button
-									type="submit"
-									disabled={submitting}
-									className="inline-flex items-center justify-center rounded-md bg-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-								>
-														{submitting ? (
-															<>
-																<DotLoader size={20} ariaLabel="Placing order" />
-																<span className="ml-2">Processing...</span>
-															</>
-														) : (
-															"Confirm Purchase"
-														)}
-								</button>
-							</div>
-						</form>
-					</div>
+        {/* Price Summary */}
+        <div className="border-t pt-4 space-y-2 text-gray-700">
+          <div className="flex justify-between">
+            <span>Subtotal</span>
+            <span>{currency} {subtotal.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between font-semibold text-gray-900 text-lg pt-2 border-t">
+            <span>Total Amount</span>
+            <span>{currency} {subtotal.toFixed(2)}</span>
+          </div>
+        </div>
 
-					<div className="space-y-6">
-						<OrderSummaryCard
-							items={cart.items}
-							subtotal={totals.subtotal}
-							fees={totals.fees}
-							total={totals.total}
-						/>
+        {/* Error Message */}
+        {errors.submit && (
+          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <p className="text-red-800 text-sm">{errors.submit}</p>
+          </div>
+        )}
 
-						<div className="bg-white rounded-lg shadow-sm p-5 text-sm text-gray-600">
-							<h3 className="text-base font-semibold text-gray-900 mb-3">Need help?</h3>
-							<p>
-								Our team will reach out after you confirm your order to finalize delivery and payment details.
-							</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
-}
-
-type OrderSummaryCardProps = {
-	items: CartItem[];
-	subtotal: number;
-	fees: number;
-	total: number;
-};
-
-function OrderSummaryCard({ items, subtotal, fees, total }: OrderSummaryCardProps) {
-	return (
-		<div className="bg-white rounded-lg shadow-sm p-6">
-			<h2 className="text-lg font-semibold text-gray-900">Order Summary</h2>
-
-			<div className="mt-4 space-y-4">
-				{items.map((item) => {
-					const imageSrc = resolveProductImage(item);
-
-					return (
-						<div key={item.id} className="flex gap-3">
-							<div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-gray-100">
-								<Image
-									src={imageSrc}
-									alt={item.product.title}
-									fill
-									sizes="64px"
-									className="object-cover"
-								/>
-							</div>
-							<div className="flex-1 min-w-0">
-								<p className="text-sm font-medium text-gray-900 truncate">{item.product.title}</p>
-								<p className="text-xs text-gray-500 mt-1">Qty: {item.quantity}</p>
-								<p className="text-sm font-semibold text-gray-900 mt-1">{formatGhs(item.itemTotal)}</p>
-							</div>
-						</div>
-					);
-				})}
-			</div>
-
-			<div className="mt-6 space-y-3 border-t border-gray-200 pt-4">
-				<SummaryRow label="Subtotal" value={formatGhs(subtotal)} />
-				<SummaryRow label="Taxes & Fees (6%)" value={formatGhs(fees)} />
-				<div className="flex items-center justify-between text-base font-semibold text-gray-900">
-					<span>Total Amount</span>
-					<span>{formatGhs(total)}</span>
-				</div>
-			</div>
-		</div>
-	);
-}
-
-function SummaryRow({ label, value }: { label: string; value: string }) {
-	return (
-		<div className="flex items-center justify-between text-sm text-gray-600">
-			<span>{label}</span>
-			<span className="font-medium text-gray-900">{value}</span>
-		</div>
-	);
+        {/* Actions */}
+        <div className="space-y-3 pt-3">
+          <button
+            onClick={handleConfirm}
+            disabled={isSubmitting || !product}
+            className={`w-full rounded-xl py-3 text-base font-semibold transition-colors ${
+              isSubmitting
+                ? "bg-gray-400 cursor-not-allowed text-white"
+                : "bg-red-600 hover:bg-red-700 text-white"
+            }`}
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </span>
+            ) : (
+              "Confirm Purchase"
+            )}
+          </button>
+          <button
+            onClick={() => router.back()}
+            className="w-full text-sm text-gray-500 hover:text-gray-700"
+          >
+            Back to Product
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

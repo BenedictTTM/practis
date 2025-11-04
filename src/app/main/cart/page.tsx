@@ -26,6 +26,7 @@ export default function ShoppingCart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingItems, setUpdatingItems] = useState<Set<number | string>>(new Set());
+  const [selectedItemId, setSelectedItemId] = useState<number | string | null>(null);
 
   // Check authentication and load appropriate cart on mount
   useEffect(() => {
@@ -33,26 +34,38 @@ export default function ShoppingCart() {
   }, []);
 
   const initializeCart = async () => {
+    console.log('🔄 Initializing cart...');
     setLoading(true);
     setError(null);
 
     // Check if user is authenticated
     const authenticated = await AuthService.isAuthenticated();
+    console.log('👤 Authentication status:', authenticated);
     setIsAuthenticated(authenticated);
 
     if (authenticated) {
+      console.log('📡 Loading server-side cart...');
       // Load server-side cart for authenticated users
       await loadServerCart();
     } else {
+      console.log('💾 Loading local storage cart...');
       // Load local storage cart for anonymous users
       loadLocalCart();
     }
 
     setLoading(false);
+    console.log('✅ Cart initialization complete');
   };
 
   const loadServerCart = async () => {
+    console.log('📥 Fetching cart from server...');
     const result = await fetchCart();
+    console.log('📦 Server cart result:', {
+      success: result.success,
+      hasData: !!result.data,
+      itemCount: result.data?.items?.length || 0,
+      message: result.message,
+    });
 
     if (result.success && result.data) {
       setCart(result.data);
@@ -64,11 +77,14 @@ export default function ShoppingCart() {
         product: item.product,
       }));
       setDisplayItems(items);
+      console.log('✅ Server cart loaded successfully:', items.length, 'items');
     } else {
       // User is authenticated but has no cart or error occurred
       setCart(null);
       setDisplayItems([]);
+      console.log('⚠️ No server cart found or error occurred');
       if (result.message && !result.message.includes('Cart not found')) {
+        console.error('❌ Cart loading error:', result.message);
         setError(result.message || 'Failed to load cart');
       }
     }
@@ -174,14 +190,93 @@ export default function ShoppingCart() {
   };
 
   const handleCheckout = async () => {
+    console.log('🛒 === CHECKOUT PROCESS STARTED ===');
+    console.log('📊 Current State:', {
+      isAuthenticated,
+      hasItems: displayItems.length > 0,
+      itemCount: displayItems.length,
+      subtotal,
+      cartId: cart?.id,
+      selectedItemId,
+    });
+
     if (!isAuthenticated) {
-      // Redirect to login with return URL
+      console.log('🔐 User not authenticated - Redirecting to login');
       router.push('/auth/login?redirect=/main/cart&checkout=true');
       return;
     }
 
-    // User is authenticated, proceed to checkout
-    router.push('/main/checkout');
+    console.log('✅ User is authenticated');
+
+    // Check if cart has items
+    if (displayItems.length === 0) {
+      console.error('❌ Cannot checkout - Cart is empty');
+      setError('Your cart is empty. Please add items before checkout.');
+      return;
+    }
+
+    console.log('📦 Cart Items:', displayItems.map(item => ({
+      id: item.id,
+      productId: item.productId,
+      productName: item.product?.title,
+      quantity: item.quantity,
+      price: item.product?.discountedPrice || item.product?.originalPrice,
+    })));
+
+    // For single-product orders, redirect to checkout with product info
+    if (displayItems.length === 1) {
+      const item = displayItems[0];
+      console.log('🎯 Single item checkout - Redirecting to product checkout');
+      console.log('Product ID:', item.productId);
+      console.log('Quantity:', item.quantity);
+      
+      const checkoutUrl = `/main/checkout?productId=${item.productId}&quantity=${item.quantity}`;
+      console.log('🔗 Checkout URL:', checkoutUrl);
+      
+      router.push(checkoutUrl);
+      return;
+    }
+
+    // Multiple items - check if one is selected
+    if (selectedItemId) {
+      const selectedItem = displayItems.find(item => item.id === selectedItemId);
+      if (selectedItem) {
+        console.log('🎯 Selected item checkout');
+        console.log('Product ID:', selectedItem.productId);
+        console.log('Quantity:', selectedItem.quantity);
+        
+        const checkoutUrl = `/main/checkout?productId=${selectedItem.productId}&quantity=${selectedItem.quantity}`;
+        console.log('🔗 Checkout URL:', checkoutUrl);
+        
+        router.push(checkoutUrl);
+        return;
+      }
+    }
+
+    // Multiple items but none selected
+    console.warn('⚠️ Multiple items in cart - No item selected');
+    
+    setError(
+      'Please select an item to checkout by clicking the radio button next to the product.'
+    );
+    
+    console.log('🛒 === CHECKOUT PROCESS COMPLETED ===');
+  };
+
+  const handleCheckoutItem = (productId: number, quantity: number) => {
+    console.log('🎯 === INDIVIDUAL ITEM CHECKOUT ===');
+    console.log('Product ID:', productId);
+    console.log('Quantity:', quantity);
+
+    if (!isAuthenticated) {
+      console.log('🔐 User not authenticated - Redirecting to login');
+      router.push(`/auth/login?redirect=/main/checkout?productId=${productId}&quantity=${quantity}`);
+      return;
+    }
+
+    const checkoutUrl = `/main/checkout?productId=${productId}&quantity=${quantity}`;
+    console.log('🔗 Navigating to:', checkoutUrl);
+    router.push(checkoutUrl);
   };
 
   // Loading state
@@ -220,6 +315,9 @@ export default function ShoppingCart() {
                 updatingItems={updatingItems}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemoveItem={handleRemoveItem}
+                onCheckoutItem={handleCheckoutItem}
+                selectedItemId={selectedItemId}
+                onSelectItem={setSelectedItemId}
               />
             </div>
 

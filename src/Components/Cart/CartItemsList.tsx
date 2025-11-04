@@ -47,6 +47,9 @@ interface CartItemsListProps {
   updatingItems: Set<number | string>;
   onUpdateQuantity: (itemId: number | string, productId: number, newQuantity: number) => void;
   onRemoveItem: (itemId: number | string, productId: number) => void;
+  onCheckoutItem?: (productId: number, quantity: number) => void;
+  selectedItemId?: number | string | null;
+  onSelectItem?: (itemId: number | string) => void;
 }
 
 export default function CartItemsList({
@@ -54,10 +57,15 @@ export default function CartItemsList({
   updatingItems,
   onUpdateQuantity,
   onRemoveItem,
+  onCheckoutItem,
+  selectedItemId,
+  onSelectItem,
 }: CartItemsListProps) {
   if (items.length === 0) {
     return null;
   }
+
+  const showSelection = items.length > 1;
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -69,6 +77,10 @@ export default function CartItemsList({
           isLastItem={index === items.length - 1}
           onUpdateQuantity={onUpdateQuantity}
           onRemoveItem={onRemoveItem}
+          onCheckoutItem={onCheckoutItem}
+          isSelected={selectedItemId === item.id}
+          onSelect={onSelectItem ? () => onSelectItem(item.id) : undefined}
+          showSelection={showSelection}
         />
       ))}
     </div>
@@ -87,6 +99,10 @@ interface CartItemProps {
   isLastItem: boolean;
   onUpdateQuantity: (itemId: number | string, productId: number, newQuantity: number) => void;
   onRemoveItem: (itemId: number | string, productId: number) => void;
+  onCheckoutItem?: (productId: number, quantity: number) => void;
+  isSelected: boolean;
+  onSelect?: () => void;
+  showSelection: boolean;
 }
 
 function CartItem({
@@ -95,6 +111,10 @@ function CartItem({
   isLastItem,
   onUpdateQuantity,
   onRemoveItem,
+  onCheckoutItem,
+  isSelected,
+  onSelect,
+  showSelection,
 }: CartItemProps) {
   const product = item.product;
   const imageUrl = Array.isArray(product.imageUrl)
@@ -109,9 +129,25 @@ function CartItem({
     <div
       className={`p-3 sm:p-4 ${
         !isLastItem ? 'border-b border-gray-100' : ''
-      } ${isUpdating ? 'opacity-50 pointer-events-none' : ''}`}
+      } ${isUpdating ? 'opacity-50 pointer-events-none' : ''} ${
+        isSelected ? 'bg-red-50 border-l-4 border-l-red-600' : ''
+      }`}
     >
       <div className="flex gap-2 sm:gap-3 min-w-0">
+        {/* Radio Selection - Only show when multiple items */}
+        {showSelection && onSelect && (
+          <div className="flex items-start pt-1 flex-shrink-0">
+            <input
+              type="radio"
+              name="cart-item-selection"
+              checked={isSelected}
+              onChange={onSelect}
+              className="w-5 h-5 text-red-600 focus:ring-red-500 cursor-pointer"
+              aria-label={`Select ${product.title}`}
+            />
+          </div>
+        )}
+
         {/* Product Image */}
         <ProductImage src={imageUrl} alt={product.title} />
 
@@ -141,8 +177,34 @@ function CartItem({
               onRemove={() => onRemoveItem(item.id, item.productId)}
             />
           </div>
+
+          {/* Checkout Button */}
+          {onCheckoutItem && (
+            <div className="mt-3">
+              <button
+                onClick={() => onCheckoutItem(item.productId, item.quantity)}
+                disabled={isUpdating}
+                className="w-full sm:w-auto px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                Checkout This Item
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Selection Indicator */}
+      {showSelection && isSelected && (
+        <div className="mt-2 flex items-center gap-2 text-sm text-red-600 font-medium">
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          Selected for checkout
+        </div>
+      )}
     </div>
   );
 }
