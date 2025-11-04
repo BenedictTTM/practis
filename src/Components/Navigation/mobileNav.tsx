@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useCurrentUserProfile } from '@/hooks/useProfile';
 import { useRouter, usePathname } from 'next/navigation';
+import { AuthService } from '@/lib/auth';
 
 
 interface MobileNavProps {
@@ -80,9 +81,8 @@ const Sidebar = ({ onClose }: MobileNavProps) => {
 
   const handleNavClick = (item: typeof navItems[0]) => {
     if (item.id === 'logout') {
-      localStorage.removeItem('token');
-      router.push('/auth/login');
-      onClose?.();
+      // Use centralized auth service for consistent logout
+      AuthService.logout().finally(() => onClose?.());
     } else if (item.hasSubmenu) {
       // Toggle submenu
       setOpenSubmenu(!openSubmenu);
@@ -99,14 +99,16 @@ const Sidebar = ({ onClose }: MobileNavProps) => {
     onClose?.();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      localStorage.removeItem('token');
+      // Delegate full logout flow to AuthService (server + local cleanup + redirect)
+      await AuthService.logout();
     } catch (e) {
-      /* ignore */
+      console.error('💥 [MOBILE-NAV] Logout error:', e);
+      // AuthService handles fallback cleanup/redirect internally
+    } finally {
+      onClose?.();
     }
-    router.push('/auth/login');
-    onClose?.();
   };
 
   return (
