@@ -209,20 +209,28 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-              <ShoppingCart className="h-24 w-24 text-gray-300 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Your cart is empty
+            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-gray-50">
+              <div className="bg-blue-100 p-6 rounded-full mb-6">
+                <ShoppingCart className="h-16 w-16 text-blue-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                Your Shopping Cart is Empty
               </h3>
-              <p className="text-gray-600 mb-6">
-                Add items to get started
+              <p className="text-gray-600 mb-8 max-w-sm">
+                Looks like you haven&apos;t added anything yet. Let&apos;s find something you&apos;ll love!
               </p>
               <button
                 onClick={onClose}
-                className="bg-red-500 hover:bg-red-600 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-10 py-3.5 rounded-lg transition-colors shadow-md"
               >
                 Continue Shopping
               </button>
+              <p className="text-sm text-gray-500 mt-6">
+                Have an account?{' '}
+                <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">
+                  Sign in to see your saved items
+                </Link>
+              </p>
             </div>
           )}
         </div>
