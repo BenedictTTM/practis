@@ -203,6 +203,11 @@ export default function CheckoutPage() {
     );
   }
 
+  // This should never happen because of the checks above, but TypeScript needs assurance
+  if (!product) {
+    return null;
+  }
+
   const unitPrice = product.discountedPrice ?? product.originalPrice ?? 0;
   const subtotal = unitPrice * quantity;
   const currency = "GHS"; // Default currency
