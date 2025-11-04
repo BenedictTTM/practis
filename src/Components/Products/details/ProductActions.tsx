@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "next/navigation";
 import QuantitySelector from "../common/QuantitySelector";
 import AddToCartButton from "../../Cart/AddToCartButton";
 
@@ -23,6 +24,13 @@ export default function ProductActions({
   onAddToCart,
   productData,
 }: ProductActionsProps) {
+  const router = useRouter();
+
+  const handleBuyNow = () => {
+    if (!inStock) return;
+    router.push(`/main/checkout?productId=${productId}&quantity=${quantity}`);
+  };
+
   return (
     <section className="mt-8 w-full px-2 sm:px-4 md:px-6 space-y-5 sm:space-y-6">
       {/* Quantity Selector */}
@@ -45,27 +53,39 @@ export default function ProductActions({
         </div>
       </div>
 
-      {/* Add to Cart Button */}
+      {/* Action Buttons */}
       {inStock ? (
-        <AddToCartButton
-          productId={productId}
-          quantity={quantity}
-          variant="default"
-          productData={productData}
-          onSuccess={() => {
-            console.log(`✅ Added ${quantity} item(s) to cart`);
-            onAddToCart?.();
-          }}
-          onError={(msg) => {
-            console.error("❌ Add to cart failed:", msg);
-            alert(`Failed to add to cart: ${msg}`);
-          }}
-          className="w-full sm:w-auto min-w-[200px] py-3 sm:py-4 text-base sm:text-lg rounded-xl font-semibold shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
-        />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <AddToCartButton
+            productId={productId}
+            quantity={quantity}
+            variant="default"
+            productData={productData}
+            onSuccess={() => {
+              console.log(`✅ Added ${quantity} item(s) to cart`);
+              onAddToCart?.();
+            }}
+            onError={(msg) => {
+              console.error("❌ Add to cart failed:", msg);
+              alert(`Failed to add to cart: ${msg}`);
+            }}
+            className="w-full sm:flex-1 py-2 sm:py-2.5 text-sm font-semibold rounded-lg shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
+          />
+          
+          <button
+            onClick={handleBuyNow}
+            className="w-full sm:flex-1 flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all hover:scale-[1.02] active:scale-95"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+            Buy Now
+          </button>
+        </div>
       ) : (
         <button
           disabled
-          className="w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 px-6 py-3 sm:py-4 bg-gray-300 text-white text-base sm:text-lg font-semibold rounded-xl cursor-not-allowed"
+          className="w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 px-6 py-2 sm:py-2.5 bg-gray-300 text-white text-sm font-semibold rounded-lg cursor-not-allowed"
         >
           Out of Stock
         </button>

@@ -9,43 +9,37 @@ interface ProductInfoProps {
 
 export default function ProductInfo({ product, inStock }: ProductInfoProps) {
   return (
-    <section className="mt-6 w-full px-2 sm:px-4 md:px-6 space-y-4 sm:space-y-5">
+    <section className="mt-5 w-full px-3 sm:px-5 md:px-6 space-y-3 sm:space-y-4">
       {/* Stock Status */}
       <div
-        className={`inline-flex items-center gap-2 sm:gap-3 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border ${
+        className={`inline-flex items-center gap-2 sm:gap-2.5 rounded-md px-3 py-1.5 sm:px-3.5 sm:py-2 border text-xs sm:text-sm font-medium ${
           inStock
-            ? "border-green-100 bg-green-50"
-            : "border-red-300 bg-red-50"
+            ? "border-green-100 bg-green-50 text-green-700"
+            : "border-red-200 bg-red-50 text-red-700"
         }`}
       >
         {inStock ? (
           <>
-            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-            <span className="text-sm sm:text-base text-gray-900 font-medium">
-              In Stock
-            </span>
+            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+            <span>In Stock</span>
           </>
         ) : (
           <>
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-red-100 flex items-center justify-center">
-              <span className="text-red-500 text-xs sm:text-sm">✕</span>
+            <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-red-100 flex items-center justify-center">
+              <span className="text-red-500 text-[10px] sm:text-xs">✕</span>
             </div>
-            <span className="text-sm sm:text-base text-red-600 font-medium">
-              Out of Stock
-            </span>
+            <span>Out of Stock</span>
           </>
         )}
       </div>
 
       {/* Delivery Info */}
-      <div className="flex items-start sm:items-center gap-2 sm:gap-3 text-gray-700 text-sm sm:text-base leading-relaxed flex-wrap">
-        <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500 flex-shrink-0 mt-0.5 sm:mt-0" />
+      <div className="flex items-start sm:items-center gap-2 sm:gap-3 text-gray-700 text-xs sm:text-sm md:text-base leading-relaxed flex-wrap">
+        <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 flex-shrink-0 mt-0.5 sm:mt-0" />
         <p className="flex-1">
-          <span className="font-semibold text-gray-900">
-            Estimated delivery:
-          </span>{" "}
+          <span className="font-semibold text-gray-900">Estimated delivery:</span>{" "}
           2–3 business days.{" "}
-          <button className="text-red-500 hover:underline font-medium">
+          <button className="text-red-500 hover:underline font-medium transition-colors">
             Details
           </button>
         </p>
