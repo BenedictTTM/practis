@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import {readCache , readCacheJSON, writeCache} from '../cache/redis';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -81,7 +82,15 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const cacheKey = 'mainproducts'
   try {
+    const cachedData = await readCacheJSON(cacheKey);
+    if (cachedData) {
+      console.log('⚡️ Products cache hit');
+      return NextResponse.json(cachedData);
+    }
+    console.log('⚡️ Products cache miss, fetching from backend...');
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.toString();
     const rawCookie = request.headers.get('cookie') || '';
@@ -94,16 +103,21 @@ export async function GET(request: NextRequest) {
         'Content-Type': 'application/json',
         ...(rawCookie && { 'Cookie': rawCookie }),
       },
+      cache: 'no-store',
     });
 
-    const result = await response.json();
+
     
     if (!response.ok) {
+       const errorData = await response.json().catch(() => ({ message: 'Failed to fetch flash sales' }));
       return NextResponse.json(
-        { success: false, message: result.message || 'Failed to fetch products' },
+        { success: false, message: errorData.message || 'Failed to fetch products' },
         { status: response.status }
       );
     }
+
+        const result = await response.json();
+    await writeCache(cacheKey, result, 60 * 5); // Cache for 5 minutes
 
     if (Array.isArray(result)) {
       return NextResponse.json({
