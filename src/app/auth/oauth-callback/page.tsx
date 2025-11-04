@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/Components/Toast/toast';
+import { mergeAnonymousCart, hasLocalCartItems } from '@/lib/cartMerge';
 
 /**
  * OAuth Callback Handler
@@ -14,8 +15,9 @@ import { useToast } from '@/Components/Toast/toast';
  * 1. Backend OAuth callback processes authentication
  * 2. Backend sets HTTP-only cookies (access_token, refresh_token)
  * 3. Backend redirects to this page with status
- * 4. This page shows success/error message
- * 5. Redirects to dashboard/home
+ * 4. This page merges anonymous cart if exists
+ * 5. Shows success/error message
+ * 6. Redirects to dashboard/home
  * 
  * @page
  */
@@ -43,15 +45,38 @@ export default function OAuthCallbackPage() {
       console.log('🍪 [OAUTH-CALLBACK] All cookies:', document.cookie);
       
       setStatus('success');
-      showSuccess('Welcome!', {
-        description: 'You have successfully logged in with Google.',
-      });
 
-      // Redirect to dashboard after 1.5 seconds
-      setTimeout(() => {
-        console.log('🧭 [OAUTH-CALLBACK] Redirecting to /main/products');
-        router.push('/main/products');
-      }, 1500);
+      // Handle cart merge for users with local cart items
+      const handleCartMergeAndRedirect = async () => {
+        const hadLocalCart = hasLocalCartItems();
+        
+        if (hadLocalCart) {
+          console.log('🛒 [OAUTH-CALLBACK] Local cart detected, merging...');
+          const mergeResult = await mergeAnonymousCart();
+          
+          if (mergeResult.success && mergeResult.itemCount! > 0) {
+            showSuccess('Welcome!', {
+              description: `You have successfully logged in with Google. ${mergeResult.message}`,
+            });
+          } else {
+            showSuccess('Welcome!', {
+              description: 'You have successfully logged in with Google.',
+            });
+          }
+        } else {
+          showSuccess('Welcome!', {
+            description: 'You have successfully logged in with Google.',
+          });
+        }
+
+        // Redirect to dashboard after showing message
+        setTimeout(() => {
+          console.log('🧭 [OAUTH-CALLBACK] Redirecting to /main/products');
+          router.push('/main/products');
+        }, 1500);
+      };
+
+      handleCartMergeAndRedirect();
     } else if (errorMessage) {
       console.error('❌ [OAUTH-CALLBACK] OAuth error:', decodeURIComponent(errorMessage));
       setStatus('error');
@@ -73,7 +98,7 @@ export default function OAuthCallbackPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 sm:p-8 md:p-10 text-center transform transition-all duration-300 hover:shadow-3xl">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-md border border-gray-200 p-6 sm:p-8 md:p-10 text-center transform transition-all duration-300 hover:shadow-3xl">
         {status === 'loading' && (
           <>
             {/* Loading State */}
@@ -172,7 +197,7 @@ export default function OAuthCallbackPage() {
             </p>
             <button
               onClick={() => router.push('/auth/login')}
-              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-red-600 text-white text-sm sm:text-base font-semibold rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-red-300"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-red-600 text-white text-sm sm:text-base font-semibold rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-red-300"
             >
               Back to Login
             </button>
