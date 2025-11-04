@@ -1,29 +1,14 @@
 /**
- * Products Page - Main E-commerce Product Listing
- * 
- * Senior Frontend Engineering Principles Applied:
- * - Separation of Concerns (Custom hooks for data fetching)
- * - Performance Optimization (useMemo, useCallback, code splitting)
- * - Error Boundaries and Resilient Error Handling
- * - Accessibility (ARIA labels, semantic HTML, keyboard navigation)
- * - Type Safety (Strict TypeScript interfaces)
- * - Clean Code (Single Responsibility, DRY, KISS principles)
- * 
- * @module ProductsPage
+ * Products page component
  */
 
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Product } from '../../../types/products';
-import { 
-  ProductsGridLayout, 
-  FlashSalesSection 
-} from '../../../Components/Products/layouts';
-import { HowToSection } from '../../../Components/HowTo';
-import Categories from '../../../Components/Products/layouts/Categories';
-import ServiceFeatures from '../../../Components/Products/layouts/serviceFeatures';
-import { DotLoader } from '../../../Components/Loaders';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import type { Product } from '../../../types/products';
+import type { ProductsGridLayoutProps } from '../../../Components/Products/layouts/ProductsGridLayout';
+import type { FlashSalesSectionProps } from '../../../Components/Products/layouts/FlashSale/FlashSalesSection';
 import { MultipleSchemas } from '../../../Components/Schema';
 import {
   generateProductListSchema,
@@ -31,12 +16,9 @@ import {
   generateBreadcrumbSchema,
   generateFlashSalesSchema,
   generateOrganizationSchema,
+  generateWebsiteSchema,
 } from '../../../lib/schemas/productSchemas';
 import '../../../Components/Products/styles/products.css';
-
-// ============================================================================
-// TYPE DEFINITIONS
-// ============================================================================
 
 interface FilterState {
   category: string;
@@ -57,10 +39,6 @@ interface FlashSalesData {
   refreshesIn: number;
 }
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
 const CONFIG = {
   INITIAL_PRODUCTS_DISPLAY: 12,
   API: {
@@ -70,14 +48,76 @@ const CONFIG = {
   RETRY_DELAY: 3000,
 } as const;
 
-// ============================================================================
-// CUSTOM HOOKS
-// ============================================================================
+const SectionSkeleton = () => (
+  <div className="w-full px-4 max-w-7xl mx-auto" aria-hidden="true">
+    <div className="h-32 sm:h-36 md:h-44 rounded-2xl bg-gray-100 animate-pulse" />
+  </div>
+);
 
-/**
- * Custom hook for fetching and managing products
- * Follows Single Responsibility Principle
- */
+const FlashSalesSkeleton = () => (
+  <section className="flash-sales-section" aria-hidden="true">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="h-12 w-52 bg-gray-200 rounded-lg animate-pulse mb-6" />
+      <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={`flash-skeleton-${index}`}
+            className="flex-none w-[160px] sm:w-[180px] md:w-[200px]"
+          >
+            <div className="bg-gray-200 aspect-square rounded-lg mb-3 animate-pulse" />
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse" />
+            <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const ProductsGridSkeleton = () => (
+  <div className="w-full" aria-hidden="true">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4">
+      {Array.from({ length: 12 }).map((_, index) => (
+        <div key={`grid-skeleton-${index}`} className="animate-pulse">
+          <div className="bg-gray-200 aspect-square rounded-lg mb-3" />
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+          <div className="h-4 bg-gray-200 rounded w-1/2" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const HowToSection = dynamic(() => import('../../../Components/HowTo').then(mod => mod.HowToSection), {
+  ssr: false,
+  loading: () => <SectionSkeleton />,
+});
+
+const Categories = dynamic(() => import('../../../Components/Products/layouts/Categories'), {
+  ssr: false,
+  loading: () => <SectionSkeleton />,
+});
+
+const ServiceFeatures = dynamic(() => import('../../../Components/Products/layouts/serviceFeatures'), {
+  ssr: false,
+  loading: () => <SectionSkeleton />,
+});
+
+const FlashSalesSection = dynamic<FlashSalesSectionProps>(
+  () => import('../../../Components/Products/layouts').then(mod => mod.FlashSalesSection),
+  {
+    ssr: false,
+    loading: () => <FlashSalesSkeleton />,
+  }
+);
+
+const ProductsGridLayout = dynamic<ProductsGridLayoutProps>(
+  () => import('../../../Components/Products/layouts').then(mod => mod.ProductsGridLayout),
+  {
+    loading: () => <ProductsGridSkeleton />,
+  }
+);
+
 function useProducts() {
   const [state, setState] = useState<ProductsState>({
     products: [],
@@ -129,9 +169,6 @@ function useProducts() {
   return { ...state, fetchProducts };
 }
 
-/**
- * Custom hook for managing flash sales with countdown
- */
 function useFlashSales() {
   const [flashSalesData, setFlashSalesData] = useState<FlashSalesData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -181,14 +218,6 @@ function useFlashSales() {
   return { flashSalesData, loading, error, fetchFlashSales };
 }
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Apply filters to products
- * Pure function for testability
- */
 function applyProductFilters(products: Product[], filters: FilterState): Product[] {
   let filtered = [...products];
 
@@ -217,15 +246,7 @@ function applyProductFilters(products: Product[], filters: FilterState): Product
   return filtered;
 }
 
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-
 export default function ProductsPage() {
-  // ==========================================================================
-  // STATE AND HOOKS
-  // ==========================================================================
-  
   const { 
     products, 
     filteredProducts, 
@@ -248,51 +269,25 @@ export default function ProductsPage() {
     rating: 0,
   });
 
-  // ==========================================================================
-  // EFFECTS
-  // ==========================================================================
-  
-  // Initial data fetch
   useEffect(() => {
     fetchProducts().catch(console.error);
     fetchFlashSales().catch(console.error);
   }, [fetchProducts, fetchFlashSales]);
 
-  // ==========================================================================
-  // HANDLERS
-  // ==========================================================================
-
-  /**
-   * Handle filter changes
-   * Uses useCallback to prevent unnecessary re-renders
-   */
   const handleFiltersChange = useCallback((filters: FilterState) => {
     setActiveFilters(filters);
     // Reset pagination when filters change
     setShowAllProducts(false);
   }, []);
 
-  /**
-   * Toggle view all products
-   */
   const toggleViewAll = useCallback(() => {
     setShowAllProducts(prev => !prev);
   }, []);
 
-  /**
-   * Retry fetch on error
-   */
   const handleRetry = useCallback(() => {
     fetchProducts().catch(console.error);
   }, [fetchProducts]);
 
-  // ==========================================================================
-  // MEMOIZED VALUES
-  // ==========================================================================
-
-  /**
-   * Apply filters only when products or filters change
-   */
   const displayProducts = useMemo(() => {
     const filtered = applyProductFilters(products, activeFilters);
     return showAllProducts ? filtered : filtered.slice(0, CONFIG.INITIAL_PRODUCTS_DISPLAY);
@@ -304,14 +299,6 @@ export default function ProductsPage() {
 
   const shouldShowViewAllButton = totalFilteredCount > CONFIG.INITIAL_PRODUCTS_DISPLAY;
 
-  // ==========================================================================
-  // SEO SCHEMAS (Structured Data for Rich Results)
-  // ==========================================================================
-
-  /**
-   * Generate JSON-LD schemas for SEO
-   * Memoized to prevent regeneration on every render
-   */
   const schemas = useMemo(() => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://sellr.com';
     const currentUrl = typeof window !== 'undefined' ? window.location.href : `${baseUrl}/main/products`;
@@ -323,6 +310,9 @@ export default function ProductsPage() {
         baseUrl,
         `${baseUrl}/logo.png`
       ),
+
+      // Website Schema with SearchAction
+      generateWebsiteSchema('Sellr', baseUrl, '/search?q={search_term_string}'),
 
       // WebPage Schema
       generateWebPageSchema(
@@ -338,7 +328,7 @@ export default function ProductsPage() {
       ], baseUrl),
 
       // Product List Schema (for main products)
-      ...(displayProducts.length > 0 ? [generateProductListSchema(displayProducts, baseUrl)] : []),
+  ...(displayProducts.length > 0 ? [generateProductListSchema(displayProducts, baseUrl, 'GHS')] : []),
 
       // Flash Sales Schema (if available)
       ...(flashSalesData?.products && flashSalesData.products.length > 0
@@ -348,114 +338,24 @@ export default function ProductsPage() {
     ];
   }, [displayProducts, flashSalesData]);
 
-  // ==========================================================================
-  // RENDER HELPERS (Components as pure functions)
-  // ==========================================================================
 
-  /**
-   * Loading state component
-   * Extracted for reusability and testing
-   */
-  const LoadingState = () => (
-    <div 
-      className="min-h-screen bg-gray-50 flex items-center justify-center"
-      role="status"
-      aria-live="polite"
-      aria-label="Loading products"
-    >
-      <div className="text-center">
-        <DotLoader 
-          size={60}
-          color="#E43C3C"
-          ariaLabel="Loading amazing products"
-        />
-        <p className="text-[#2E2E2E] font-medium mt-6">Loading amazing products...</p>
-        <p className="text-gray-500 text-sm mt-2">This won't take long</p>
-      </div>
-    </div>
-  );
 
-  /**
-   * Error state component with retry logic
-   * Follows accessibility best practices
-   */
-  const ErrorState = () => (
-    <div 
-      className="min-h-screen bg-gray-50 flex items-center justify-center px-4"
-      role="alert"
-      aria-live="assertive"
-    >
-      <div className="text-center max-w-md">
-        <svg 
-          className="w-16 h-16 text-red-400 mx-auto mb-4" 
-          fill="none" 
-          viewBox="0 0 24 24" 
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-          />
-        </svg>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">
-          Oops! Something went wrong
-        </h2>
-        <p className="text-red-600 mb-4 text-sm">{error}</p>
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={handleRetry}
-            className="bg-[#E43C3C] text-white px-6 py-3 rounded-lg hover:bg-red-600 
-                     transition-all duration-200 shadow-md hover:shadow-lg 
-                     focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            aria-label="Retry loading products"
-          >
-            Try Again
-          </button>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 
-                     transition-all duration-200 focus:outline-none focus:ring-2 
-                     focus:ring-gray-400 focus:ring-offset-2"
-            aria-label="Refresh page"
-          >
-            Refresh Page
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  
 
-  // ==========================================================================
-  // EARLY RETURNS
-  // ==========================================================================
-
-  if (loading) return <LoadingState />;
-  if (error) return <ErrorState />;
-
-  // ==========================================================================
-  // MAIN RENDER
-  // ==========================================================================
+  if (error) return <><div>Error loading products please refresh...</div></>;
 
   return (
     <>
-      {/* SEO: Structured Data (JSON-LD Schemas) */}
       <MultipleSchemas schemas={schemas} />
 
       <div className="min-h-screen bg-gray-50">
-      {/* How To Section - Hero/Guide */}
       <HowToSection />
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto  ">
         <div className="flex flex-col lg:flex-row lg:items-start gap-8">
           
-          {/* Primary Content Column */}
           <div className="flex-1 space-y-8">
             
-            {/* Flash Sales Section with Countdown */}
             <section aria-labelledby="flash-sales-heading">
               <FlashSalesSection
                 apiEndpoint={CONFIG.API.FLASH_SALES}
@@ -471,15 +371,12 @@ export default function ProductsPage() {
               />
             </section>
 
-            {/* Categories Navigation */}
             <section aria-label="Product categories">
               <Categories />
             </section>
 
-            {/* Main Products Grid */}
             <section aria-labelledby="products-heading" className="px-4">
               
-              {/* Section Header */}
               <header className="mb-6">
                 <div className="flex items-center gap-2 mb-2">
                   <div 
@@ -497,22 +394,18 @@ export default function ProductsPage() {
                   Browse Our Products
                 </h2>
                 
-                {/* Results count */}
-                {totalFilteredCount > 0 && (
+                {!loading && totalFilteredCount > 0 && (
                   <p className="text-gray-600 mt-2 text-sm">
                     Showing {displayProducts.length} of {totalFilteredCount} products
                   </p>
                 )}
               </header>
 
-              {/* Products Grid */}
-              {displayProducts.length > 0 ? (
-                <ProductsGridLayout
-                  products={displayProducts}
-                  loading={false}
-                />
+              {loading ? (
+                <ProductsGridLayout products={[]} loading />
+              ) : displayProducts.length > 0 ? (
+                <ProductsGridLayout products={displayProducts} loading={false} />
               ) : (
-                // Empty state when filters return no results
                 <div 
                   className="text-center py-12 px-4"
                   role="status"
@@ -541,9 +434,9 @@ export default function ProductsPage() {
                 </div>
               )}
 
-              {/* View All / Show Less Toggle */}
               {shouldShowViewAllButton && displayProducts.length > 0 && (
                 <div className="flex justify-center mt-8">
+                  {/* eslint-disable-next-line jsx-a11y/aria-proptypes */}
                   <button
                     onClick={toggleViewAll}
                     className={`
@@ -556,7 +449,6 @@ export default function ProductsPage() {
                         : 'bg-[#E43C3C] text-white hover:bg-red-600 focus:ring-red-500'
                       }
                     `}
-                    aria-expanded={showAllProducts ? 'true' : 'false'}
                     aria-label={showAllProducts ? 'Show less products' : 'View all products'}
                   >
                     {showAllProducts ? (
@@ -601,18 +493,15 @@ export default function ProductsPage() {
               )}
             </section>
 
-            {/* Service Features Section */}
             <section aria-label="Service features">
               <ServiceFeatures />
             </section>
 
           </div>
-          {/* End Primary Content Column */}
 
         </div>
       </main>
 
-      {/* Accessibility: Skip to top link */}
       <a 
         href="#top"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 

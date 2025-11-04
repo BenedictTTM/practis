@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { IoCartOutline, IoPersonCircleSharp } from 'react-icons/io5'
 import { IoMdHelpCircleOutline } from 'react-icons/io'
 import { HiMenu, HiX } from 'react-icons/hi'
-import { PiPlug } from 'react-icons/pi'
+import { Plug } from 'lucide-react'
 
 import SearchComponent from './searchComponent'
 import Sidebar from '../Navigation/mobileNav'
@@ -58,7 +58,7 @@ const MainNavBar = () => {
           >
             <h1 className="text-red-500 font-heading">my</h1>
             <span className="ml-0.5 sm:ml-1 font-heading">Plug</span>
-            <PiPlug className="text-lg sm:text-xl md:text-2xl text-gray-700 ml-1 sm:ml-2" />
+            <Plug className="text-lg sm:text-xl md:text-2xl text-gray-700 ml-1 sm:ml-2" />
            
           </Link>
 

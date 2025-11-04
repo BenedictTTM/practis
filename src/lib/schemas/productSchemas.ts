@@ -23,6 +23,7 @@ interface ProductListSchema {
       name: string;
       image: string[];
       description: string;
+      url?: string;
       offers: {
         '@type': string;
         price: number;
@@ -129,7 +130,8 @@ const getProductPrice = (product: Product): number => {
  */
 export function generateProductListSchema(
   products: Product[],
-  baseUrl: string = 'https://sellr.com'
+  baseUrl: string = 'https://sellr.com',
+  priceCurrency: string = 'USD'
 ): ProductListSchema {
   return {
     '@context': 'https://schema.org',
@@ -142,10 +144,11 @@ export function generateProductListSchema(
         name: product.title,
         image: getImageUrl(product),
         description: product.description || product.title,
+        url: `${baseUrl}/main/products/${product.id}`,
         offers: {
           '@type': 'Offer',
           price: getProductPrice(product),
-          priceCurrency: 'USD',
+          priceCurrency,
           availability: getAvailabilityStatus(product),
           itemCondition: getItemCondition(product.condition),
         },
@@ -252,5 +255,42 @@ export function combineSchemas(...schemas: any[]) {
   return {
     '@context': 'https://schema.org',
     '@graph': schemas,
+  };
+}
+
+// ----------------------------------------------------------------------------
+// WebSite Schema with SearchAction
+// ----------------------------------------------------------------------------
+
+interface WebsiteSchema {
+  '@context': string;
+  '@type': 'WebSite';
+  name: string;
+  url: string;
+  potentialAction?: {
+    '@type': 'SearchAction';
+    target: string;
+    'query-input': string;
+  };
+}
+
+/**
+ * Generate WebSite Schema (with SearchAction for sitelinks search box)
+ */
+export function generateWebsiteSchema(
+  siteName: string = 'Sellr',
+  baseUrl: string = 'https://sellr.com',
+  searchPathTemplate: string = '/search?q={search_term_string}'
+): WebsiteSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: siteName,
+    url: baseUrl,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${baseUrl}${searchPathTemplate}`,
+      'query-input': 'required name=search_term_string',
+    },
   };
 }

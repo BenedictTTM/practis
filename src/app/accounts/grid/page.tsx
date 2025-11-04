@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import {
   Plus,
@@ -9,15 +10,39 @@ import {
   Trash2,
   Eye,
   Table,
-  Store,
   Share2,
-  Menu,
 } from 'lucide-react';
 import { fetchMyProducts } from '../../../lib/products';
 import { Product } from '../../../types/products';
 import { formatGhs, calculateDiscountPercent } from '../../../utilities/formatGhs';
-import ProductCard from '@/Components/Products/cards/ProductCard';
 import { userService } from '@/services/userService';
+
+interface UserProfileSummary {
+  storeName?: string;
+  profilePic?: string | null;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  id?: number;
+}
+
+const GridView = dynamic(() => import('./components/GridView'), {
+  loading: () => (
+    <div className="rounded-xl border border-gray-200 overflow-hidden">
+      <div className="px-4 py-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white animate-pulse">
+        <div className="h-14 w-48 bg-gray-200 rounded-lg" />
+      </div>
+      <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        {[0, 1, 2, 3].map((item) => (
+          <div
+            key={item}
+            className="h-[320px] w-full rounded-2xl border border-gray-200 bg-gray-100 animate-pulse"
+          />
+        ))}
+      </div>
+    </div>
+  ),
+});
 
 export default function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -26,14 +51,7 @@ export default function ProductList() {
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [copied, setCopied] = useState(false);
-  const [userProfile, setUserProfile] = useState<{
-    storeName?: string;
-    profilePic?: string | null;
-    firstName?: string;
-    lastName?: string;
-    username?: string;
-    id?: number;
-  } | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfileSummary | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -188,6 +206,7 @@ export default function ProductList() {
                   ? 'bg-black text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
+              aria-label="Switch to table view"
             >
               <Table className="w-4 h-4" />
             </button>
@@ -198,13 +217,17 @@ export default function ProductList() {
                   ? 'bg-black text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
+              aria-label="Switch to grid view"
             >
               <Eye className="w-4 h-4" />
             </button>
           </div>
 
           {viewMode === 'table' && (
-            <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+            <button
+              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              aria-label="Print product list"
+            >
               <Printer className="w-4 h-4" />
             </button>
           )}
@@ -227,50 +250,7 @@ export default function ProductList() {
           </div>
         </div>
       ) : viewMode === 'grid' ? (
-        // Grid View
-        <div className="rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-4 py-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white flex flex-col sm:flex-row items-center gap-4">
-            {userProfile?.profilePic ? (
-              <img
-                src={userProfile.profilePic}
-                alt={userProfile.storeName || 'Store'}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-gray-200 shadow-sm"
-              />
-            ) : (
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-700 flex items-center justify-center border-2 border-gray-200 shadow-sm">
-                <Store className="w-8 h-8 text-white" />
-              </div>
-            )}
-
-            <div className="text-center sm:text-left">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
-                {userProfile?.storeName || 'My Store'}
-              </h2>
-              <p className="text-sm text-gray-600">
-                {userProfile?.firstName
-                  ? `${userProfile.firstName} ${userProfile.lastName}`
-                  : 'Welcome to our store'}
-              </p>
-              <p className="inline-block mt-2 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-900 border border-red-200">
-                {products.length} Product{products.length !== 1 ? 's' : ''} Available
-              </p>
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-500">
-                Showing <span className="font-semibold">{products.length}</span>{' '}
-                product{products.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-          </div>
-        </div>
+        <GridView products={products} userProfile={userProfile} />
       ) : (
         // Table View
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -284,6 +264,7 @@ export default function ProductList() {
                       checked={selectedProducts.length === products.length && products.length > 0}
                       onChange={toggleSelectAll}
                       className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black"
+                      aria-label="Select all products"
                     />
                   </th>
                   {[
@@ -320,6 +301,7 @@ export default function ProductList() {
                           checked={selectedProducts.includes(product.id)}
                           onChange={() => toggleSelect(product.id)}
                           className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black"
+                          aria-label={`Select product ${product.title}`}
                         />
                       </td>
                       <td className="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">
@@ -352,10 +334,16 @@ export default function ProductList() {
                       </td>
                       <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded">
+                          <button
+                            className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+                            aria-label={`Edit ${product.title}`}
+                          >
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded">
+                          <button
+                            className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded"
+                            aria-label={`Delete ${product.title}`}
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

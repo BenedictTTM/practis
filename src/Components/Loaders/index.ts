@@ -5,3 +5,4 @@
 
 export { default as DotLoader, DotLoaderSmall, DotLoaderLarge, DotLoaderPrimary, DotLoaderSecondary } from './DotLoader';
 export type { DotLoaderProps } from './DotLoader';
+export { default as SimpleLoader } from './SimpleLoader';

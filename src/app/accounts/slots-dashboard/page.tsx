@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AuthService } from '@/lib/auth';
-import PurchaseSlotsModal from '@/Components/slots/PurchaseSlotsModal';
+import dynamic from 'next/dynamic';
+const PurchaseSlotsModal = dynamic(() => import('@/Components/slots/PurchaseSlotsModal'), { ssr: false });
 
 interface User {
   id: number;

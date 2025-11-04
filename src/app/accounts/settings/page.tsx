@@ -1,63 +1,169 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import {
-  User,
-  Mail,
-  Phone,
-  Upload,
-  Camera,
-  CheckCircle,
-  XCircle,
-  Save,
-  Store,
-} from 'lucide-react';
-import { DotLoader } from '@/Components/Loaders';
-import { MdOutlineFileDownload } from "react-icons/md";
-import {
-  userService,
-  type UserProfile,
-  type UpdateProfileDto,
-} from '@/services/userService';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import dynamic from 'next/dynamic';
+import SimpleLoader from '@/Components/Loaders/SimpleLoader';
+import { userService, type UpdateProfileDto } from '@/services/userService';
+import { useToast } from '@/Components/Toast/toast';
+
+// Dynamic imports for icons (tree-shakeable)
+const User = dynamic(() => import('lucide-react').then(mod => ({ default: mod.User })), { ssr: false });
+const Mail = dynamic(() => import('lucide-react').then(mod => ({ default: mod.Mail })), { ssr: false });
+const Camera = dynamic(() => import('lucide-react').then(mod => ({ default: mod.Camera })), { ssr: false });
+const Store = dynamic(() => import('lucide-react').then(mod => ({ default: mod.Store })), { ssr: false });
+
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  storeName: string;
+  phone: string;
+  email: string;
+  username: string;
+}
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const REDIRECT_DELAY = 3000;
+
+const INITIAL_FORM_STATE: FormData = {
+  firstName: '',
+  lastName: '',
+  storeName: '',
+  phone: '',
+  email: '',
+  username: '',
+};
+
+// ============================================================================
+// MEMOIZED COMPONENTS
+// ============================================================================
+
+interface ProfileAvatarProps {
+  profilePic: string | null;
+  username: string;
+  uploading: boolean;
+  onUploadClick: () => void;
+}
+
+const ProfileAvatar = memo(({ profilePic, username, uploading, onUploadClick }: ProfileAvatarProps) => (
+  <div className="flex-shrink-0">
+    <div className="relative group">
+      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden border-2 border-gray-200 shadow-md">
+        {profilePic ? (
+          <img
+            src={profilePic}
+            alt={`${username}'s profile`}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <User className="w-12 h-12 text-gray-400" aria-hidden="true" />
+        )}
+      </div>
+
+      <button
+        onClick={onUploadClick}
+        disabled={uploading}
+        className="absolute inset-0 bg-black bg-opacity-60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
+        aria-label="Change profile picture"
+        type="button"
+      >
+        {uploading ? (
+          <SimpleLoader size={18} ariaLabel="Uploading" />
+        ) : (
+          <Camera className="w-6 h-6 text-white" aria-hidden="true" />
+        )}
+      </button>
+    </div>
+
+    <p className="text-sm text-gray-600 text-center mt-3 font-medium">
+      @{username || 'username'}
+    </p>
+  </div>
+));
+
+ProfileAvatar.displayName = 'ProfileAvatar';
+
+interface FormFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  disabled?: boolean;
+  type?: string;
+  required?: boolean;
+}
+
+const FormField = memo(({ label, value, onChange, placeholder, disabled, type = 'text', required }: FormFieldProps) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      disabled={disabled}
+      required={required}
+      className={`w-full px-4 py-2.5 border rounded-lg transition-all ${
+        disabled
+          ? 'bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed'
+          : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent'
+      }`}
+    />
+  </div>
+));
+
+FormField.displayName = 'FormField';
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 export default function ProfileSettings() {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    storeName: '',
-    phone: '',
-    email: '',
-    username: '',
-  });
-
+  // State management
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
-  const [focusedField, setFocusedField] = useState('');
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasLoadedRef = useRef(false);
+  const { showSuccess, showError } = useToast();
 
-  useEffect(() => {
-    loadUserProfile();
+  // ============================================================================
+  // UTILITY FUNCTIONS
+  // ============================================================================
+
+  const validateFile = useCallback((file: File): string | null => {
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      return 'Only JPEG, PNG, and WebP images are allowed';
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return 'File size must be less than 5MB';
+    }
+    return null;
   }, []);
 
-  useEffect(() => {
-    if (success || error) {
-      const timer = setTimeout(() => {
-        setSuccess(null);
-        setError(null);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [success, error]);
+  // ============================================================================
+  // DATA FETCHING
+  // ============================================================================
 
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
 
       const authResponse = await fetch('/api/auth/session', {
         credentials: 'include',
@@ -68,10 +174,8 @@ export default function ProfileSettings() {
       }
 
       const authData = await authResponse.json();
-      
-      // Try multiple ways to get user ID
       const currentUserId = authData.user?.id || authData.id;
-      
+
       if (!currentUserId) {
         console.error('Auth response:', authData);
         throw new Error('User ID not found. Please log in again.');
@@ -80,6 +184,7 @@ export default function ProfileSettings() {
       setUserId(currentUserId);
 
       const profile = await userService.getUserProfile(currentUserId);
+      
       setFormData({
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
@@ -93,136 +198,156 @@ export default function ProfileSettings() {
     } catch (err: any) {
       console.error('Error loading profile:', err);
       const errorMessage = err.message || 'Failed to load profile';
-      setError(`${errorMessage}. Please make sure you are logged in.`);
-      
-      // Redirect to login after 3 seconds if auth error
+      showError(`${errorMessage}. Please make sure you are logged in.`);
+
+      // Redirect to login for auth errors
       if (errorMessage.includes('log in')) {
         setTimeout(() => {
           window.location.href = '/auth/login';
-        }, 3000);
+        }, REDIRECT_DELAY);
       }
     } finally {
       setLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - showError is stable from useToast
 
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    setError(null);
-    setSuccess(null);
-  };
+  // ============================================================================
+  // FORM HANDLERS
+  // ============================================================================
 
-  const handleSubmit = async () => {
-    if (!userId) return setError('User ID not found. Please log in again.');
+  const handleStoreNameChange = useCallback((value: string) => {
+    setFormData((prev) => ({ ...prev, storeName: value }));
+  }, []);
+
+  const handleStoreNameUpdate = useCallback(async () => {
+    if (!userId) {
+      showError('User ID not found. Please log in again.');
+      return;
+    }
 
     try {
       setSaving(true);
-      setError(null);
-      setSuccess(null);
 
       const profileData: UpdateProfileDto = {
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         storeName: formData.storeName.trim() || undefined,
       };
 
       const response = await userService.updateProfile(userId, profileData);
+      
       if (response.success) {
-        setSuccess('Profile updated successfully! 🎉');
-        await loadUserProfile();
+        showSuccess('Store name updated successfully! 🎉');
+        // Reload profile after update
+        const profile = await userService.getUserProfile(userId);
+        setFormData({
+          firstName: profile.firstName || '',
+          lastName: profile.lastName || '',
+          storeName: profile.storeName || '',
+          phone: profile.phone || '',
+          email: profile.email || '',
+          username: profile.username || '',
+        });
       }
     } catch (err: any) {
-      console.error('Error updating profile:', err);
-      setError(err.message || 'Failed to update profile');
+      console.error('Error updating store name:', err);
+      showError(err.message || 'Failed to update store name');
     } finally {
       setSaving(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, formData.firstName, formData.lastName, formData.storeName]);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !userId) return;
 
+    // Validate file
+    const validationError = validateFile(file);
+    if (validationError) {
+      showError(validationError);
+      return;
+    }
+
     try {
       setUploading(true);
-      setError(null);
-      setSuccess(null);
 
       const response = await userService.uploadProfilePicture(userId, file);
-      // Response can have imageUrl at top level or in data/user object
-      const uploadedImageUrl = (response as any).imageUrl || response.data?.profilePic || response.user?.profilePic;
-      
+      const uploadedImageUrl =
+        (response as any).imageUrl ||
+        response.data?.profilePic ||
+        response.user?.profilePic;
+
       if (uploadedImageUrl) {
         setProfilePic(uploadedImageUrl);
-        setSuccess('Profile picture updated successfully! 🎉');
+        showSuccess('Profile picture updated successfully! 🎉');
       }
     } catch (err: any) {
       console.error('Error uploading profile picture:', err);
-      setError(err.message || 'Failed to upload profile picture');
+      showError(err.message || 'Failed to upload profile picture');
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, validateFile]);
 
-  const triggerFileInput = () => fileInputRef.current?.click();
+  const triggerFileInput = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  // ============================================================================
+  // EFFECTS
+  // ============================================================================
+
+  useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+    loadUserProfile();
+  }, [loadUserProfile]);
+
+  // ============================================================================
+  // RENDER LOADING STATE
+  // ============================================================================
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <DotLoader size={48} color="#E43C3C" ariaLabel="Loading profile" />
-          <p className="text-gray-600">Loading your profile...</p>
+          <SimpleLoader size={48} ariaLabel="Loading profile" />
+          <p className="text-gray-600 mt-4">Loading your profile...</p>
         </div>
       </div>
     );
   }
 
+  // ============================================================================
+  // MAIN RENDER
+  // ============================================================================
+
   return (
-    <div className="min-h-screen py-2 px-2 sm:px-3 lg:px-4">
+    <div className="min-h-screen py-2 ">
       <div className="max-w-5xl mx-auto">
-        {/* Alert Messages */}
-        {(success || error) && (
-          <div
-            className={`mb-6 p-4 rounded-xl flex items-center gap-3 shadow-sm animate-in slide-in-from-top ${
-              success
-                ? 'bg-green-50 text-green-800 border border-green-200'
-                : 'bg-red-50 text-red-800 border border-red-200'
-            }`}
-          >
-            {success ? (
-              <CheckCircle className="w-5 h-5 flex-shrink-0" />
-            ) : (
-              <XCircle className="w-5 h-5 flex-shrink-0" />
-            )}
-            <p className="flex-1 text-sm font-medium">{success || error}</p>
-            <button
-              onClick={() => {
-                setSuccess(null);
-                setError(null);
-              }}
-              className="text-current hover:opacity-70 transition-opacity"
-            >
-              ×
-            </button>
-          </div>
-        )}
-
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Profile Settings
+          </h1>
           <p className="text-red-900">
-            Manage your personal information and profile picture.
+            View your profile information and update your profile picture.
           </p>
-        </div>
+        </header>
 
-        {/* Main Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-8 sm:p-10">
+        {/* Main Form */}
+        <div className=" overflow-hidden">
+          <div className="p-4 sm:p-6">
             {/* Personal Information Section */}
-            <div className="mb-10">
+            <section className="mb-10">
               <div className="flex items-center gap-2 mb-6">
-                <User className="w-5 h-5 text-gray-700" />
+                <User className="w-5 h-5 text-gray-700" aria-hidden="true" />
                 <h2 className="text-lg font-semibold text-gray-900">
                   Personal Information
                 </h2>
@@ -230,181 +355,122 @@ export default function ProfileSettings() {
 
               <div className="flex flex-col sm:flex-row gap-8 items-start">
                 {/* Profile Picture */}
-                <div className="flex-shrink-0">
-                  <div className="relative group">
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden border-2 border-gray-200 shadow-md">
-                      {profilePic ? (
-                        <img
-                          src={profilePic}
-                          alt="Profile"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-12 h-12 text-gray-400" />
-                      )}
-                    </div>
+                <ProfileAvatar
+                  profilePic={profilePic}
+                  username={formData.username}
+                  uploading={uploading}
+                  onUploadClick={triggerFileInput}
+                />
 
-                    {/* Hover overlay */}
-                    <button
-                      onClick={triggerFileInput}
-                      disabled={uploading}
-                      className="absolute inset-0 bg-black bg-opacity-60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
-                    >
-                      {uploading ? (
-                        <DotLoader size={18} ariaLabel="Uploading profile picture" />
-                      ) : (
-                        <Camera className="w-6 h-6 text-white" />
-                      )}
-                    </button>
-                  </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={ALLOWED_FILE_TYPES.join(',')}
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  aria-label="Upload profile picture"
+                />
 
-                  {/* Username display below avatar */}
-                  <p className="text-sm text-gray-600 text-center mt-3 font-medium">
-                    {formData.username || ''}
-                  </p>
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    aria-label="Upload profile picture"
-                  />
-                </div>
-
-                {/* Form Fields */}
+                {/* Form Fields - NOW READ-ONLY */}
                 <div className="flex-1 w-full space-y-5">
-                  {/* First Name & Last Name */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.firstName}
-                        onChange={(e) => handleChange('firstName', e.target.value)}
-                        placeholder="Jane"
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                      />
-                    </div>
+                    <FormField
+                      label="First Name"
+                      value={formData.firstName}
+                      onChange={() => {}}
+                      placeholder="Not set"
+                      disabled
+                    />
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.lastName}
-                        onChange={(e) => handleChange('lastName', e.target.value)}
-                        placeholder="Doe"
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                      />
-                    </div>
+                    <FormField
+                      label="Last Name"
+                      value={formData.lastName}
+                      onChange={() => {}}
+                      placeholder="Not set"
+                      disabled
+                    />
                   </div>
                 </div>
               </div>
-            </div>
+            </section>
 
             {/* Contact Details Section */}
-            <div className="mb-10 pb-10 border-b border-gray-100">
+            <section className="mb-10 pb-10 border-b border-gray-100">
               <div className="flex items-center gap-2 mb-6">
-                <Mail className="w-5 h-5 text-gray-700" />
+                <Mail className="w-5 h-5 text-gray-700" aria-hidden="true" />
                 <h2 className="text-lg font-semibold text-gray-900">
                   Contact Details
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    disabled
-                    placeholder="jane.doe@example.com"
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
-                  />
-                </div>
+                <FormField
+                  label="Email Address"
+                  value={formData.email}
+                  onChange={() => {}}
+                  placeholder="jane.doe@example.com"
+                  type="email"
+                  disabled
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone || ''}
-                    disabled
-                    placeholder="+1 (555) 123-4567"
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
-                  />
-                </div>
+                <FormField
+                  label="Phone Number"
+                  value={formData.phone || ''}
+                  onChange={() => {}}
+                  placeholder="+1 (555) 123-4567"
+                  type="tel"
+                  disabled
+                />
               </div>
-            </div>
+            </section>
 
-            {/* Store Information Section */}
-            <div className="mb-8">
+            {/* Store Information Section - EDITABLE */}
+            <section className="mb-8 shadow-sm p-6 md:p-8 rounded-md">
               <div className="flex items-center gap-2 mb-6">
-                <Store className="w-5 h-5 text-gray-700" />
+                <Store className="w-5 h-5 text-gray-700" aria-hidden="true" />
                 <h2 className="text-lg font-semibold text-gray-900">
                   Store Information
                 </h2>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Store Name (Optional)
-                </label>
-                <input
-                  type="text"
+              <div className="space-y-4">
+                <FormField
+                  label="Store Name (Optional)"
                   value={formData.storeName}
-                  onChange={(e) => handleChange('storeName', e.target.value)}
+                  onChange={handleStoreNameChange}
                   placeholder="e.g. Jane's Emporium"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                  disabled={saving || uploading}
                 />
-              </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col-reverse sm:flex-row gap-4 pt-6">
-              <button
-                type="button"
-                onClick={loadUserProfile}
-                disabled={saving || uploading}
-                className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={saving || uploading || !formData.firstName.trim() || !formData.lastName.trim()}
-                className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium shadow-sm hover:shadow-md"
-              >
-                {saving ? (
-                  <>
-                    <DotLoader size={14} ariaLabel="Saving" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <MdOutlineFileDownload className="w-4 h-4" />
-                    Save Changes
-                  </>
-                )}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={handleStoreNameUpdate}
+                  disabled={saving || uploading}
+                  className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium shadow-sm hover:shadow-md"
+                >
+                  {saving ? (
+                    <>
+                      <SimpleLoader size={14} />
+                      Saving...
+                    </>
+                  ) : (
+                    'Update Store Name'
+                  )}
+                </button>
+              </div>
+            </section>
+
+       
+           
           </div>
         </div>
 
         {/* Footer Note */}
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <footer className="text-center text-sm text-gray-500 mt-6">
           Your information is securely stored and protected.
-        </p>
+        </footer>
       </div>
     </div>
   );
+
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
-import { IoAdd, IoImageOutline, IoClose, IoCamera } from 'react-icons/io5';
-import Image from 'next/image';
+import dynamic from 'next/dynamic';
+import { useState, useEffect } from 'react';
+import type { ChangeEvent } from 'react';
 import { TfiReload } from "react-icons/tfi";
 import { useToast } from '@/Components/Toast/toast';
 import { useForm } from 'react-hook-form';
@@ -62,6 +62,34 @@ const productSchema = z.object({
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
+
+type ProductImagesSectionProps = {
+  images: File[];
+  maxImages: number;
+  onRemoveImage: (index: number) => void;
+  onImageUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  errorMessage?: string;
+};
+
+const ProductImagesSection = dynamic<ProductImagesSectionProps>(() => import('./components/ProductImagesSection'), {
+  ssr: false,
+  loading: () => (
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="p-5 border-b border-gray-100">
+        <h2 className="text-base font-semibold text-gray-900">Product Images *</h2>
+        <p className="text-xs text-gray-500 mt-1">Preparing uploader…</p>
+      </div>
+      <div className="p-5">
+        <div className="aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-3 gap-2 mt-3">
+          {[0, 1, 2].map(item => (
+            <div key={item} className="aspect-square bg-gray-50 border border-gray-200 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </div>
+  ),
+});
 
 export default function CreateProductPage() {
   const { showSuccess, showError } = useToast();
@@ -124,7 +152,7 @@ export default function CreateProductPage() {
     return Math.round(((original - discounted) / original) * 100);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       const newImages = [...images, ...files].slice(0, MAX_IMAGES);
@@ -408,105 +436,13 @@ export default function CreateProductPage() {
             {/* Sidebar */}
             <div className="lg:col-span-4 space-y-5">
               {/* Product Images */}
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-                <div className="p-5 border-b border-gray-100">
-                  <h2 className="text-base font-semibold text-gray-900">Product Images *</h2>
-                  <p className="text-xs text-gray-500 mt-1">Add up to {MAX_IMAGES} images (Required)</p>
-                </div>
-                <div className="p-5">
-                  {/* Main Image Preview */}
-                  <div className="mb-3">
-                    <div className={`aspect-square bg-gray-50 border-2 border-dashed rounded-lg flex items-center justify-center overflow-hidden transition-colors ${
-                      errors.images ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                    }`}>
-                      {images.length > 0 ? (
-                        <div className="relative w-full h-full">
-                          <Image
-                            src={URL.createObjectURL(images[0])}
-                            alt="Main product image"
-                            fill
-                            className="object-cover rounded-lg"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(0)}
-                            aria-label="Remove main image"
-                            title="Remove image"
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
-                          >
-                            <IoClose className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="text-center p-4">
-                          <IoCamera className="mx-auto h-10 w-10 text-gray-400" />
-                          <div className="mt-3">
-                            <label htmlFor="main-image" className="cursor-pointer">
-                              <span className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors">
-                                Upload main image
-                              </span>
-                              <input
-                                id="main-image"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageUpload}
-                                className="sr-only"
-                              />
-                            </label>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-2">PNG, JPG, GIF up to 10MB</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Image Validation Error */}
-                  {errors.images && (
-                    <p className="mb-3 text-sm text-red-600">{errors.images.message}</p>
-                  )}
-
-                  {/* Additional Images */}
-                  <div className="grid grid-cols-3 gap-2">
-                    {images.slice(1).map((image, index) => (
-                      <div key={index + 1} className="relative aspect-square">
-                        <Image
-                          src={URL.createObjectURL(image)}
-                          alt={`Product image ${index + 2}`}
-                          fill
-                          className="object-cover rounded-lg border border-gray-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index + 1)}
-                          aria-label={`Remove image ${index + 2}`}
-                          title="Remove image"
-                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
-                        >
-                          <IoClose className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                    
-                    {images.length < MAX_IMAGES && (
-                      <div className="aspect-square border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center hover:border-red-300 hover:bg-red-50 transition-all cursor-pointer">
-                        <label htmlFor="additional-images" className="cursor-pointer w-full h-full flex items-center justify-center">
-                          <span className="sr-only">Add more images</span>
-                          <IoAdd className="h-7 w-7 text-gray-400" />
-                          <input
-                            id="additional-images"
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={handleImageUpload}
-                            className="sr-only"
-                            aria-label="Upload additional product images"
-                          />
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <ProductImagesSection
+                images={images}
+                maxImages={MAX_IMAGES}
+                onRemoveImage={removeImage}
+                onImageUpload={handleImageUpload}
+                errorMessage={errors.images?.message}
+              />
 
               {/* Product Status */}
               <div className=" ">
