@@ -4,16 +4,12 @@ const RAW_REDIS_URL =
   process.env.FLASH_SALES_REDIS_URL || process.env.REDIS_URL || process.env.UPSTASH_REDIS_URL;
 
 const REDIS_URL = normalizeRedisUrl(RAW_REDIS_URL);
-const REDIS_USERNAME = process.env.REDIS_USERNAME || undefined;
-const REDIS_PASSWORD = process.env.REDIS_PASSWORD || undefined;
 const FORCE_TLS = process.env.REDIS_TLS === 'true';
 
 const useTls = FORCE_TLS || (REDIS_URL ? REDIS_URL.startsWith('rediss://') : false);
 
 const redis = REDIS_URL
   ? new Redis(REDIS_URL, {
-      username: REDIS_USERNAME,
-      password: REDIS_PASSWORD,
       maxRetriesPerRequest: 2,
       enableAutoPipelining: true,
       enableOfflineQueue: true,
