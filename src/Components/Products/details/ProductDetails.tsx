@@ -10,84 +10,90 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const placeholderImage = "/placeholder-image.png";
 
   return (
-    <div className="mt-8 w-full px-4 sm:px-6 lg:px-10">
+    <section className="mt-4 sm:mt-6 w-full px-3 sm:px-5 lg:px-8 max-w-4xl mx-auto">
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <div className="flex flex-wrap gap-4 sm:gap-8">
-          {["details", "reviews"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as "details" | "reviews")}
-              className={`pb-3 text-sm sm:text-base font-medium transition-colors relative ${
-                activeTab === tab
-                  ? "text-red-500"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab === "details" ? "Product Details" : "Reviews"}
-              {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"></div>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
+      <nav className="border-b border-gray-200">
+        <ul className="flex flex-wrap gap-3 sm:gap-6">
+          {["details", "reviews"].map((tab) => {
+            const isActive = activeTab === tab;
+            return (
+              <li key={tab}>
+                <button
+                  onClick={() => setActiveTab(tab as "details" | "reviews")}
+                  role="tab"
+                  aria-selected={isActive}
+                  className={`relative pb-2 text-xs sm:text-sm font-medium transition-colors duration-200 ${
+                    isActive
+                      ? "text-red-500"
+                      : "text-gray-500 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                  }`}
+                >
+                  {tab === "details" ? "Product Details" : "Reviews"}
+                  {isActive && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 rounded-full"></div>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
 
       {/* Tab Content */}
-      <div className="mt-6">
+      <div className="mt-4 sm:mt-5">
         {activeTab === "details" ? (
-          <div>
+          <div className="space-y-5">
             {/* Product Description */}
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed whitespace-pre-line">
+            <p className="text-[11px] sm:text-xs text-gray-700 leading-relaxed whitespace-pre-line">
               {product.description ??
-                "Discover the Oraimo SpacePods, engineered for immersive sound and unparalleled comfort. Featuring advanced noise-cancellation technology, a long-lasting battery, and a sleek, ergonomic design, these headphones are your perfect companion for music, calls, and everything in between."}
+                "Discover the Oraimo SpacePods, engineered for immersive sound and comfort. Featuring noise-cancellation, long battery life, and an ergonomic design — perfect for music, calls, and more."}
             </p>
 
-            {/* Seller Information */}
-            <div className="mt-8 bg-gray-50 rounded-xl p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+            {/* Seller Info */}
+            <div className="bg-gray-50 rounded-lg p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 {/* Seller Avatar + Info */}
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                     <img
                       src={product.user?.profilePic ?? placeholderImage}
-                      alt="seller"
+                      alt="Seller profile"
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        const target = e.currentTarget as HTMLImageElement;
-                        target.src = placeholderImage;
+                        (e.currentTarget as HTMLImageElement).src =
+                          placeholderImage;
                       }}
                     />
                   </div>
 
-                  <div className="flex-1">
-                    <div className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                  <div className="flex flex-col min-w-0">
+                    <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
                       {product.user
                         ? `${product.user.firstName ?? ""} ${
                             product.user.lastName ?? ""
                           }`.trim() || product.user.username
                         : "Ben Afotey"}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-500 truncate">
-                      {product.user?.username
-                        ? `${product.user.username}@example.com`
-                        : "ben.afotey@example.com"}
-                    </div>
+                    </h3>
+                    {product.user?.username && (
+                      <p className="text-[10px] sm:text-[11px] text-gray-500 truncate">
+                        {product.user.username}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Member Tier */}
                 <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-red-500 flex items-center justify-center">
+                  <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-red-500 flex items-center justify-center">
                     <svg
-                      className="w-2.5 h-2.5 text-white"
+                      className="w-2 h-2 text-white"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   </div>
-                  <span className="text-xs sm:text-sm font-semibold text-gray-500">
+                  <span className="text-[10px] sm:text-[11px] font-medium text-gray-500">
                     {product.user?.premiumTier || "FREE"} Member
                   </span>
                 </div>
@@ -95,20 +101,23 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </div>
           </div>
         ) : (
-          /* Reviews Content */
-          <div className="text-center py-8 px-4 sm:px-6">
-            <p className="text-gray-600 text-sm sm:text-base">
+          /* Reviews Section */
+          <div className="text-center py-6 px-3 sm:px-5">
+            <p className="text-[11px] sm:text-xs text-gray-700">
               {product.totalReviews || 0} reviews • Average rating{" "}
-              {product.averageRating?.toFixed(1) || "0.0"}
+              <span className="font-semibold text-gray-900">
+                {product.averageRating?.toFixed(1) || "0.0"}
+              </span>
             </p>
+
             {product.totalReviews === 0 && (
-              <p className="text-xs sm:text-sm text-gray-400 mt-2">
+              <p className="text-[10px] sm:text-[11px] text-gray-400 mt-2">
                 No reviews yet. Be the first to review this product!
               </p>
             )}
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }
