@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { deleteCache, readCacheJSON, writeCache } from '../../cache/redis';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
@@ -7,8 +8,17 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:300
  * Fetches flash sale products (30-70% discount, refreshed hourly)
  * No authentication required
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
+  const cacheKey = 'flashproducts';
   try {
+    const cachedData = await readCacheJSON<unknown>(cacheKey);
+
+    if (cachedData) {
+      console.log('⚡️ Flash sales cache hit');
+      return NextResponse.json(cachedData);
+    }
+
+    console.log('⚡️ Flash sales cache miss, fetching from backend...');
     const response = await fetch(`${BACKEND_URL}/products/flash-sales`, {
       method: 'GET',
       headers: {
@@ -26,6 +36,9 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
+
+  await writeCache(cacheKey, data, 60 * 5);
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('❌ Flash sales API error:', error);
@@ -40,7 +53,7 @@ export async function GET(request: NextRequest) {
  * POST /api/products/flash-sales (refresh endpoint)
  * Manually refresh flash sales (admin/testing)
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const response = await fetch(`${BACKEND_URL}/products/flash-sales/refresh`, {
       method: 'POST',
@@ -58,6 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
+    await deleteCache('flashproducts');
     return NextResponse.json(data);
   } catch (error) {
     console.error('❌ Flash sales refresh error:', error);
