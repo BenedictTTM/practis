@@ -127,15 +127,36 @@ export class AuthService {
   // Logout user
   static async logout(): Promise<void> {
     try {
-      // Call logout endpoint to clear server-side session
-      await fetch(`${API_URL}/auth/logout`, {
+      console.log('🚪 [AUTH] Logging out...');
+      
+      // Call logout endpoint to clear server-side session and cookies
+      const response = await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
+
+      console.log('📡 [AUTH] Logout response:', response.status);
+
+      if (response.ok) {
+        console.log('✅ [AUTH] Logout successful');
+      } else {
+        console.warn('⚠️ [AUTH] Logout endpoint returned error, but continuing cleanup');
+      }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('💥 [AUTH] Logout error:', error);
+      console.log('⚠️ [AUTH] Continuing with local cleanup despite error');
     } finally {
-      // Always redirect to login
+      // Clear local storage (cart items, etc.)
+      console.log('🧹 [AUTH] Clearing local storage...');
+      localStorage.clear();
+      
+      // Clear session storage
+      sessionStorage.clear();
+      
+      console.log('✅ [AUTH] Local cleanup complete');
+      
+      // Always redirect to login page
+      console.log('🔄 [AUTH] Redirecting to login page...');
       window.location.href = '/auth/login';
     }
   }

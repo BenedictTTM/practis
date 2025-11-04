@@ -10,6 +10,10 @@
 import { mergeCart } from './cart';
 import { getLocalCartForMerge, clearLocalCart, getLocalCartItemCount } from './localCart';
 
+// Simple client-side guard to prevent duplicate/concurrent merges
+let mergeInProgress = false;
+const MERGE_DONE_KEY = 'sellr_cart_merge_done';
+
 /**
  * Merge local cart with server cart after authentication
  * 
@@ -24,6 +28,21 @@ export async function mergeAnonymousCart(): Promise<{
   itemCount?: number;
 }> {
   try {
+    // Prevent duplicate/concurrent merges in the same session
+    if (mergeInProgress) {
+      console.warn('🟡 Cart merge already in progress, skipping duplicate call');
+      return { success: true, message: 'Merge already in progress, skipped' };
+    }
+
+    // If already merged during this session, skip
+    if (typeof window !== 'undefined') {
+      const alreadyMerged = sessionStorage.getItem(MERGE_DONE_KEY) === '1';
+      if (alreadyMerged) {
+        console.log('🟢 Cart merge previously completed this session, skipping');
+        return { success: true, message: 'Cart already merged' };
+      }
+    }
+
     // Check if there are items in local cart
     const itemCount = getLocalCartItemCount();
     
@@ -37,6 +56,9 @@ export async function mergeAnonymousCart(): Promise<{
     // Get local cart items in merge format
     const localItems = getLocalCartForMerge();
 
+    // Mark as in-progress
+    mergeInProgress = true;
+
     // Call merge API
     const result = await mergeCart(localItems);
 
@@ -44,6 +66,9 @@ export async function mergeAnonymousCart(): Promise<{
       // Clear local storage cart after successful merge
       clearLocalCart();
       console.log('✅ Cart merged successfully and local cart cleared');
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(MERGE_DONE_KEY, '1');
+      }
       
       return {
         success: true,
@@ -63,6 +88,8 @@ export async function mergeAnonymousCart(): Promise<{
       success: false,
       message: error.message || 'Unexpected error during cart merge',
     };
+  } finally {
+    mergeInProgress = false;
   }
 }
 
