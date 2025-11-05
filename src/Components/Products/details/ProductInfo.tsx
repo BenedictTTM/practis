@@ -37,7 +37,7 @@ export default function ProductInfo({ product, inStock }: ProductInfoProps) {
       <div className="flex items-start sm:items-center gap-2 sm:gap-3 text-gray-700 text-xs sm:text-sm md:text-base leading-relaxed flex-wrap">
         <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 flex-shrink-0 mt-0.5 sm:mt-0" />
         <p className="flex-1">
-          <span className="font-semibold text-gray-900">Estimated delivery:</span>{" "}
+          <span className=" text-gray-800 text-xs">Estimated delivery:</span>{" "}
           2–3 business days.{" "}
           <button className="text-red-500 hover:underline font-medium transition-colors">
             Details

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from "react";
 import { Product } from "../../../types/products";
 
@@ -50,7 +52,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </p>
 
             {/* Seller Info */}
-            <div className="bg-gray-50 rounded-lg p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div className="bg-gray-50 rounded-lg p-4 sm:p-5 hover:shadow-xs transition-shadow duration-200">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 {/* Seller Avatar + Info */}
                 <div className="flex items-center gap-3">

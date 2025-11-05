@@ -37,7 +37,7 @@ const ProductImagesSection = memo(function ProductImagesSection({
   const secondaryPreviews = previewUrls.slice(1);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="bg-white rounded-lg border border-gray-200">
       <div className="p-5 border-b border-gray-100">
         <h2 className="text-base font-semibold text-gray-900">Product Images *</h2>
         <p className="text-xs text-gray-500 mt-1">Add up to {maxImages} images (Required)</p>
@@ -57,7 +57,7 @@ const ProductImagesSection = memo(function ProductImagesSection({
                   onClick={() => onRemoveImage(0)}
                   aria-label="Remove main image"
                   title="Remove image"
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 transition-colors "
                 >
                   <IoClose className="w-4 h-4" />
                 </button>
@@ -90,7 +90,7 @@ const ProductImagesSection = memo(function ProductImagesSection({
                 onClick={() => onRemoveImage(index + 1)}
                 aria-label={`Remove image ${index + 2}`}
                 title="Remove image"
-                className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
+                className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors "
               >
                 <IoClose className="w-3.5 h-3.5" />
               </button>
