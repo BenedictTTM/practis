@@ -5,11 +5,12 @@ import Link from 'next/link'
 import { IoCartOutline, IoPersonCircleSharp } from 'react-icons/io5'
 import { IoMdHelpCircleOutline } from 'react-icons/io'
 import { HiMenu, HiX } from 'react-icons/hi'
-import { Plug } from 'lucide-react'
+import { Plug , LogOut } from 'lucide-react'
 
 import SearchComponent from './searchComponent'
 import Sidebar from '../Navigation/mobileNav'
 import { useCartStore } from '@/store/cartStore'
+import { AuthService } from '@/lib/auth'
 
 
 const MainNavBar = () => {
@@ -24,6 +25,15 @@ const MainNavBar = () => {
 
   const closeMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(false)
+  }, [])
+
+  // Handle logout
+  const handleLogout = useCallback(async () => {
+    try {
+      await AuthService.logout()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
   }, [])
 
   // Fetch cart count on mount
@@ -68,7 +78,7 @@ const MainNavBar = () => {
           </div>
 
           {/* Desktop Navigation Icons - Hidden on mobile/small tablet */}
-          <div className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8">
+          <div className="hidden md:flex items-center md:gap-2 lg:gap-4">
             <NavIcon 
               href="/main/cart" 
               icon={<IoCartOutline className="text-xl lg:text-2xl" />}
@@ -80,11 +90,25 @@ const MainNavBar = () => {
               icon={<IoMdHelpCircleOutline className="text-xl lg:text-2xl" />}
               label="Help"
             />
-            <NavIcon 
-              href="/accounts/addProducts" 
+              <NavIcon 
+              href="/account/addProducts" 
               icon={<IoPersonCircleSharp className="text-xl lg:text-2xl" />}
-              label="Account"
+              label="account"
+        
             />
+             
+            
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex flex-col items-center justify-center text-gray-600 hover:text-red-500 transition-colors group relative min-w-[50px]"
+              aria-label="Logout"
+            >
+              <LogOut className="text-xl lg:text-2xl" />
+              <span className="absolute top-full mt-1 text-[8px] lg:text-[10px] opacity-0 group-hover:opacity-100 group-hover:font-medium transition-all whitespace-nowrap">
+                Logout
+              </span>
+            </button>
           </div>
 
           {/* Mobile Actions - Cart & Menu Button */}
@@ -169,7 +193,7 @@ interface NavIconProps {
 const NavIcon = ({ href, icon, label, badge }: NavIconProps) => (
   <Link
     href={href}
-    className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors group min-w-[60px]"
+    className="flex flex-col items-center justify-center text-gray-600 hover:text-red-500 transition-colors group relative"
   >
     <div className="relative">
       {icon}
@@ -179,7 +203,7 @@ const NavIcon = ({ href, icon, label, badge }: NavIconProps) => (
         </span>
       )}
     </div>
-    <span className="text-xs sm:text-sm mt-0.5 group-hover:font-medium transition-all">
+    <span className="absolute top-full mt-1 text-[8px] lg:text-[10px] opacity-0 group-hover:opacity-100 group-hover:font-medium transition-all whitespace-nowrap">
       {label}
     </span>
   </Link>

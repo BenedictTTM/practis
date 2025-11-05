@@ -39,7 +39,8 @@ import {
  */
 export async function addToCart(
   productId: number,
-  quantity: number = 1
+  quantity: number = 1,
+  options?: { idempotencyKey?: string }
 ): Promise<CartResponse> {
   try {
     console.log(`🛒 Adding to cart: Product ${productId}, Quantity ${quantity}`);
@@ -48,6 +49,7 @@ export async function addToCart(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(options?.idempotencyKey ? { 'Idempotency-Key': options.idempotencyKey } : {}),
       },
       credentials: 'include', // Send cookies for authentication
       body: JSON.stringify({ productId, quantity }),

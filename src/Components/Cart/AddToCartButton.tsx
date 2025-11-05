@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ShoppingCart, Check } from 'lucide-react';
 import { DotLoader } from '@/Components/Loaders';
@@ -41,53 +41,79 @@ export default function AddToCartButton({
   const router = useRouter();
   const pathname = usePathname();
   const fetchItemCount = useCartStore((state) => state.fetchItemCount);
+  const incrementCount = useCartStore((state) => state.incrementCount);
+  const rollbackCountRef = useRef<number | null>(null);
 
   const handleAddToCart = async () => {
-    setLoading(true);
-    setSuccess(false);
+    // Prevent spamming while success feedback is shown
+    if (loading || success) return;
 
+    // Optimistic UI: show success immediately and bump count
+    const prevCount = useCartStore.getState().itemCount;
+    rollbackCountRef.current = prevCount;
+    incrementCount(quantity);
+    setSuccess(true);
+    setLoading(true);
+
+    const idempotencyKey = (globalThis as any)?.crypto?.randomUUID
+      ? (globalThis as any).crypto.randomUUID()
+      : `${Date.now()}-${productId}-${Math.random().toString(36).slice(2)}`;
+
+    // Fire-and-reconcile in background
     try {
-      // Try adding to server cart first
-      console.log('� Attempting to add to cart...');
-      const result = await addToCart(productId, quantity);
+      console.log('🟢 Optimistic add to cart, processing in background...');
+      const result = await addToCart(productId, quantity, { idempotencyKey });
 
       if (result.success) {
-        // ✅ Successfully added to server cart (user is authenticated)
-        console.log('✅ Added to server cart (authenticated)');
-        setSuccess(true);
+        // Reconcile exact count from server
         await fetchItemCount();
         onSuccess?.();
-        setTimeout(() => setSuccess(false), 2000);
       } else if (result.statusCode === 401) {
-        // ❌ Unauthorized - user is not authenticated
-        // Add to local storage instead
+        // Not authenticated → persist locally and reconcile count from local
         console.log('📦 User not authenticated, adding to local cart');
-        
         if (!productData) {
           console.error('❌ Product data is required for anonymous cart');
+          // Rollback optimistic count on hard failure
+          if (rollbackCountRef.current !== null) {
+            useCartStore.getState().setItemCount(rollbackCountRef.current);
+          }
+          setSuccess(false);
           onError?.('Product data is required');
-          setLoading(false);
           return;
         }
-
         addToLocalCart(productData, quantity);
-        setSuccess(true);
-        
-        // Update cart count to reflect local cart
         await fetchItemCount();
-        
         onSuccess?.();
-        setTimeout(() => setSuccess(false), 2000);
       } else {
-        // Other errors
         console.error('❌ Add to cart failed:', result.message);
+        // Roll back optimistic increment on real failure
+        if (rollbackCountRef.current !== null) {
+          useCartStore.getState().setItemCount(rollbackCountRef.current);
+        }
+        setSuccess(false);
         onError?.(result.message || 'Failed to add to cart');
       }
     } catch (error: any) {
       console.error('❌ Add to cart error:', error);
-      onError?.(error.message || 'Failed to add to cart');
+      // Offline/network error: persist locally if possible, keep optimistic success
+      if (productData) {
+        addToLocalCart(productData, quantity);
+        await fetchItemCount();
+        onSuccess?.();
+      } else {
+        // No product data to save locally → rollback and surface error
+        if (rollbackCountRef.current !== null) {
+          useCartStore.getState().setItemCount(rollbackCountRef.current);
+        }
+        setSuccess(false);
+        onError?.(error?.message || 'Failed to add to cart');
+      }
     } finally {
       setLoading(false);
+      // Keep success feedback briefly for UX
+      if (success) {
+        setTimeout(() => setSuccess(false), 1500);
+      }
     }
   };
 

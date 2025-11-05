@@ -1,3 +1,5 @@
+'use client';
+
 import React from "react";
 import { useRouter } from "next/navigation";
 import QuantitySelector from "../common/QuantitySelector";
@@ -74,12 +76,12 @@ export default function ProductActions({
           
           <button
             onClick={handleBuyNow}
-            className="w-full sm:flex-1 flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all hover:scale-[1.02] active:scale-95"
+            className="w-full sm:flex-1 flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 text-red-600 hover:text-red-700 text-sm font-semibold rounded-lg  transition-all hover:scale-[1.02] active:scale-95"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
-            Buy Now
+            Call to buy
           </button>
         </div>
       ) : (
