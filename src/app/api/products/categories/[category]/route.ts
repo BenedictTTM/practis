@@ -106,6 +106,7 @@ export async function GET(
       console.log(`⚡ Cache HIT: ${cacheKey} | Duration: ${duration}ms`);
       
       return NextResponse.json({
+        success: true,
         ...cachedData,
         cached: true,
         timestamp: new Date().toISOString(),
@@ -156,13 +157,19 @@ export async function GET(
 
     const data = await response.json();
 
+    // Ensure success field exists
+    const responseData = {
+      success: true,
+      ...data,
+    };
+
     // Cache the successful response
-    await writeCache(cacheKey, data, CACHE_TTL);
+    await writeCache(cacheKey, responseData, CACHE_TTL);
 
     console.log(`✅ Category products retrieved | Category: ${category} | Products: ${data.data?.length || 0} | Duration: ${duration}ms`);
 
     return NextResponse.json({
-      ...data,
+      ...responseData,
       cached: false,
       timestamp: new Date().toISOString(),
     });

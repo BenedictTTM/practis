@@ -1,12 +1,33 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MdNavigateNext, MdMenu, MdClose } from 'react-icons/md';
 import Link from 'next/link';
-import { CATEGORIES } from '../../constants/categories';
+import {
+  useCategories,
+  ProductCategory,
+  getCategoryLabel,
+} from '@/app/api/products/categories/client';
+
 
 export default function CategorySidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { categories, loading, error } = useCategories();
+
+  // Normalize API payload into the shape used by the sidebar
+  const displayCategories = useMemo(() => {
+    console.log('📊 [CategorySidebar] Categories data:', { categories, loading, error });
+    if (categories && categories.length > 0) {
+      const mapped = categories.map((c) => ({
+        slug: c.category as ProductCategory,
+        label: c.label || getCategoryLabel(c.category as ProductCategory),
+      }));
+      console.log('✅ [CategorySidebar] Using API categories:', mapped);
+      return mapped;
+    }
+    console.log('⚠️  [CategorySidebar] Using fallback categories');
+    return FALLBACK_CATEGORIES;
+  }, [categories, loading, error]);
 
   return (
     <>
@@ -64,7 +85,17 @@ export default function CategorySidebar() {
           {/* Scrollable Content */}
           <div className="h-[calc(100vh-64px)] lg:h-full overflow-y-auto py-2 scrollbar-hide">
             <nav aria-label="Product categories">
-              {CATEGORIES.map((cat) => (
+              {/* Loading skeletons */}
+              {loading && displayCategories.length === 0 && (
+                <div className="px-4 py-2 space-y-2">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />
+                  ))}
+                </div>
+              )}
+
+              {/* Render categories even while loading if we have fallback data */}
+              {displayCategories.map((cat) => (
                 <CategoryLink
                   key={cat.slug}
                   slug={cat.slug}
@@ -72,6 +103,13 @@ export default function CategorySidebar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 />
               ))}
+              
+              {/* Error state */}
+              {error && !loading && categories.length === 0 && (
+                <div className="px-4 py-2 text-xs text-red-600">
+                  {error}
+                </div>
+              )}
             </nav>
           </div>
 
@@ -91,10 +129,15 @@ interface CategoryLinkProps {
 }
 
 function CategoryLink({ slug, label, onClick }: CategoryLinkProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    console.log('🔗 [CategoryLink] Clicked:', { slug, label, href: `/main/products/categories?category=${slug}` });
+    onClick();
+  };
+
   return (
     <Link
-      href={`/category/${slug}`}
-      onClick={onClick}
+      href={`/main/products/categories?category=${slug}`}
+      onClick={handleClick}
       className="block"
     >
       <motion.div

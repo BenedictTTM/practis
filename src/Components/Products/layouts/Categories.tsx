@@ -1,26 +1,23 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
-  Smartphone,
   Shirt,
-  BookOpen,
+  Watch,
   Home,
-  ShoppingBag,
-  Sparkles,
-  Printer,
-  Dribbble,
+  BookOpen,
+  Dumbbell,
+  MoreHorizontal,
 } from 'lucide-react';
 
 const categories = [
-  { id: 1, name: 'Electronics & Accessories', icon: Smartphone },
-  { id: 2, name: 'Fashion & Clothing', icon: Shirt },
-  { id: 3, name: 'Books & Stationery', icon: BookOpen },
-  { id: 4, name: 'Hostel Essentials', icon: Home },
-  { id: 5, name: 'Food & Groceries', icon: ShoppingBag },
-  { id: 6, name: 'Health & Beauty', icon: Sparkles },
-  { id: 7, name: 'Services', icon: Printer },
-  { id: 8, name: 'Sports & Entertainment', icon: Dribbble },
+  { id: 1, name: 'Clothes', value: 'clothes', icon: Shirt },
+  { id: 2, name: 'Accessories', value: 'accessories', icon: Watch },
+  { id: 3, name: 'Home', value: 'home', icon: Home },
+  { id: 4, name: 'Books', value: 'books', icon: BookOpen },
+  { id: 5, name: 'Sports & Outing', value: 'sports_and_outing', icon: Dumbbell },
+  { id: 6, name: 'Others', value: 'others', icon: MoreHorizontal },
 ];
 
 export default function CategoryBrowser() {
@@ -133,8 +130,9 @@ export default function CategoryBrowser() {
           {duplicatedCategories.map((category, index) => {
             const Icon = category.icon;
             return (
-              <div
+              <Link
                 key={`${category.id}-${index}`}
+                href={`/main/products/categories?category=${category.value}`}
                 className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] border border-gray-200 rounded-xl p-4 sm:p-5 md:p-6 bg-white hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer group select-none"
               >
                 <div className="flex flex-col items-center justify-center h-full gap-3 sm:gap-4">
@@ -143,7 +141,7 @@ export default function CategoryBrowser() {
                     {category.name}
                   </span>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
