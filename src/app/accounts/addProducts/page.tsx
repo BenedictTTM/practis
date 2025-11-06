@@ -301,12 +301,12 @@ export default function CreateProductPage() {
                         className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                       >
                         <option value="">Select a category</option>
-                        <option value="electronics">Electronics</option>
-                        <option value="clothing">Clothing</option>
-                        <option value="home">Home & Garden</option>
+                        <option value="clothes">Clothes</option>
+                        <option value="accessories">Accessories</option>
+                        <option value="home">Home</option>
                         <option value="books">Books</option>
-                        <option value="sports">Sports & Outdoors</option>
-                        <option value="other">Other</option>
+                        <option value="sports_and_outing">Sports & Outing</option>
+                        <option value="others">Others</option>
                       </select>
                       {errors.category && (
                         <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
