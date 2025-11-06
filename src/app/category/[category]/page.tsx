@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import CategoryProductsClient from './CategoryProductsClient';
 import { CATEGORIES, ProductCategory } from '@/constants/categories';
 
 interface CategoryPageProps {
@@ -78,17 +77,4 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const maxPrice = resolvedSearchParams.maxPrice ? parseFloat(resolvedSearchParams.maxPrice) : undefined;
   const inStock = resolvedSearchParams.inStock !== 'false';
 
-  return (
-    <CategoryProductsClient
-      category={categoryConfig.slug}
-      categoryLabel={categoryConfig.label}
-      categoryDescription={categoryConfig.description}
-      initialPage={page}
-      initialSortBy={sortBy}
-      initialCondition={condition}
-      initialMinPrice={minPrice}
-      initialMaxPrice={maxPrice}
-      initialInStock={inStock}
-    />
-  );
 }

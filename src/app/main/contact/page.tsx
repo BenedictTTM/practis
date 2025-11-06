@@ -305,8 +305,7 @@ export default function ContactPage() {
                       ${isSubmitting || isSuccess ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
                       placeholder:text-gray-400 text-gray-900 font-medium
                       disabled:opacity-60`}
-                    aria-invalid={!!(errors.name && touched.name)}
-                    aria-describedby={errors.name && touched.name ? 'name-error' : undefined}
+                    {...(errors.name && touched.name ? { 'aria-invalid': true, 'aria-describedby': 'name-error' } : {})}
                   />
                   {errors.name && touched.name && (
                     <p 
@@ -345,8 +344,7 @@ export default function ContactPage() {
                       ${isSubmitting || isSuccess ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
                       placeholder:text-gray-400 text-gray-900 font-medium
                       disabled:opacity-60`}
-                    aria-invalid={errors.email && touched.email ? 'true' : 'false'}
-                    aria-describedby={errors.email && touched.email ? 'email-error' : undefined}
+                    {...(errors.email && touched.email ? { 'aria-invalid': true, 'aria-describedby': 'email-error' } : {})}
                   />
                   {errors.email && touched.email && (
                     <p 
@@ -394,8 +392,7 @@ export default function ContactPage() {
                       ${isSubmitting || isSuccess ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
                       placeholder:text-gray-400 text-gray-900 font-medium
                       disabled:opacity-60`}
-                    aria-invalid={errors.message && touched.message ? 'true' : 'false'}
-                    aria-describedby={errors.message && touched.message ? 'message-error' : undefined}
+                    {...(errors.message && touched.message ? { 'aria-invalid': true, 'aria-describedby': 'message-error' } : {})}
                   />
                   {errors.message && touched.message && (
                     <p 

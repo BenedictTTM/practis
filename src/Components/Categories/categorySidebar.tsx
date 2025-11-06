@@ -6,9 +6,18 @@ import Link from 'next/link';
 import {
   useCategories,
   ProductCategory,
-  getCategoryLabel,
 } from '@/app/api/products/categories/client';
+import { getCategoryLabel } from '@/app/api/products/categories/types';
 
+// Fallback categories in case API fails
+const FALLBACK_CATEGORIES = [
+  { slug: ProductCategory.CLOTHES, label: getCategoryLabel(ProductCategory.CLOTHES) },
+  { slug: ProductCategory.ACCESSORIES, label: getCategoryLabel(ProductCategory.ACCESSORIES) },
+  { slug: ProductCategory.HOME, label: getCategoryLabel(ProductCategory.HOME) },
+  { slug: ProductCategory.BOOKS, label: getCategoryLabel(ProductCategory.BOOKS) },
+  { slug: ProductCategory.SPORTS_AND_OUTING, label: getCategoryLabel(ProductCategory.SPORTS_AND_OUTING) },
+  { slug: ProductCategory.OTHERS, label: getCategoryLabel(ProductCategory.OTHERS) },
+];
 
 export default function CategorySidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
