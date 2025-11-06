@@ -71,12 +71,12 @@ function isValidCategory(category: string): boolean {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { category: string } }
+  { params }: { params: Promise<{ category: string }> }
 ): Promise<NextResponse> {
   const startTime = Date.now();
   
   try {
-    const category = params.category;
+    const { category } = await params;
     const { searchParams } = new URL(request.url);
 
     console.log(`🌐 [GET] /api/products/categories/${category}`, {

@@ -4,17 +4,17 @@ import CategoryProductsClient from './CategoryProductsClient';
 import { CATEGORIES, ProductCategory } from '@/constants/categories';
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     category: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     page?: string;
     sortBy?: string;
     condition?: string;
     minPrice?: string;
     maxPrice?: string;
     inStock?: string;
-  };
+  }>;
 }
 
 /**
@@ -23,7 +23,8 @@ interface CategoryPageProps {
 export async function generateMetadata({
   params,
 }: CategoryPageProps): Promise<Metadata> {
-  const categoryConfig = CATEGORIES.find((cat) => cat.slug === params.category);
+  const { category } = await params;
+  const categoryConfig = CATEGORIES.find((cat) => cat.slug === category);
 
   if (!categoryConfig) {
     return {
@@ -57,21 +58,25 @@ export async function generateStaticParams() {
  * 
  * Displays all products in a specific category with filtering and sorting
  */
-export default function CategoryPage({ params, searchParams }: CategoryPageProps) {
+export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
+  // Await params and searchParams
+  const { category } = await params;
+  const resolvedSearchParams = await searchParams;
+
   // Validate category
-  const categoryConfig = CATEGORIES.find((cat) => cat.slug === params.category);
+  const categoryConfig = CATEGORIES.find((cat) => cat.slug === category);
 
   if (!categoryConfig) {
     notFound();
   }
 
   // Parse query parameters
-  const page = parseInt(searchParams.page || '1', 10);
-  const sortBy = searchParams.sortBy || 'newest';
-  const condition = searchParams.condition;
-  const minPrice = searchParams.minPrice ? parseFloat(searchParams.minPrice) : undefined;
-  const maxPrice = searchParams.maxPrice ? parseFloat(searchParams.maxPrice) : undefined;
-  const inStock = searchParams.inStock !== 'false';
+  const page = parseInt(resolvedSearchParams.page || '1', 10);
+  const sortBy = resolvedSearchParams.sortBy || 'newest';
+  const condition = resolvedSearchParams.condition;
+  const minPrice = resolvedSearchParams.minPrice ? parseFloat(resolvedSearchParams.minPrice) : undefined;
+  const maxPrice = resolvedSearchParams.maxPrice ? parseFloat(resolvedSearchParams.maxPrice) : undefined;
+  const inStock = resolvedSearchParams.inStock !== 'false';
 
   return (
     <CategoryProductsClient
