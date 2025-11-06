@@ -126,7 +126,7 @@ const HelpCenter = () => {
               return (
                 <div
                   key={index}
-                  className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-gray-100"
+                  className="bg-white rounded-lg p-6 hover:shadow-xs transition-shadow cursor-pointer border border-gray-100"
                 >
                   <div className={`${category.bgColor} w-12 h-12 rounded-lg flex items-center justify-center mb-4`}>
                     <Icon className={`${category.color} w-6 h-6`} />
@@ -146,7 +146,7 @@ const HelpCenter = () => {
         {/* Frequently Asked Questions */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">Frequently Asked Questions</h2>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 divide-y divide-gray-100">
+          <div className="bg-white rounded-lg  border border-gray-100 divide-y divide-gray-100">
             {faqs.map((faq) => (
               <div key={faq.id} className="p-6">
                 <button
@@ -173,7 +173,7 @@ const HelpCenter = () => {
         </div>
 
         {/* Still Need Help */}
-        <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-lg p-8 shadow-sx border border-gray-100">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Still Need Help?</h2>
             <p className="text-gray-600">Our support team is here for you</p>
