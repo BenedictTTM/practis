@@ -262,22 +262,7 @@ export default function ShoppingCart() {
     
     console.log('🛒 === CHECKOUT PROCESS COMPLETED ===');
   };
-
-  const handleCheckoutItem = (productId: number, quantity: number) => {
-    console.log('🎯 === INDIVIDUAL ITEM CHECKOUT ===');
-    console.log('Product ID:', productId);
-    console.log('Quantity:', quantity);
-
-    if (!isAuthenticated) {
-      console.log('🔐 User not authenticated - Redirecting to login');
-      router.push(`/auth/login?redirect=/main/checkout?productId=${productId}&quantity=${quantity}`);
-      return;
-    }
-
-    const checkoutUrl = `/main/checkout?productId=${productId}&quantity=${quantity}`;
-    console.log('🔗 Navigating to:', checkoutUrl);
-    router.push(checkoutUrl);
-  };
+  // Per-item checkout flow removed: users select exactly one item, then use single checkout
 
   // Loading state
   if (loading) {
@@ -315,7 +300,6 @@ export default function ShoppingCart() {
                 updatingItems={updatingItems}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemoveItem={handleRemoveItem}
-                onCheckoutItem={handleCheckoutItem}
                 selectedItemId={selectedItemId}
                 onSelectItem={setSelectedItemId}
               />
@@ -343,7 +327,7 @@ function AuthStatusBanner({ isAuthenticated }: { isAuthenticated: boolean | null
   if (isAuthenticated) return null;
 
   return (
-    <div className="mb-3 sm:mb-4 p-3 sm:py-2 bg-red-50 border border-red-200 rounded-lg">
+    <div className="mb-3 sm:mb-4 p-3 sm:py-2  ">
       <p className="text-red-800 text-xs">
         Browsing as a guest.{' '}
         <Link href="/auth/login" className="font-semibold underline hover:text-red-900">
