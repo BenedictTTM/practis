@@ -149,29 +149,18 @@ const MainNavBar = () => {
               {isHelpDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                   <DropdownItem
-                    href="/help/faq"
+                    href="/main/help"
                     icon={<IoMdHelpCircleOutline className="w-4 h-4" />}
                     label="FAQ"
                     onClick={closeHelpDropdown}
                   />
                   <DropdownItem
-                    href="/help/contact"
+                    href="/main/contact"
                     icon={<Mail className="w-4 h-4" />}
                     label="Contact Us"
                     onClick={closeHelpDropdown}
                   />
-                  <DropdownItem
-                    href="/help/shipping"
-                    icon={<Package className="w-4 h-4" />}
-                    label="Shipping Info"
-                    onClick={closeHelpDropdown}
-                  />
-                  <DropdownItem
-                    href="/help/returns"
-                    icon={<Package className="w-4 h-4" />}
-                    label="Returns"
-                    onClick={closeHelpDropdown}
-                  />
+              
                 </div>
               )}
             </div>
@@ -198,7 +187,7 @@ const MainNavBar = () => {
               {isAccountDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                   <DropdownItem
-                    href="/accounts/profile"
+                    href="/accounts/addProducts"
                     icon={<User className="w-4 h-4" />}
                     label="My Account"
                     onClick={closeAccountDropdown}
@@ -215,12 +204,7 @@ const MainNavBar = () => {
                     label="Inbox"
                     onClick={closeAccountDropdown}
                   />
-                  <DropdownItem
-                    href="/accounts/vouchers"
-                    icon={<Ticket className="w-4 h-4" />}
-                    label="Vouchers"
-                    onClick={closeAccountDropdown}
-                  />
+               
                   <div className="border-t border-gray-200 my-1"></div>
                   <button
                     onClick={() => {
