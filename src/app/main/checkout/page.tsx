@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { z } from "zod";
 import { placeOrder } from "../../../lib/orders";
 import type { Product } from "../../../types/products";
+import { CheckoutHeader, CheckoutForm } from "@/Components/Checkout";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -69,25 +72,59 @@ export default function CheckoutPage() {
   }, [productId]);
 
   // Validate form
+  const phoneRegex = /^\+?[0-9\s()-]{8,}$/;
+
+  const CheckoutSchema = z.object({
+    productId: z
+      .number({ required_error: "Product is required" })
+      .int()
+      .positive(),
+    quantity: z
+      .number({ required_error: "Quantity is required" })
+      .int()
+      .min(1, "Quantity must be at least 1"),
+    hall: z
+      .string()
+      .max(120, "Hall/Hostel is too long")
+      .optional()
+      .or(z.literal("")),
+    whatsapp: z
+      .string({ required_error: "WhatsApp number is required" })
+      .min(1, "WhatsApp number is required")
+      .regex(phoneRegex, "Please enter a valid phone number"),
+    callNumber: z
+      .string({ required_error: "Call number is required" })
+      .min(1, "Call number is required")
+      .regex(phoneRegex, "Please enter a valid phone number"),
+    message: z
+      .string()
+      .max(500, "Message is too long")
+      .optional()
+      .or(z.literal("")),
+  });
+
   const validateForm = (): boolean => {
+    const pid = productId ? parseInt(productId, 10) : NaN;
+    const result = CheckoutSchema.safeParse({
+      productId: pid,
+      quantity,
+      hall,
+      whatsapp,
+      callNumber,
+      message,
+    });
+
     const newErrors: Record<string, string> = {};
 
-    if (!whatsapp.trim()) {
-      newErrors.whatsapp = "WhatsApp number is required";
-    } else if (!/^\+?[0-9\s()-]{8,}$/.test(whatsapp)) {
-      newErrors.whatsapp = "Please enter a valid phone number";
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as string;
+        // Keep only the first error per field for concise messages
+        if (!newErrors[key]) newErrors[key] = issue.message;
+      }
     }
 
-    if (!callNumber.trim()) {
-      newErrors.callNumber = "Call number is required";
-    } else if (!/^\+?[0-9\s()-]{8,}$/.test(callNumber)) {
-      newErrors.callNumber = "Please enter a valid phone number";
-    }
-
-    if (quantity < 1) {
-      newErrors.quantity = "Quantity must be at least 1";
-    }
-
+    // Stock validation depends on loaded product
     if (product && quantity > (product.stock || 0)) {
       newErrors.quantity = `Only ${product.stock} items available`;
     }
@@ -140,9 +177,9 @@ export default function CheckoutPage() {
   // Loading state
   if (loadingProduct) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10 px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-6">
-          Loaing
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 sm:py-10 px-3 sm:px-4">
+        <div className="max-w-md w-full bg-white rounded-xl  p-5 text-sm text-gray-600">
+          Loading...
         </div>
       </div>
     );
@@ -155,26 +192,26 @@ export default function CheckoutPage() {
       : "Product not found");
     
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10 px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-6 text-center">
-          <div className="text-red-600 mb-4">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 sm:py-10 px-3 sm:px-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-sm p-5 text-center">
+          <div className="text-red-600 mb-3">
+            <svg className="w-14 h-14 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Unable to Load Product</h2>
-          <p className="text-gray-600 mb-6">{errorMessage}</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <h2 className="text-lg font-semibold text-gray-800 mb-1.5">Unable to Load Product</h2>
+          <p className="text-gray-600 mb-5 text-sm">{errorMessage}</p>
+          <div className="flex flex-col sm:flex-row gap-2.5 justify-center">
             <button
               onClick={() => router.push("/main/products")}
-              className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
             >
               Browse Products
             </button>
             {productId && (
               <button
                 onClick={() => window.location.reload()}
-                className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+                className="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-medium transition-colors"
               >
                 Try Again
               </button>
@@ -188,16 +225,16 @@ export default function CheckoutPage() {
   // Success state
   if (orderSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10 px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-6 text-center">
-          <div className="text-green-600 mb-4">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 sm:py-10 px-3 sm:px-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-sm p-5 text-center">
+          <div className="text-green-600 mb-3">
+            <svg className="w-14 h-14 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Order Placed Successfully!</h2>
-          <p className="text-gray-600 mb-2">Your order has been confirmed.</p>
-          <p className="text-sm text-gray-500 mb-6">Redirecting to your orders...</p>
+          <h2 className="text-xl font-bold text-gray-800 mb-1.5">Order Placed Successfully!</h2>
+          <p className="text-gray-600 mb-1.5 text-sm">Your order has been confirmed.</p>
+          <p className="text-xs text-gray-500 mb-5">Redirecting to your orders...</p>
         </div>
       </div>
     );
@@ -213,149 +250,30 @@ export default function CheckoutPage() {
   const currency = "GHS"; // Default currency
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-6 space-y-6">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-800">Checkout</h1>
-          <button
-            onClick={() => router.back()}
-            className="text-gray-500 hover:text-gray-700 text-sm"
-          >
-            ← Back
-          </button>
-        </div>
-
-        {/* Order Summary */}
-        <div>
-          <h2 className="font-semibold text-gray-800 mb-3">Order Summary</h2>
-          <div className="flex justify-between items-start border rounded-xl px-4 py-3 bg-gray-50">
-            <div className="flex-1">
-              <p className="text-gray-700 font-medium">{product.title}</p>
-              <p className="text-sm text-gray-500 mt-1">Quantity: {quantity}</p>
-              {product.stock && product.stock < 10 && (
-                <p className="text-xs text-amber-600 mt-1">
-                  Only {product.stock} left in stock
-                </p>
-              )}
-            </div>
-            <span className="font-semibold text-gray-800">
-              {currency} {unitPrice.toFixed(2)}
-            </span>
-          </div>
-        </div>
-
-        <div className="border-t"></div>
-
-        {/* Contact Information */}
-        <div>
-          <h2 className="font-semibold text-gray-800 mb-3">Contact Information</h2>
-          <div className="space-y-3">
-            <div>
-              <input
-                type="text"
-                value={hall}
-                onChange={(e) => setHall(e.target.value)}
-                placeholder="Hall / Hostel (Optional)"
-                className={`w-full px-4 py-3 border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                  errors.hall ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.hall && <p className="text-red-500 text-xs mt-1">{errors.hall}</p>}
-            </div>
-
-            <div>
-              <input
-                type="tel"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                placeholder="WhatsApp Number *"
-                className={`w-full px-4 py-3 border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                  errors.whatsapp ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.whatsapp && <p className="text-red-500 text-xs mt-1">{errors.whatsapp}</p>}
-            </div>
-
-            <div>
-              <input
-                type="tel"
-                value={callNumber}
-                onChange={(e) => setCallNumber(e.target.value)}
-                placeholder="Call Number *"
-                className={`w-full px-4 py-3 border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                  errors.callNumber ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.callNumber && <p className="text-red-500 text-xs mt-1">{errors.callNumber}</p>}
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t"></div>
-
-        {/* Additional Info */}
-        <div>
-          <h2 className="font-semibold text-gray-800 mb-3">Additional Information</h2>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Add any special requests or notes here..."
-            rows={4}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-          />
-        </div>
-
-        {/* Price Summary */}
-        <div className="border-t pt-4 space-y-2 text-gray-700">
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>{currency} {subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between font-semibold text-gray-900 text-lg pt-2 border-t">
-            <span>Total Amount</span>
-            <span>{currency} {subtotal.toFixed(2)}</span>
-          </div>
-        </div>
-
-        {/* Error Message */}
-        {errors.submit && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            <p className="text-red-800 text-sm">{errors.submit}</p>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="space-y-3 pt-3">
-          <button
-            onClick={handleConfirm}
-            disabled={isSubmitting || !product}
-            className={`w-full rounded-xl py-3 text-base font-semibold transition-colors ${
-              isSubmitting
-                ? "bg-gray-400 cursor-not-allowed text-white"
-                : "bg-red-600 hover:bg-red-700 text-white"
-            }`}
-          >
-            {isSubmitting ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Processing...
-              </span>
-            ) : (
-              "Confirm Purchase"
-            )}
-          </button>
-          <button
-            onClick={() => router.back()}
-            className="w-full text-sm text-gray-500 hover:text-gray-700"
-          >
-            Back to Product
-          </button>
-        </div>
+    <div className="min-h-screen  py-1 sm:py-2 md:py-2 px-2.5 sm:px-4 md:px-6">
+      <div className="max-w-md sm:max-w-lg md:max-w-xl mx-auto w-full">
+        <CheckoutHeader />
+        <CheckoutForm
+          product={product}
+          quantity={quantity}
+          currency={currency}
+          unitPrice={unitPrice}
+          subtotal={subtotal}
+          hall={hall}
+          whatsapp={whatsapp}
+          callNumber={callNumber}
+          message={message}
+          errors={errors}
+          isSubmitting={isSubmitting || !product}
+          onChange={(field, value) => {
+            if (field === 'hall') setHall(value);
+            else if (field === 'whatsapp') setWhatsapp(value);
+            else if (field === 'callNumber') setCallNumber(value);
+            else if (field === 'message') setMessage(value);
+          }}
+          onConfirm={handleConfirm}
+          onBack={() => router.back()}
+        />
       </div>
     </div>
   );
