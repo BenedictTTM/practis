@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MdNavigateNext, MdMenu, MdClose } from 'react-icons/md';
 import Link from 'next/link';
-import { categories } from '../../constants/categories';
+import { CATEGORIES } from '../../constants/categories';
 
 export default function CategorySidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -64,10 +64,11 @@ export default function CategorySidebar() {
           {/* Scrollable Content */}
           <div className="h-[calc(100vh-64px)] lg:h-full overflow-y-auto py-2 scrollbar-hide">
             <nav aria-label="Product categories">
-              {categories.map((cat) => (
+              {CATEGORIES.map((cat) => (
                 <CategoryLink
-                  key={cat}
-                  category={cat}
+                  key={cat.slug}
+                  slug={cat.slug}
+                  label={cat.label}
                   onClick={() => setIsMobileMenuOpen(false)}
                 />
               ))}
@@ -84,13 +85,12 @@ export default function CategorySidebar() {
 
 // Reusable Category Link Component
 interface CategoryLinkProps {
-  category: string;
+  slug: string;
+  label: string;
   onClick: () => void;
 }
 
-function CategoryLink({ category, onClick }: CategoryLinkProps) {
-  const slug = category.replace(/\s+/g, '-').toLowerCase();
-
+function CategoryLink({ slug, label, onClick }: CategoryLinkProps) {
   return (
     <Link
       href={`/category/${slug}`}
@@ -102,10 +102,10 @@ function CategoryLink({ category, onClick }: CategoryLinkProps) {
         whileTap={{ scale: 0.98 }}
         className="flex items-center justify-between px-4 py-3 lg:py-2.5 transition-colors group cursor-pointer"
         role="link"
-        aria-label={`View ${category} category`}
+        aria-label={`View ${label} category`}
       >
         <span className="text-sm lg:text-xs xl:text-sm text-gray-800 font-medium truncate pr-2 group-hover:text-black">
-          {category}
+          {label}
         </span>
         <MdNavigateNext className="text-gray-400 group-hover:text-gray-600 flex-shrink-0 text-lg lg:text-base transition-colors" />
       </motion.div>
