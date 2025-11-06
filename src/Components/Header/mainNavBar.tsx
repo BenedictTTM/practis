@@ -147,7 +147,7 @@ const MainNavBar = () => {
               </button>
 
               {isHelpDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-sm border border-gray-200 py-2 z-50">
                   <DropdownItem
                     href="/main/help"
                     icon={<IoMdHelpCircleOutline className="w-4 h-4" />}
@@ -185,7 +185,7 @@ const MainNavBar = () => {
               </button>
 
               {isAccountDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-sm border border-gray-200 py-2 z-50">
                   <DropdownItem
                     href="/accounts/addProducts"
                     icon={<User className="w-4 h-4" />}
@@ -198,13 +198,6 @@ const MainNavBar = () => {
                     label="Orders"
                     onClick={closeAccountDropdown}
                   />
-                  <DropdownItem
-                    href="/accounts/inbox"
-                    icon={<Mail className="w-4 h-4" />}
-                    label="Inbox"
-                    onClick={closeAccountDropdown}
-                  />
-               
                   <div className="border-t border-gray-200 my-1"></div>
                   <button
                     onClick={() => {
