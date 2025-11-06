@@ -183,7 +183,8 @@ const MainNavBar = () => {
                 aria-label="Account Menu"
               >
                 <IoPersonCircleSharp className="text-xl lg:text-2xl" />
-                <span className="text-sm lg:text-base font-medium">Hi, Ben</span>
+                
+                <span className="text-sm lg:text-base font-medium">{} </span>
                 <svg 
                   className={`w-4 h-4 transition-transform ${isAccountDropdownOpen ? 'rotate-180' : ''}`} 
                   fill="none" 
