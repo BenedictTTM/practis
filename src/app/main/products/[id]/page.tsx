@@ -32,35 +32,51 @@ async function getProduct(productId: string): Promise<Product | null> {
     const url = `${baseUrl}/api/products/${productId}`;
     
     console.log(`[SSR] Fetching product ${productId} from: ${url}`);
+    console.log(`[SSR] Environment:`, {
+      isServer,
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+      NODE_ENV: process.env.NODE_ENV,
+    });
     
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
       },
       next: { revalidate: 60 },
+      cache: 'no-store',
     });
 
     console.log(`[SSR] Response status: ${response.status}`);
 
     if (!response.ok) {
-      const errorText = await response.text();
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = await response.text();
+      }
       console.error(`[SSR] Failed to fetch product ${productId}:`, {
         status: response.status,
-        error: errorText
+        statusText: response.statusText,
+        error: errorData
       });
       return null;
     }
 
     const body = await response.json();
+    console.log(`[SSR] Response body:`, JSON.stringify(body).substring(0, 200));
+    
     const product = (body && (body.data ?? body)) ?? null;
     
     if (product) {
       console.log(`[SSR] Product fetched successfully: ${product.title}`);
+    } else {
+      console.error(`[SSR] Product data is null or undefined`);
     }
     
     return product;
   } catch (error) {
-    console.error(`Error fetching product ${productId}:`, error);
+    console.error(`[SSR] Error fetching product ${productId}:`, error);
     return null;
   }
 }

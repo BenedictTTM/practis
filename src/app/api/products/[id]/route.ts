@@ -28,33 +28,41 @@ export async function GET(
     try {
       id = await resolveProductId(context);
     } catch (err) {
+      console.error('[API] Product ID resolution error:', err);
       return NextResponse.json(
         { success: false, message: 'Product ID is required' },
         { status: 400 }
       );
     }
     
-    const response = await fetch(`${API_URL}/products/${id}`, {
+    const backendUrl = `${API_URL}/products/${id}`;
+    console.log(`[API] Fetching product from backend: ${backendUrl}`);
+    
+    const response = await fetch(backendUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
+      cache: 'no-store',
     });
 
+    console.log(`[API] Backend response status: ${response.status}`);
     const result = await response.json();
     
     if (!response.ok) {
+      console.error(`[API] Backend error for product ${id}:`, result);
       return NextResponse.json(
-        { success: false, message: result.message || 'Failed to fetch product' },
+        { success: false, message: result.message || 'Failed to fetch product', data: null },
         { status: response.status }
       );
     }
 
+    console.log(`[API] Product ${id} fetched successfully:`, result.title || 'No title');
     return NextResponse.json(result);
   } catch (error) {
-    console.error('GET Product API Error:', error);
+    console.error('[API] GET Product Error:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { success: false, message: 'Internal server error', error: String(error) },
       { status: 500 }
     );
   }
