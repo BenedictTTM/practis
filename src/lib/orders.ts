@@ -26,20 +26,33 @@ export async function placeOrder(input: PlaceOrderInput) {
   }
 }
 
+// Enhanced: auto-refresh access token on 401 and include status in response
 export async function fetchMyOrders() {
   try {
-    const res = await fetch('/api/orders', {
+    // Use token refresh interceptor for robust auth
+    const { fetchWithTokenRefresh } = await import('./token-refresh');
+
+    const res = await fetchWithTokenRefresh('/api/orders', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
     });
-    const data = await res.json();
+
+    // Try to parse JSON body safely
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : {};
+
     if (!res.ok) {
-      return { success: false, message: data.message || 'Failed to fetch orders' };
+      return {
+        success: false,
+        status: res.status,
+        message: data?.message || (res.status === 401 ? 'Unauthorized - Please log in' : 'Failed to fetch orders'),
+      } as const;
     }
-    return { success: true, data: data.data };
+
+    return { success: true, data: data.data } as const;
   } catch (e) {
     console.error('fetchMyOrders error:', e);
-    return { success: false, message: 'Network error - Unable to connect to server' };
+    return { success: false, status: 0, message: 'Network error - Unable to connect to server' } as const;
   }
 }

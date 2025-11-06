@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { fetchMyOrders } from "../../../lib/orders";
 
 interface OrderItem {
@@ -35,6 +35,7 @@ interface Order {
 
 export default function OrdersPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +50,13 @@ export default function OrdersPage() {
 
     try {
       const result = await fetchMyOrders();
+      if ((result as any).status === 401) {
+        // Not authenticated → redirect to login preserving target route
+        const target = encodeURIComponent(pathname || "/main/orders");
+        router.push(`/auth/login?redirect=${target}`);
+        return;
+      }
+
       if (result.success) {
         setOrders(result.data || []);
       } else {
@@ -96,6 +104,14 @@ export default function OrdersPage() {
       return item.product.imageUrl;
     }
     return "/placeholder.png";
+  };
+
+  const handleProceedToCheckout = (order: Order) => {
+    if (!order.items || order.items.length === 0) return;
+    const primary = order.items[0];
+    const productId = primary.productId;
+    const qty = primary.quantity || 1;
+    router.push(`/main/checkout?productId=${productId}&quantity=${qty}`);
   };
 
   if (loading) {
@@ -237,11 +253,20 @@ export default function OrdersPage() {
                 )}
 
                 {/* Total */}
-                <div className="flex justify-between items-center pt-4 border-t">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-between items-stretch sm:items-center pt-4 border-t">
                   <span className="font-semibold text-gray-700">Total Amount</span>
                   <span className="text-xl font-bold text-gray-900">
                     {order.currency} {order.totalAmount.toFixed(2)}
                   </span>
+                  {order.items?.length > 0 && (
+                    <button
+                      onClick={() => handleProceedToCheckout(order)}
+                      className="inline-flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+                      aria-label="Proceed to Checkout"
+                    >
+                      Proceed to Checkout
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

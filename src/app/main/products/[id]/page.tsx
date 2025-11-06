@@ -34,7 +34,8 @@ async function getProduct(productId: string): Promise<Product | null> {
     console.log(`[SSR] Fetching product ${productId} from: ${url}`);
     console.log(`[SSR] Environment:`, {
       isServer,
-      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_FRONTEND_URL,
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+      NEXT_PUBLIC_FRONTEND_URL: process.env.NEXT_PUBLIC_FRONTEND_URL,
       NODE_ENV: process.env.NODE_ENV,
     });
     

@@ -1,5 +1,5 @@
 import Footer from "@/Components/Footer/footer";
-import Header from "@/Components/Header/header";
+import Header from "@/Components/Header/mainNavBar";
 
 
 export default function MainLayout({
