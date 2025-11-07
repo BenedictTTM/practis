@@ -73,12 +73,14 @@
 ## 🎨 Component Breakdown
 
 ### 1. **Header Section**
+
 - **Background:** Gradient from red-500 to red-600
 - **Text:** White, centered
 - **Title:** "Let's Talk" (4xl - 6xl responsive)
 - **Subtitle:** Descriptive text in red-100
 
 ### 2. **Contact Form**
+
 - **Card:** White background, rounded-2xl, shadow-xl
 - **Padding:** Responsive (6-10)
 - **Fields:**
@@ -94,6 +96,7 @@
   - WhatsApp (green, with icon)
 
 ### 3. **Contact Methods Sidebar**
+
 - **Quick Contact Cards:**
   - Phone (red icon, hover effect)
   - Email (blue icon, hover effect)
@@ -107,6 +110,7 @@
   - Message circle icon
 
 ### 4. **FAQ Section**
+
 - **Background:** Gray-50
 - **Accordion:** Details/summary elements
 - **Hover:** Slight elevation
@@ -117,6 +121,7 @@
 ## 📱 Responsive Breakpoints
 
 ### Mobile (< 768px)
+
 ```
 ┌────────────────────┐
 │     HEADER         │
@@ -132,6 +137,7 @@
 ```
 
 ### Tablet (768px - 1023px)
+
 ```
 ┌─────────────────────────────┐
 │          HEADER             │
@@ -144,6 +150,7 @@
 ```
 
 ### Desktop (1024px+)
+
 ```
 ┌──────────────────────────────────────┐
 │            HEADER                    │
@@ -162,6 +169,7 @@
 ### Form Field States
 
 #### 1. Default State
+
 ```
 ┌─────────────────────────────┐
 │ Enter your name            │  ← Gray border (border-gray-200)
@@ -169,6 +177,7 @@
 ```
 
 #### 2. Focus State
+
 ```
 ┌═════════════════════════════┐
 │ John|                       │  ← Red border + ring (focus:border-red-500)
@@ -176,6 +185,7 @@
 ```
 
 #### 3. Error State
+
 ```
 ┌─────────────────────────────┐
 │ J                           │  ← Red border (border-red-500)
@@ -184,6 +194,7 @@
 ```
 
 #### 4. Valid State
+
 ```
 ┌─────────────────────────────┐
 │ John Doe                    │  ← Normal border, no error
@@ -191,6 +202,7 @@
 ```
 
 #### 5. Disabled State (Submitting)
+
 ```
 ┌─────────────────────────────┐
 │ John Doe                    │  ← Gray background, cursor not-allowed
@@ -202,6 +214,7 @@
 #### Send Message Button
 
 **Default:**
+
 ```
 ┌────────────────────┐
 │ 📤 Send Message    │  ← Red background (bg-red-500)
@@ -209,6 +222,7 @@
 ```
 
 **Hover:**
+
 ```
 ┌────────────────────┐
 │ 📤 Send Message ↗  │  ← Darker red, shadow, slight lift
@@ -216,6 +230,7 @@
 ```
 
 **Loading:**
+
 ```
 ┌────────────────────┐
 │ ⟳ Sending...       │  ← Spinner animation, disabled
@@ -223,6 +238,7 @@
 ```
 
 **Success:**
+
 ```
 ┌────────────────────┐
 │ ✓ Message Sent!    │  ← Green background (bg-green-500)
@@ -234,11 +250,13 @@
 ## 🌈 Color Palette
 
 ### Primary Colors
+
 - **Red 500:** `#EF4444` - Primary buttons, header
 - **Red 600:** `#DC2626` - Hover states
 - **Red 100:** `#FEE2E2` - Subtle backgrounds
 
 ### Secondary Colors
+
 - **Green 500:** `#10B981` - WhatsApp button
 - **Blue 500:** `#3B82F6` - Email, LinkedIn icons
 - **Gray 50:** `#F9FAFB` - Page background
@@ -247,6 +265,7 @@
 - **Gray 900:** `#111827` - Headings
 
 ### Status Colors
+
 - **Success:** Green-500 (#10B981)
 - **Error:** Red-500 (#EF4444)
 - **Warning:** Yellow-500 (#EAB308)
@@ -257,38 +276,47 @@
 ## ✨ Animations
 
 ### 1. Form Transitions
+
 ```css
 transition-all duration-200
 ```
+
 - Border color changes
 - Background color changes
 - Ring appearance
 
 ### 2. Button Hover
+
 ```css
 transition-all duration-300 transform
 hover:shadow-lg hover:-translate-y-0.5
 ```
+
 - Shadow increases
 - Slight upward movement
 
 ### 3. Loading Spinner
+
 ```css
 animate-spin
 ```
+
 - Continuous rotation
 - Loader2 icon from lucide-react
 
 ### 4. Success Checkmark
+
 ```css
 CheckCircle2 icon appears
 Green background fade-in
 ```
 
 ### 5. FAQ Accordion
+
 ```css
-group-open:rotate-180 transition-transform
+group-open: rotate-180 transition-transform;
 ```
+
 - Arrow rotates on open
 - Smooth height transition
 
@@ -297,6 +325,7 @@ group-open:rotate-180 transition-transform
 ## 🎯 User Flow
 
 ### Happy Path
+
 ```
 1. User lands on page
    ↓
@@ -324,6 +353,7 @@ group-open:rotate-180 transition-transform
 ```
 
 ### Error Path
+
 ```
 1. User clicks submit without filling form
    ↓
@@ -347,6 +377,7 @@ group-open:rotate-180 transition-transform
 ## 🔍 Accessibility Features
 
 ### Keyboard Navigation
+
 ```
 Tab Order:
 1. Name field
@@ -361,6 +392,7 @@ Tab Order:
 ```
 
 ### Screen Reader Announcements
+
 - Field labels properly associated
 - Error messages announced on blur
 - Button states announced (loading, success)
@@ -368,6 +400,7 @@ Tab Order:
 - ARIA attributes properly set
 
 ### Focus Indicators
+
 - Visible focus ring (4px red-100)
 - High contrast mode compatible
 - Keyboard-only users fully supported
@@ -377,12 +410,14 @@ Tab Order:
 ## 📸 Component Screenshots (Description)
 
 ### Desktop View
+
 - **Width:** 1440px
 - **Form:** 960px (2 columns)
 - **Sidebar:** 480px (1 column)
 - **Spacing:** 48px gap
 
 ### Mobile View
+
 - **Width:** 375px
 - **Form:** Full width
 - **Sidebar:** Full width (stacked)
@@ -411,11 +446,7 @@ className="bg-blue-500 hover:bg-blue-600"
 ```typescript
 <div className="bg-gradient-to-r from-red-500 to-red-600 text-white py-16">
   <div className="container mx-auto px-4 text-center">
-    <img 
-      src="/logo.png" 
-      alt="Company Logo" 
-      className="h-16 mx-auto mb-6"
-    />
+    <img src="/logo.png" alt="Company Logo" className="h-16 mx-auto mb-6" />
     <h1 className="text-5xl font-bold mb-4">Let's Talk</h1>
     {/* ... */}
   </div>
@@ -425,14 +456,16 @@ className="bg-blue-500 hover:bg-blue-600"
 ### Add Social Media Icons
 
 ```typescript
-{/* After LinkedIn card */}
+{
+  /* After LinkedIn card */
+}
 <a href="https://twitter.com/..." className="...">
   <FaTwitter className="w-6 h-6" />
   <div>
     <p className="text-sm font-semibold">Twitter</p>
     <p className="text-base font-bold">@yourhandle</p>
   </div>
-</a>
+</a>;
 ```
 
 ---
