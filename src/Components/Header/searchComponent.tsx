@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { DotLoader } from '@/Components/Loaders';
 import { useRouter } from 'next/navigation';
-import { getAutocompleteSuggestions } from '@/services/searchService';
+import { debouncedAutocomplete } from '@/services/searchService';
 
 const SearchComponent = () => {
   const [query, setQuery] = useState('');
@@ -12,46 +12,36 @@ const SearchComponent = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [isFocused, setIsFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // Debounce timer
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
-
-  // Fetch autocomplete suggestions
+  // Fetch autocomplete suggestions (using optimized debounced function)
   useEffect(() => {
     if (query.trim().length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
+      setIsLoading(false);
       return;
     }
 
-    // Clear previous timer
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
+    setIsLoading(true);
 
-    // Set new timer for debounced search
-    debounceTimer.current = setTimeout(async () => {
-      setIsLoading(true);
-      try {
-        const results = await getAutocompleteSuggestions(query, 5);
+    // Use the optimized debouncedAutocomplete from searchService
+    // It handles debouncing, caching, and deduplication automatically
+    debouncedAutocomplete(query, 5)
+      .then((results) => {
         setSuggestions(results);
         setShowSuggestions(results.length > 0);
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error('Failed to get suggestions:', error);
         setSuggestions([]);
-      } finally {
+      })
+      .finally(() => {
         setIsLoading(false);
-      }
-    }, 300);
-
-    return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
+      });
   }, [query]);
 
   // Click outside to close suggestions
@@ -114,22 +104,54 @@ const SearchComponent = () => {
   };
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto" ref={searchRef}>
-      <div className="flex items-center justify-between w-full px-5 py-3 bg-gray-100 rounded-sm">
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search products..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={() => {
-            if (suggestions.length > 0) {
-              setShowSuggestions(true);
-            }
+    <>
+      {/* Backdrop blur overlay when search is focused */}
+      {isFocused && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-200"
+          onClick={() => {
+            setIsFocused(false);
+            setShowSuggestions(false);
           }}
-          className="bg-transparent outline-none text-sm flex-1 mr-2"
         />
+      )}
+
+      <div 
+        className={`relative w-full mx-auto transition-all duration-300 ease-out ${
+          isFocused 
+            ? 'max-w-5xl scale-105 z-50' 
+            : 'max-w-4xl scale-100'
+        }`} 
+        ref={searchRef}
+      >
+        <div className={`flex items-center justify-between w-full px-5 py-3 bg-white rounded-lg transition-all duration-300 ${
+          isFocused 
+            ? 'shadow-xl ring-1 ring-red-700' 
+            : 'bg-gray-100 shadow-sm'
+        }`}>
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search products..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => {
+              setIsFocused(true);
+              if (suggestions.length > 0) {
+                setShowSuggestions(true);
+              }
+            }}
+            onBlur={(e) => {
+              // Delay to allow clicking suggestions
+              setTimeout(() => {
+                if (!searchRef.current?.contains(document.activeElement)) {
+                  setIsFocused(false);
+                }
+              }, 200);
+            }}
+            className="bg-transparent outline-none text-sm flex-1 mr-2"
+          />
         
         <div className="flex items-center gap-2">
           {/* Loading spinner */}
@@ -176,7 +198,8 @@ const SearchComponent = () => {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
