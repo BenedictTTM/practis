@@ -90,15 +90,20 @@ const deduplicator = new RequestDeduplicator();
 
 let debounceTimer: NodeJS.Timeout | null = null;
 
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: any[]) => Promise<any>>(
   func: T,
   delay: number
-): (...args: Parameters<T>) => Promise<ReturnType<T>> {
+): (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>>> {
   return (...args: Parameters<T>) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        resolve(func(...args));
+      debounceTimer = setTimeout(async () => {
+        try {
+          const result = await func(...args);
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
       }, delay);
     });
   };
