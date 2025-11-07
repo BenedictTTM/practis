@@ -26,18 +26,29 @@ export default function CategoryBrowser() {
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const animationRef = useRef<number | null>(null);
   const duplicatedCategories = [...categories, ...categories];
 
-  // Auto-scroll animation using RAF instead of CSS
+  // Detect mobile device
   useEffect(() => {
-    if (!containerRef.current || isPaused) return;
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Auto-scroll animation using RAF instead of CSS (disabled on mobile)
+  useEffect(() => {
+    if (!containerRef.current || isPaused || isMobile) return;
 
     let scrollPosition = containerRef.current.scrollLeft;
     const scrollSpeed = 0.5; // pixels per frame
 
     const animate = () => {
-      if (!containerRef.current || isPaused) return;
+      if (!containerRef.current || isPaused || isMobile) return;
 
       scrollPosition += scrollSpeed;
       
@@ -58,7 +69,7 @@ export default function CategoryBrowser() {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPaused]);
+  }, [isPaused, isMobile]);
 
   // Handle mouse down
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -103,6 +114,29 @@ export default function CategoryBrowser() {
     }
   };
 
+  // Touch event handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!containerRef.current || !isMobile) return;
+    setIsDragging(true);
+    setIsPaused(true);
+    setStartX(e.touches[0].pageX - containerRef.current.offsetLeft);
+    setScrollLeft(containerRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !containerRef.current || !isMobile) return;
+    const x = e.touches[0].pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    containerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    if (isMobile) {
+      setIsDragging(false);
+      setIsPaused(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
@@ -120,12 +154,17 @@ export default function CategoryBrowser() {
       <div className="relative overflow-hidden">
         <div
           ref={containerRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
-          onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeaveContainer}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
-          onMouseEnter={handleMouseEnter}
+          className={`flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide touch-scroll ${
+            isMobile ? 'scroll-smooth' : 'cursor-grab active:cursor-grabbing'
+          }`}
+          onMouseDown={!isMobile ? handleMouseDown : undefined}
+          onMouseLeave={!isMobile ? handleMouseLeaveContainer : undefined}
+          onMouseUp={!isMobile ? handleMouseUp : undefined}
+          onMouseMove={!isMobile ? handleMouseMove : undefined}
+          onMouseEnter={!isMobile ? handleMouseEnter : undefined}
+          onTouchStart={isMobile ? handleTouchStart : undefined}
+          onTouchMove={isMobile ? handleTouchMove : undefined}
+          onTouchEnd={isMobile ? handleTouchEnd : undefined}
         >
           {duplicatedCategories.map((category, index) => {
             const Icon = category.icon;
@@ -155,6 +194,10 @@ export default function CategoryBrowser() {
 
         .cursor-grab:active {
           cursor: grabbing;
+        }
+
+        .touch-scroll {
+          -webkit-overflow-scrolling: touch;
         }
       `}</style>
     </div>
