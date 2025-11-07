@@ -454,7 +454,7 @@ export default function ContactPage() {
           {/* Contact Information Sidebar */}
           <div className="space-y-6">
             {/* Quick Contact Cards */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
+            <div className="bg-white rounded-2xl shadow-sm p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-6">
                 Or reach out directly
               </h3>

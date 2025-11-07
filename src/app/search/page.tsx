@@ -71,7 +71,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gray-50">
+    <div className="container mx-auto px-4 py-8 bg-gray-50 max-w-6xl">
       {/* Search Component */}
       <div className="mb-8">
         <SearchComponent />
@@ -100,128 +100,7 @@ export default function SearchPage() {
       </div>
 
       <div className="flex gap-6">
-        {/* Filters Sidebar */}
-        <aside className={`w-72 flex-shrink-0 ${showFilters ? 'block' : 'hidden md:block'}`}>
-          <div className=" p-6 sticky top-4">
-            <h2 className="text-xl font-bold mb-6">Filters</h2>
-
-            {/* Category Section */}
-            {allCategories.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-sm font-medium text-[#D84E55] mb-4 text-center">
-                  Category
-                </h3>
-                <div className="space-y-2">
-                  <label className="flex items-center w-full px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 cursor-pointer transition-colors">
-                    <input
-                      type="radio"
-                      name="category"
-                      value=""
-                      checked={!selectedCategory}
-                      onChange={() => setSelectedCategory('')}
-                      className="w-5 h-5 text-black border-2 border-gray-300 focus:ring-2 focus:ring-black focus:ring-offset-0 cursor-pointer"
-                    />
-                    <span className="ml-3 text-sm text-gray-700">All Categories</span>
-                  </label>
-
-                  {allCategories.map((cat) => (
-                    <label
-                      key={cat.name}
-                      className="flex items-center w-full px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 cursor-pointer transition-colors"
-                    >
-                      <input
-                        type="radio"
-                        name="category"
-                        value={cat.name}
-                        checked={selectedCategory === cat.name}
-                        onChange={() => setSelectedCategory(cat.name)}
-                        className="w-5 h-5 text-black border-2 border-gray-300 focus:ring-2 focus:ring-black focus:ring-offset-0 cursor-pointer"
-                      />
-                      <span className="ml-3 text-sm text-gray-700">{cat.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Price Range Section */}
-            {results?.filters.priceRange && (
-              <div className="mb-8">
-                <h3 className="text-sm font-medium text-[#D84E55] mb-4 text-center">
-                  Price Range
-                </h3>
-                <div className="px-2">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Price</p>
-                  <div className="relative pt-1">
-                    <input
-                      type="range"
-                      min={results.filters.priceRange.min}
-                      max={results.filters.priceRange.max}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-800"
-                      style={{
-                        background: `linear-gradient(to right, #1f2937 0%, #1f2937 50%, #e5e7eb 50%, #e5e7eb 100%)`
-                      }}
-                    />
-                    <div className="flex justify-between items-center mt-3">
-                      <span className="text-sm font-medium text-gray-700">
-                        ${results.filters.priceRange.min}
-                      </span>
-                      <span className="text-sm font-medium text-gray-700">
-                        ${results.filters.priceRange.max}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Sort By Section */}
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-[#D84E55] mb-4 text-center">
-                Sort By
-              </h3>
-              <div className="space-y-2">
-                <label className="flex items-center w-full px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 cursor-pointer transition-colors">
-                  <input
-                    type="radio"
-                    name="sort"
-                    value="price-asc"
-                    checked={selectedSort === 'price-asc'}
-                    onChange={(e) => setSelectedSort(e.target.value)}
-                    className="w-5 h-5 text-black border-2 border-gray-300 focus:ring-2 focus:ring-black focus:ring-offset-0 cursor-pointer"
-                  />
-                  <span className="ml-3 text-sm text-gray-700">Price: Low to High</span>
-                </label>
-
-                <label className="flex items-center w-full px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 cursor-pointer transition-colors">
-                  <input
-                    type="radio"
-                    name="sort"
-                    value="price-desc"
-                    checked={selectedSort === 'price-desc'}
-                    onChange={(e) => setSelectedSort(e.target.value)}
-                    className="w-5 h-5 text-black border-2 border-gray-300 focus:ring-2 focus:ring-black focus:ring-offset-0 cursor-pointer"
-                  />
-                  <span className="ml-3 text-sm text-gray-700">Price: High to Low</span>
-                </label>
-
-                <label className="flex items-center w-full px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 cursor-pointer transition-colors">
-                  <input
-                    type="radio"
-                    name="sort"
-                    value="rating-desc"
-                    checked={selectedSort === 'rating-desc'}
-                    onChange={(e) => setSelectedSort(e.target.value)}
-                    className="w-5 h-5 text-black border-2 border-gray-300 focus:ring-2 focus:ring-black focus:ring-offset-0 cursor-pointer"
-                  />
-                  <span className="ml-3 text-sm text-gray-700">Rating: High to Low</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-
+       
         {/* Results */}
         <main className="flex-1">
           {/* Mobile Filter Toggle */}

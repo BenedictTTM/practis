@@ -98,7 +98,7 @@ export default function OAuthCallbackPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-md border border-gray-200 p-6 sm:p-8 md:p-10 text-center transform transition-all duration-300 hover:shadow-3xl">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-md border border-gray-200 p-6 sm:p-8 md:p-10 text-center transform transition-all duration-300 hover:shadow-md">
         {status === 'loading' && (
           <>
             {/* Loading State */}
@@ -197,7 +197,7 @@ export default function OAuthCallbackPage() {
             </p>
             <button
               onClick={() => router.push('/auth/login')}
-              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-red-600 text-white text-sm sm:text-base font-semibold rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-red-300"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-red-600 text-white text-sm sm:text-base font-semibold rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md focus:outline-none focus:ring-4 focus:ring-red-300"
             >
               Back to Login
             </button>
