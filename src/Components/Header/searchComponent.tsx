@@ -61,6 +61,7 @@ const SearchComponent = () => {
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setShowSuggestions(false);
+      setIsFocused(false); // Remove backdrop when search is triggered
       setQuery('');
     }
   };
@@ -92,6 +93,7 @@ const SearchComponent = () => {
   const handleSuggestionClick = (suggestion: string) => {
     setQuery(suggestion);
     handleSearch(suggestion);
+    // handleSearch already sets isFocused to false, so backdrop will be removed
   };
 
   // Clear search
@@ -100,6 +102,7 @@ const SearchComponent = () => {
     setSuggestions([]);
     setShowSuggestions(false);
     setSelectedIndex(-1);
+    // Keep focus state active when clearing to maintain UX
     inputRef.current?.focus();
   };
 
