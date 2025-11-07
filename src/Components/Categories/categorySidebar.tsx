@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MdNavigateNext, MdMenu, MdClose } from 'react-icons/md';
@@ -75,7 +76,7 @@ export default function CategorySidebar() {
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         className="lg:translate-x-0 fixed lg:relative lg:block w-64 sm:w-72 lg:w-56 xl:w-64 h-full lg:h-auto bg-white lg:bg-transparent shadow-2xl lg:shadow-none z-40 lg:z-auto"
       >
-        <div className="relative w-full h-screen lg:h-[400px] xl:h-[450px] overflow-hidden bg-white rounded-none lg:rounded-lg lg:border lg:border-gray-200">
+        <div className="relative flex flex-col w-full h-full lg:h-[400px] xl:h-[450px] bg-white rounded-none lg:rounded-lg lg:border lg:border-gray-200">
           {/* Mobile Header */}
           <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Categories</h2>
@@ -92,7 +93,7 @@ export default function CategorySidebar() {
           <div className="pointer-events-none absolute top-0 lg:top-0 left-0 h-12 lg:h-8 w-full bg-gradient-to-b from-white to-transparent z-10"></div>
 
           {/* Scrollable Content */}
-          <div className="h-[calc(100vh-64px)] lg:h-full overflow-y-auto py-2 scrollbar-hide">
+          <div className="flex-1 overflow-y-auto py-2 scrollbar-hide">
             <nav aria-label="Product categories">
               {/* Loading skeletons */}
               {loading && displayCategories.length === 0 && (
@@ -112,12 +113,10 @@ export default function CategorySidebar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 />
               ))}
-              
+
               {/* Error state */}
               {error && !loading && categories.length === 0 && (
-                <div className="px-4 py-2 text-xs text-red-600">
-                  {error}
-                </div>
+                <div className="px-4 py-2 text-xs text-red-600">{error}</div>
               )}
             </nav>
           </div>
