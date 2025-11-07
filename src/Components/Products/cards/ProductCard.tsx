@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CiHeart } from "react-icons/ci";
@@ -20,6 +20,7 @@ export interface Product {
 
 export interface ProductCardProps {
   product: Product;
+  priority?: boolean; // For LCP optimization
 }
 
 export interface ProductsGridProps {
@@ -72,7 +73,10 @@ const SimpleStarRating = ({
 );
 
 // ===== PRODUCT CARD =====
-function ProductCard({ product }: ProductCardProps) {
+function ProductCard({ product, priority = false }: ProductCardProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  
   const discountPercentage = calculateDiscountPercent(product.originalPrice, product.discountedPrice);
   const hasDiscount = discountPercentage > 0;
 
@@ -87,10 +91,21 @@ function ProductCard({ product }: ProductCardProps) {
     e.stopPropagation();
   };
 
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true);
+  }, []);
+
+  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    setImageError(true);
+    const target = e.currentTarget;
+    target.src = '/placeholder-image.png';
+  }, []);
+
   return (
     <div className="group flex flex-col bg-white rounded-xl overflow-hidden shadow-xs hover:shadow-sm transition-all duration-300 hover:scale-[1.01] border border-neutral-200 w-full h-full">
       {/* Image Section */}
       <div className="relative aspect-[1/1] overflow-hidden bg-neutral-50 max-h-[200px] sm:max-h-[220px]">
+        {/* Wishlist Button - Always visible on hover */}
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
           <button
             onClick={handleQuickView}
@@ -101,22 +116,31 @@ function ProductCard({ product }: ProductCardProps) {
           </button>
         </div>
 
+        {/* Image Skeleton - Shows while loading */}
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse" aria-hidden="true" />
+        )}
+
+        {/* Actual Image */}
         <Link href={`/main/products/${product.id}`}>
           <Image
             src={imageUrl}
             alt={product.title}
             width={200}
             height={200}
-            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
-            onError={(e) => {
-              const target = e.currentTarget as HTMLImageElement;
-              target.src = '/placeholder-image.png';
-            }}
+            priority={priority}
+            loading={priority ? 'eager' : 'lazy'}
+            className={`
+              w-full h-full object-contain transition-all duration-500 
+              ${imageLoaded ? 'opacity-100 scale-100 group-hover:scale-105' : 'opacity-0 scale-95'}
+            `}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
           />
         </Link>
       </div>
 
-      {/* Product Details */}
+      {/* Product Details - Renders Immediately */}
       <div className="flex flex-col justify-between flex-1 p-2.5 sm:p-3">
         {/* Title */}
         <Link href={`/main/products/${product.id}`}>
@@ -184,8 +208,12 @@ function ProductsGrid({ products }: ProductsGridProps) {
           auto-rows-fr
         "
       >
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+        {products.map((product, index) => (
+          <ProductCard 
+            key={product.id} 
+            product={product} 
+            priority={index < 6} // Prioritize first 6 images for LCP
+          />
         ))}
       </div>
     </div>

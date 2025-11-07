@@ -2,6 +2,7 @@
 
 import React from 'react';
 import ProductCard from '../cards/ProductCard';
+import { ProductsGridSkeleton } from '../cards/ProductCardSkeleton';
 import { Product } from '@/types/products';
 
 /**
@@ -53,15 +54,7 @@ export default function ProductsGridLayout({
   if (loading) {
     return (
       <div className={`w-full ${className}`}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-          {[...Array(8)].map((_, index) => (
-            <div key={index} className="animate-pulse" role="listitem">
-              <div className="bg-gray-200 aspect-square rounded-lg mb-3"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            </div>
-          ))}
-        </div>
+        <ProductsGridSkeleton count={12} />
       </div>
     );
   }
@@ -109,17 +102,17 @@ export default function ProductsGridLayout({
     <div className={`w-full ${className}`}>
       {/* Responsive Grid - Extends to fill page width */}
       <div 
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4"
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4"
         role="list"
         aria-label="Products grid"
       >
-        {products.map((product) => (
+        {products.map((product, index) => (
           <div 
             key={product.id} 
             role="listitem"
             className="w-full"
           >
-            <ProductCard product={product} />
+            <ProductCard product={product} priority={index < 6} />
           </div>
         ))}
       </div>

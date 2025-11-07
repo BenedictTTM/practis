@@ -303,39 +303,46 @@ export default function ProductsPage() {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://sellr.com';
     const currentUrl = typeof window !== 'undefined' ? window.location.href : `${baseUrl}/main/products`;
 
-    return [
-      // Organization Schema
+    // Critical schemas that must load immediately (no images)
+    const criticalSchemas = [
+      // Organization Schema (critical for entity recognition)
       generateOrganizationSchema(
         'Sellr',
         baseUrl,
         `${baseUrl}/logo.png`
       ),
 
-      // Website Schema with SearchAction
+      // Website Schema with SearchAction (critical for search)
       generateWebsiteSchema('Sellr', baseUrl, '/search?q={search_term_string}'),
 
-      // WebPage Schema
+      // WebPage Schema (critical for page identity)
       generateWebPageSchema(
         'Browse Products - Sellr',
         'Discover amazing products with great deals and flash sales. Shop electronics, fashion, home goods, and more.',
         currentUrl
       ),
 
-      // Breadcrumb Schema
+      // Breadcrumb Schema (high priority for navigation)
       generateBreadcrumbSchema([
         { name: 'Home', url: '/' },
         { name: 'Products', url: '/main/products' },
       ], baseUrl),
+    ];
 
-      // Product List Schema (for main products)
-  ...(displayProducts.length > 0 ? [generateProductListSchema(displayProducts, baseUrl, 'GHS')] : []),
+    // Deferred schemas (image-heavy, will lazy load)
+    const deferredSchemas = [
+      // Product List Schema (contains images - deferred)
+      ...(displayProducts.length > 0 ? [generateProductListSchema(displayProducts, baseUrl, 'GHS')] : []),
 
-      // Flash Sales Schema (if available)
+      // Flash Sales Schema (contains images - deferred)
       ...(flashSalesData?.products && flashSalesData.products.length > 0
         ? [generateFlashSalesSchema(flashSalesData.products, flashSalesData.nextRefreshAt)]
         : []
       ),
     ];
+
+    // Combine all schemas (MultipleSchemas will handle prioritization)
+    return [...criticalSchemas, ...deferredSchemas];
   }, [displayProducts, flashSalesData]);
 
 
@@ -346,7 +353,13 @@ export default function ProductsPage() {
 
   return (
     <>
-      <MultipleSchemas schemas={schemas} />
+      {/* 
+        Progressive Schema Loading:
+        - Critical schemas (Organization, Website, WebPage) load immediately
+        - Image-heavy schemas (ProductList, FlashSales) are deferred
+        - Improves First Contentful Paint and Largest Contentful Paint
+      */}
+      <MultipleSchemas schemas={schemas} deferImageSchemas={true} />
 
       <div className="min-h-screen bg-gray-50">
       <HowToSection />
