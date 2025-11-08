@@ -30,7 +30,7 @@ interface FlashSalesCountdownProps {
 // ============================================================================
 const TIMER_CONFIG = {
   UPDATE_INTERVAL: 1000,
-  FALLBACK_HOURS: 1, // Fallback if backend doesn't respond
+  FALLBACK_HOURS: 2, // Fallback if backend doesn't respond (matches backend 2-hour rotation)
 } as const;
 
 // ============================================================================
@@ -152,21 +152,31 @@ export default function FlashSalesCountdown({
   });
 
   const [targetDate, setTargetDate] = useState<Date | null>(null);
+  const [hasCompletedOnce, setHasCompletedOnce] = useState(false); // Prevent multiple callbacks
 
   // ==========================================================================
   // INITIALIZE TARGET DATE FROM BACKEND
   // ==========================================================================
   useEffect(() => {
+    console.log('[FlashSales] Updating target date:', { nextRefreshAt, refreshesIn });
+    
+    // Reset completion flag when we get new target date
+    setHasCompletedOnce(false);
+    
     if (nextRefreshAt) {
       // Use backend's exact refresh time
-      setTargetDate(new Date(nextRefreshAt));
+      const target = new Date(nextRefreshAt);
+      console.log('[FlashSales] Set target from nextRefreshAt:', target.toISOString());
+      setTargetDate(target);
     } else if (refreshesIn) {
       // Calculate from milliseconds
       const target = new Date(Date.now() + refreshesIn);
+      console.log('[FlashSales] Set target from refreshesIn:', target.toISOString());
       setTargetDate(target);
     } else {
       // Fallback: 1 hour from now
       const fallback = new Date(Date.now() + TIMER_CONFIG.FALLBACK_HOURS * 3600000);
+      console.log('[FlashSales] Set fallback target:', fallback.toISOString());
       setTargetDate(fallback);
     }
   }, [nextRefreshAt, refreshesIn]);
@@ -180,16 +190,19 @@ export default function FlashSalesCountdown({
     const remaining = calculateTimeRemaining(targetDate);
     setTime(remaining);
 
-    // Trigger callback when countdown completes
-    if (
+    // Trigger callback when countdown completes - BUT ONLY ONCE!
+    const isComplete = 
       remaining.days === 0 &&
       remaining.hours === 0 &&
       remaining.minutes === 0 &&
-      remaining.seconds === 0
-    ) {
+      remaining.seconds === 0;
+
+    if (isComplete && !hasCompletedOnce) {
+      console.log('[FlashSales] ⏰ Countdown reached zero - calling onCountdownComplete ONCE');
+      setHasCompletedOnce(true);
       onCountdownComplete?.();
     }
-  }, [targetDate, onCountdownComplete]);
+  }, [targetDate, onCountdownComplete, hasCompletedOnce]);
 
   useEffect(() => {
     if (!targetDate) return;

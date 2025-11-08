@@ -117,9 +117,17 @@ function useFlashSalesProducts(
   });
 
   const fetchProducts = useCallback(async () => {
+    const requestId = Math.random().toString(36).substring(7);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`[FlashSales] 📡 FETCH REQUEST [${requestId}]`);
+    console.log(`[FlashSales] ⏰ Time: ${new Date().toISOString()}`);
+    
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
 
+      console.log(`[FlashSales] 🔗 Endpoint: ${endpoint}`);
+      const fetchStart = Date.now();
+      
       const response = await fetch(endpoint, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -127,14 +135,28 @@ function useFlashSalesProducts(
         cache: 'no-store', // Always get fresh data
       });
 
+      const fetchDuration = Date.now() - fetchStart;
+      console.log(`[FlashSales] 📊 Response status: ${response.status} (${fetchDuration}ms)`);
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Failed to fetch products`);
       }
 
       const data = await response.json() as FlashSalesApiResponse;
       
+      console.log(`[FlashSales] 📦 Data received:`, {
+        productCount: data.products?.length || 0,
+        nextRefreshAt: data.nextRefreshAt,
+        refreshesIn: data.refreshesIn ? `${Math.floor(data.refreshesIn / 1000)}s` : 'N/A',
+      });
+      
       // Extract timer data from backend
       if (data.nextRefreshAt && data.refreshesIn) {
+        console.log(`[FlashSales] ⏰ Setting timer data:`, {
+          nextRefreshAt: data.nextRefreshAt,
+          refreshesIn: `${Math.floor(data.refreshesIn / 1000)}s`,
+        });
+        
         setTimerData({
           nextRefreshAt: data.nextRefreshAt,
           refreshesIn: data.refreshesIn,
@@ -151,6 +173,9 @@ function useFlashSalesProducts(
         isEmpty: flashSalesProducts.length === 0,
       });
 
+      console.log(`[FlashSales] ✅ Fetch complete [${requestId}] - ${flashSalesProducts.length} products`);
+      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+
       return flashSalesProducts;
     } catch (error) {
       const errorObj = error instanceof Error ? error : new Error('Unknown error occurred');
@@ -162,7 +187,8 @@ function useFlashSalesProducts(
         isEmpty: false,
       }));
 
-      console.error('[FlashSales] Error fetching products:', errorObj);
+      console.error(`[FlashSales] ❌ Fetch error [${requestId}]:`, errorObj.message);
+      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
       throw errorObj;
     }
   }, [endpoint, minDiscount, maxProducts]);
@@ -219,8 +245,20 @@ export default function FlashSalesSection({
 
   // Handler for countdown completion
   const handleCountdownComplete = useCallback(() => {
-    console.log('[FlashSales] Countdown complete, refreshing...');
-    fetchProducts().catch(console.error);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('[FlashSales] 🔔 COUNTDOWN COMPLETE CALLBACK TRIGGERED');
+    console.log('[FlashSales] ⏰ Time:', new Date().toISOString());
+    console.log('[FlashSales] 🔄 Triggering product refresh...');
+    
+    fetchProducts()
+      .then(() => {
+        console.log('[FlashSales] ✅ Refresh after countdown complete succeeded');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      })
+      .catch(err => {
+        console.error('[FlashSales] ❌ Refresh after countdown failed:', err);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      });
   }, [fetchProducts]);
 
   // ==========================================================================
