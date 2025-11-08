@@ -121,8 +121,8 @@ export default function AddToCartButton({
   const baseStyle = `
     flex items-center justify-center gap-2 
     font-semibold text-white rounded-xl 
-    transition-all duration-300 shadow-md 
-    hover:shadow-lg hover:-translate-y-0.5 
+    transition-all duration-300 shadow-sm 
+    hover:shadow-md hover:-translate-y-0.5 
     disabled:opacity-50 disabled:cursor-not-allowed 
     whitespace-nowrap
   `;

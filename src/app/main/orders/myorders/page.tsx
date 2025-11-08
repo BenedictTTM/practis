@@ -164,7 +164,7 @@ export default function MyOrdersPage() {
         <div className="fixed bottom-6 right-6 z-40">
           <button
             onClick={() => handleProceedToCheckout(orders[0])}
-            className="px-5 sm:px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400"
+            className="px-5 sm:px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-red-400"
           >
             Proceed to Checkout
           </button>

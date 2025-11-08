@@ -172,7 +172,7 @@ export default function CategoryBrowser() {
               <Link
                 key={`${category.id}-${index}`}
                 href={`/main/products/categories?category=${category.value}`}
-                className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] border border-gray-200 rounded-xl p-4 sm:p-5 md:p-6 bg-white hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer group select-none"
+                className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] border border-gray-200 rounded-xl p-4 sm:p-5 md:p-6 bg-white hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group select-none"
               >
                 <div className="flex flex-col items-center justify-center h-full gap-3 sm:gap-4">
                   <Icon className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-700 group-hover:text-red-500 transition-colors" />

@@ -58,7 +58,7 @@ export default function PaymentSuccessPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-3 sm:p-4 font-heading">
-      <div className="bg-white rounded-2xl shadow-lg w-full max-w-sm sm:max-w-md overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm w-full max-w-sm sm:max-w-md overflow-hidden">
         {/* LOADING */}
         {status === 'loading' && (
          <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white relative">

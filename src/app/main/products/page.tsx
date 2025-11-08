@@ -455,7 +455,7 @@ export default function ProductsPage() {
                     className={`
                       px-8 py-3 rounded-lg font-medium 
                       transition-all duration-200 
-                      shadow-md hover:shadow-lg 
+                      shadow-sm hover:shadow-md 
                       focus:outline-none focus:ring-2 focus:ring-offset-2
                       ${showAllProducts
                         ? 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500'
