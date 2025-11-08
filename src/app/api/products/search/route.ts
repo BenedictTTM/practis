@@ -9,6 +9,8 @@ export async function GET(request: NextRequest) {
     // Build query string from all search parameters
     const queryString = searchParams.toString();
     
+    console.log('🔍 Frontend API: Searching with query:', queryString);
+    
     const response = await fetch(`${BACKEND_URL}/products/search?${queryString}`, {
       method: 'GET',
       headers: {
@@ -18,14 +20,26 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
+      console.error('❌ Backend error:', response.status, response.statusText);
       throw new Error(`Backend responded with status: ${response.status}`);
     }
 
     const data = await response.json();
+    
+    console.log('✅ Frontend API: Got response:', {
+      total: data.total,
+      productsCount: data.products?.length,
+      page: data.page,
+      hasProducts: Array.isArray(data.products),
+      firstProduct: data.products?.[0] ? {
+        id: data.products[0].id,
+        title: data.products[0].title,
+      } : null
+    });
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Search API error:', error);
+    console.error('❌ Search API error:', error);
     return NextResponse.json(
       { 
         error: 'Failed to search products',

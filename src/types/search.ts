@@ -3,6 +3,7 @@ export interface SearchFilters {
   categories: { name: string; count: number }[];
   priceRange: { min: number; max: number };
   conditions: { name: string; count: number }[];
+  tags?: { name: string; count: number }[]; // Optional tags from backend
 }
 
 // Product interface compatible with ProductCard component

@@ -30,6 +30,13 @@ export default function SearchPage() {
     const fetchResults = async () => {
       setIsLoading(true);
       try {
+        console.log('🔍 SearchPage: Fetching results for:', {
+          query,
+          category: selectedCategory,
+          sortBy: selectedSort,
+          page: currentPage,
+        });
+        
         const data = await searchProducts({
           q: query,
           category: selectedCategory || undefined,
@@ -37,6 +44,13 @@ export default function SearchPage() {
           page: currentPage,
           limit: 20,
         });
+        
+        console.log('✅ SearchPage: Got data:', {
+          total: data.total,
+          productsCount: data.products?.length,
+          products: data.products,
+        });
+        
         setResults(data);
         
         // Store categories if they exist and we don't have them yet
@@ -44,7 +58,7 @@ export default function SearchPage() {
           setAllCategories(data.filters.categories);
         }
       } catch (error) {
-        console.error('Search failed:', error);
+        console.error('❌ SearchPage: Search failed:', error);
       } finally {
         setIsLoading(false);
       }

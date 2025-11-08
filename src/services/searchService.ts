@@ -152,6 +152,8 @@ export async function searchProducts(params: SearchParams): Promise<SearchResult
     if (params.page) queryParams.set('page', params.page.toString());
     if (params.limit) queryParams.set('limit', params.limit.toString());
 
+    console.log('📤 Calling API with params:', queryParams.toString());
+
     // Create abort controller for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
@@ -171,10 +173,18 @@ export async function searchProducts(params: SearchParams): Promise<SearchResult
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        console.error('❌ API response not OK:', response.status);
         throw new Error('Failed to search products');
       }
 
       const result = await response.json();
+      
+      console.log('📥 Got result:', {
+        total: result.total,
+        productsCount: result.products?.length,
+        isArray: Array.isArray(result.products),
+        firstProduct: result.products?.[0],
+      });
       
       // Cache the result
       searchCache.set(cacheKey, result);
