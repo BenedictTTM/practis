@@ -1,0 +1,77 @@
+# myPlug Robots.txt - University of Ghana Student Marketplace
+# Updated: November 8, 2025
+# Purpose: Guide search engine crawlers to important content
+
+# Allow all search engines to crawl public content
+User-agent: *
+Allow: /
+Allow: /products
+Allow: /category/
+Allow: /search
+Allow: /store/
+Allow: /main/help
+Allow: /main/contact
+
+# Block authentication and private pages
+Disallow: /auth/
+Disallow: /api/
+Disallow: /accounts/
+Disallow: /main/cart
+Disallow: /main/checkout
+Disallow: /main/orders
+Disallow: /payment-success/
+Disallow: /_next/
+Disallow: /api/auth/
+Disallow: /api/debug/
+
+# Allow search engines to see media files
+Allow: /images/
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.webp$
+Allow: /*.svg$
+
+# Crawl delay for politeness (prevents server overload)
+Crawl-delay: 1
+
+# Sitemap locations
+Sitemap: https://myplug.com.gh/sitemap.xml
+Sitemap: https://myplug.com.gh/products-sitemap.xml
+Sitemap: https://myplug.com.gh/categories-sitemap.xml
+Sitemap: https://myplug.com.gh/stores-sitemap.xml
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+# Block bad bots and scrapers
+User-agent: SemrushBot
+Crawl-delay: 10
+
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+# Prevent price scraping bots
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: dotbot
+Disallow: /
+
+# For development/staging environments, uncomment below:
+# User-agent: *
+# Disallow: /

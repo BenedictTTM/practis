@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
+import { Metadata } from 'next';
 import { searchProducts } from '@/services/searchService';
 import { SearchResult } from '@/types/search';
 import { SlidersHorizontal } from 'lucide-react';

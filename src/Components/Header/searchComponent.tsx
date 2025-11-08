@@ -127,7 +127,7 @@ const SearchComponent = () => {
         }`} 
         ref={searchRef}
       >
-        <div className={`flex items-center justify-between w-full px-5 py-3 bg-white rounded-lg transition-all duration-300 ${
+        <div className={`flex items-center w-full px-3 sm:px-5 py-2 sm:py-3 bg-white rounded-lg transition-all duration-300 ${
           isFocused 
             ? 'shadow-xl ring-1 ring-red-700' 
             : 'bg-gray-100 shadow-sm'
@@ -153,10 +153,10 @@ const SearchComponent = () => {
                 }
               }, 200);
             }}
-            className="bg-transparent outline-none text-sm flex-1 mr-2"
+            className="bg-transparent outline-none text-xs sm:text-sm flex-1 min-w-0 mr-2"
           />
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {/* Loading spinner */}
           {isLoading && (
             <DotLoader size={16} color="#6B7280" ariaLabel="Searching" />
@@ -166,20 +166,20 @@ const SearchComponent = () => {
           {query && !isLoading && (
             <button
               onClick={handleClear}
-              className="hover:bg-gray-200 rounded-full p-1 transition-colors"
+              className="hover:bg-gray-200 rounded-full p-1 transition-colors flex-shrink-0"
               aria-label="Clear search"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" />
             </button>
           )}
           
           {/* Search button */}
           <button
             onClick={() => handleSearch()}
-            className="hover:bg-gray-200 rounded-full p-1 transition-colors"
+            className="hover:bg-gray-200 rounded-full p-1 transition-colors flex-shrink-0"
             aria-label="Search"
           >
-            <Search className="w-4 h-4 text-gray-500" />
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" />
           </button>
         </div>
       </div>
