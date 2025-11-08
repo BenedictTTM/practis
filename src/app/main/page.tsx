@@ -1,9 +1,5 @@
-import React from 'react'
+import { redirect } from "next/navigation";
 
-const page = () => {
-  return (
-    <div>pageeee</div>
-  )
+export default function HomePage() {
+  redirect("/main/products");
 }
-
-export default page

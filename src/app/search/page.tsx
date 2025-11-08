@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { searchProducts } from '@/services/searchService';
 import { SearchResult } from '@/types/search';
 import { SlidersHorizontal } from 'lucide-react';
@@ -9,6 +9,14 @@ import { DotLoader } from '@/Components/Loaders';
 import ProductCard from '@/Components/Products/cards/ProductCard';
 import Link from 'next/link';
 import SearchComponent from '@/Components/Header/searchComponent';
+import { MultipleSchemas } from '@/Components/Schema';
+import {
+  generateProductListSchema,
+  generateWebPageSchema,
+  generateBreadcrumbSchema,
+  generateOrganizationSchema,
+  generateWebsiteSchema,
+} from '@/lib/schemas/productSchemas';
 
 
 export default function SearchPage() {
@@ -72,6 +80,65 @@ export default function SearchPage() {
     setCurrentPage(1);
   }, [query, selectedCategory, selectedSort]);
 
+  // Generate SEO schemas for search results
+  const schemas = useMemo(() => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://sellr.com';
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : `${baseUrl}/search`;
+
+    // Build page title and description based on search
+    const pageTitle = query 
+      ? `Search Results for "${query}" - Sellr`
+      : 'Search Products - Sellr';
+    
+    const pageDescription = query
+      ? `Found ${results?.total || 0} products matching "${query}". ${selectedCategory ? `Category: ${selectedCategory}. ` : ''}Shop the best deals on Sellr.`
+      : 'Search for products on Sellr. Find amazing deals on electronics, fashion, home goods, and more.';
+
+    // Build breadcrumb path
+    const breadcrumbs = [
+      { name: 'Home', url: '/' },
+      { name: 'Search', url: '/search' },
+    ];
+    
+    if (query) {
+      breadcrumbs.push({ name: query, url: `/search?q=${encodeURIComponent(query)}` });
+    }
+
+    // Critical schemas that load immediately
+    const criticalSchemas = [
+      // Organization Schema (critical for entity recognition)
+      generateOrganizationSchema(
+        'Sellr',
+        baseUrl,
+        `${baseUrl}/logo.png`
+      ),
+
+      // Website Schema with SearchAction
+      generateWebsiteSchema('Sellr', baseUrl, '/search?q={search_term_string}'),
+
+      // WebPage Schema (critical for page identity)
+      generateWebPageSchema(
+        pageTitle,
+        pageDescription,
+        currentUrl
+      ),
+
+      // Breadcrumb Schema
+      generateBreadcrumbSchema(breadcrumbs, baseUrl),
+    ];
+
+    // Deferred schemas (image-heavy)
+    const deferredSchemas = [
+      // Product List Schema (contains images - deferred)
+      ...(results?.products && results.products.length > 0 
+        ? [generateProductListSchema(results.products as any, baseUrl, 'GHS')] 
+        : []
+      ),
+    ];
+
+    return [...criticalSchemas, ...deferredSchemas];
+  }, [query, selectedCategory, results]);
+
   if (isLoading && !results) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -85,7 +152,16 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gray-50 max-w-6xl">
+    <>
+      {/* 
+        Progressive Schema Loading:
+        - Critical schemas (Organization, Website, WebPage, Breadcrumb) load immediately
+        - Image-heavy schemas (ProductList) are deferred
+        - Dynamic metadata based on search query and results
+      */}
+      <MultipleSchemas schemas={schemas} deferImageSchemas={true} />
+
+      <div className="container mx-auto px-4 py-8 bg-gray-50 max-w-6xl">
       {/* Search Component */}
       <div className="mb-8">
         <SearchComponent />
@@ -174,6 +250,7 @@ export default function SearchPage() {
           )}
         </main>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
