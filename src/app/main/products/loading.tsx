@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { DotLoader } from "../../../Components/Loaders";
+import SharedLoading from "../../../Components/Loaders/SharedLoading";
 import { MultipleSchemas } from "../../../Components/Schema";
 import {
   generateWebPageSchema,
@@ -37,19 +37,7 @@ export default function Loading() {
   return (
     <>
       <MultipleSchemas schemas={schemas} />
-
-      <div
-        className="min-h-screen bg-gray-50 flex items-center justify-center px-4"
-        role="status"
-        aria-live="polite"
-        aria-label="Loading products"
-      >
-        <div className="text-center">
-          <DotLoader size={60} color="#E43C3C" ariaLabel="Loading products" />
-          <p className="text-[#2E2E2E] font-medium mt-6">Loading products…</p>
-          <p className="text-gray-500 text-sm mt-2">Just a moment</p>
-        </div>
-      </div>
+      <SharedLoading size={60} color="#E43C3C" message="Loading products…" subMessage="Just a moment" />
     </>
   );
 }
