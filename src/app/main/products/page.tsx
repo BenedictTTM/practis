@@ -269,10 +269,49 @@ export default function ProductsPage() {
     rating: 0,
   });
 
+  // Flash sales error handling state
+  const [flashSalesHasError, setFlashSalesHasError] = useState(false);
+  const [flashSalesErrorCount, setFlashSalesErrorCount] = useState(0);
+
   useEffect(() => {
     fetchProducts().catch(console.error);
     fetchFlashSales().catch(console.error);
   }, [fetchProducts, fetchFlashSales]);
+
+  // Handle flash sales errors gracefully
+  const handleFlashSalesError = useCallback((err: Error) => {
+    console.error('[FlashSales] Error caught:', err);
+    
+    // Increment error count
+    setFlashSalesErrorCount(prev => prev + 1);
+    
+    // Only show error state after multiple failures (3 attempts)
+    if (flashSalesErrorCount >= 2) {
+      setFlashSalesHasError(true);
+    }
+    
+    // Log to monitoring service (e.g., Sentry, LogRocket)
+    // sendToMonitoring('flash-sales-error', err);
+    
+    // Optionally retry with exponential backoff
+    if (flashSalesErrorCount < 3) {
+      const retryDelay = Math.min(1000 * Math.pow(2, flashSalesErrorCount), 10000);
+      setTimeout(() => {
+        console.log(`[FlashSales] Retrying after ${retryDelay}ms...`);
+        fetchFlashSales().catch(() => {
+          // Silent fail on retry
+        });
+      }, retryDelay);
+    }
+  }, [flashSalesErrorCount, fetchFlashSales]);
+
+  const handleFlashSalesLoaded = useCallback((flashProducts: Product[]) => {
+    console.log(`[FlashSales] Loaded ${flashProducts.length} products`);
+    
+    // Reset error state on successful load
+    setFlashSalesHasError(false);
+    setFlashSalesErrorCount(0);
+  }, []);
 
   const handleFiltersChange = useCallback((filters: FilterState) => {
     setActiveFilters(filters);
@@ -349,7 +388,11 @@ export default function ProductsPage() {
 
   
 
-  if (error) return <><div>Error loading products please refresh...</div></>;
+  // If a products fetch error occurred, throw to Next.js route error boundary
+  // so that app/error.tsx renders instead of an inline fallback.
+  if (error) {
+    throw new Error(typeof error === 'string' ? error : 'Failed to load products');
+  }
 
   return (
     <>
@@ -369,20 +412,19 @@ export default function ProductsPage() {
           
           <div className="flex-1 space-y-8">
             
-            <section aria-labelledby="flash-sales-heading">
-              <FlashSalesSection
-                apiEndpoint={CONFIG.API.FLASH_SALES}
-                minDiscount={30}
-                maxProducts={20}
-                onProductsLoaded={(flashProducts) => {
-                  console.log(`[FlashSales] Loaded ${flashProducts.length} products`);
-                }}
-                onError={(err) => {
-                  console.error('[FlashSales] Error:', err);
-                }}
-                className="mb-8"
-              />
-            </section>
+            {/* Flash Sales Section with Graceful Error Handling */}
+            {!flashSalesHasError && (
+              <section aria-labelledby="flash-sales-heading">
+                <FlashSalesSection
+                  apiEndpoint={CONFIG.API.FLASH_SALES}
+                  minDiscount={30}
+                  maxProducts={20}
+                  onProductsLoaded={handleFlashSalesLoaded}
+                  onError={handleFlashSalesError}
+                  className="mb-8"
+                />
+              </section>
+            )}
 
             <section aria-label="Product categories">
               <Categories />
@@ -400,7 +442,7 @@ export default function ProductsPage() {
                     Products
                   </span>
                 </div>
-                <h2 
+                <h2  style={{ fontFamily: "'Pacifico', cursive" }}
                   id="products-heading"
                   className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900"
                 >

@@ -20,7 +20,7 @@ function HowTo({ imageSrc, altText, title }: HowToProps) {
           priority   
           className="transition-transform duration-300 hover:scale-105 object-contain sm:w-[120px] sm:h-[120px] md:w-[180px] md:h-[180px]"
         />
-        <h3 className="mt-2 text-xs sm:text-sm md:text-base font-semibold text-gray-700 italic">
+        <h3  style={{ fontFamily: "'Pacifico', cursive" }} className="mt-2 text-xs sm:text-sm md:text-base font-semibold text-gray-700 italic">
           {title}
         </h3>
       </div>
