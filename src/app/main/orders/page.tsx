@@ -74,15 +74,15 @@ export default function OrdersPage() {
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
       case "PENDING":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+        return "bg-yellow-50 text-yellow-700 border border-yellow-200";
       case "CONFIRMED":
-        return "bg-blue-100 text-blue-800 border-blue-300";
+        return "bg-blue-50 text-blue-700 border border-blue-200";
       case "COMPLETED":
-        return "bg-green-100 text-green-800 border-green-300";
+        return "bg-green-50 text-green-700 border border-green-200";
       case "CANCELLED":
-        return "bg-red-100 text-red-800 border-red-300";
+        return "bg-red-50 text-red-700 border border-red-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return "bg-gray-50 text-gray-700 border border-gray-200";
     }
   };
 
@@ -125,14 +125,14 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 sm:py-8 px-3 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-3 sm:py-4 md:py-6 px-3 sm:px-4 md:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">My Orders</h1>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 md:mb-6">
+          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">My Orders</h1>
           <button
             onClick={() => router.push("/main/products")}
-            className="px-3 py-2 text-sm sm:px-4 sm:py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="w-full sm:w-auto px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Continue Shopping
           </button>
@@ -142,25 +142,31 @@ export default function OrdersPage() {
         {orders.length === 0 ? (
           <NoOrders />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3 sm:space-y-4">
             {orders.map((order) => (
-              <div key={order.id} className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 w-full">
+              <div key={order.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden w-full sm:max-w-2xl sm:mx-auto">
                 {/* Order Header */}
-                <div className="flex justify-between items-start mb-4 pb-4 border-b">
-                  <div>
-                    <p className="text-sm text-gray-500">Order #{order.id}</p>
-                    <p className="text-xs text-gray-400 mt-1">{formatDate(order.createdAt)}</p>
+                <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2 xs:gap-0 px-4 sm:px-5 pt-3 sm:pt-4 pb-2 sm:pb-3">
+                  <div className="flex-1">
+                    <h2 className="text-sm sm:text-base font-semibold text-gray-900">Order #{order.id}</h2>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Placed on {new Date(order.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric"
+                      })}
+                    </p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
-                    {order.status}
+                  <span className={`px-2 sm:px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap ${getStatusColor(order.status)}`}>
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase()}
                   </span>
                 </div>
 
                 {/* Order Items */}
-                <div className="space-y-3 mb-4">
+                <div className="px-4 sm:px-5 pb-2 sm:pb-3 border-b border-gray-100">
                   {order.items.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-4">
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                    <div key={item.id} className="flex items-center gap-2 sm:gap-3 py-2">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                         <img
                           src={getProductImage(item)}
                           alt={item.productName}
@@ -171,62 +177,53 @@ export default function OrdersPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-800 truncate">{item.productName}</p>
-                        <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                        <h3 className="font-medium text-gray-900 text-xs sm:text-sm truncate">{item.productName}</h3>
+                        <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-gray-800">
-                          {order.currency} {item.unitPrice.toFixed(2)}
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-semibold text-gray-900 text-xs sm:text-sm">
+                          {order.currency}{item.unitPrice.toFixed(2)}
                         </p>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Contact Info */}
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Contact Information</h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <p className="text-gray-500">WhatsApp:</p>
-                      <p className="text-gray-800">{order.whatsappNumber}</p>
+                {/* Contact Information */}
+                <div className="px-4 sm:px-5 py-3 border-b border-gray-100">
+                  <h4 className="font-semibold text-gray-900 text-xs sm:text-sm mb-2">Contact Information</h4>
+                  <div className="space-y-1 text-xs sm:text-sm">
+                    <div className="flex flex-col xs:flex-row xs:gap-2">
+                      <span className="text-gray-600 xs:w-20 sm:w-24 font-medium xs:font-normal">WhatsApp</span>
+                      <span className="text-gray-900 break-all">{order.whatsappNumber}</span>
                     </div>
-                    <div>
-                      <p className="text-gray-500">Call:</p>
-                      <p className="text-gray-800">{order.callNumber}</p>
+                    <div className="flex flex-col xs:flex-row xs:gap-2">
+                      <span className="text-gray-600 xs:w-20 sm:w-24 font-medium xs:font-normal">Call</span>
+                      <span className="text-gray-900 break-all">{order.callNumber}</span>
                     </div>
                     {order.hall && (
-                      <div className="col-span-2">
-                        <p className="text-gray-500">Hall/Hostel:</p>
-                        <p className="text-gray-800">{order.hall}</p>
+                      <div className="flex flex-col xs:flex-row xs:gap-2">
+                        <span className="text-gray-600 xs:w-20 sm:w-24 font-medium xs:font-normal">Hall/Hostel</span>
+                        <span className="text-gray-900">{order.hall}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Message */}
+                {/* Note */}
                 {order.buyerMessage && (
-                  <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                    <p className="text-xs text-gray-500 mb-1">Your Note:</p>
-                    <p className="text-sm text-gray-700">{order.buyerMessage}</p>
+                  <div className="px-4 sm:px-5 py-3 bg-gray-50">
+                    <h4 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1.5">Note</h4>
+                    <p className="text-xs sm:text-sm text-gray-700 leading-snug break-words">{order.buyerMessage}</p>
                   </div>
                 )}
 
-                {/* Total */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-between items-stretch sm:items-center pt-4 border-t">
-                  <span className="font-semibold text-gray-700">Total Amount</span>
-                  <span className="text-xl font-bold text-gray-900">
-                    {order.currency} {order.totalAmount.toFixed(2)}
+                {/* Total Amount */}
+                <div className="px-4 sm:px-5 py-3 sm:py-4 flex justify-between items-center">
+                  <span className="text-xs sm:text-sm font-semibold text-gray-900">Total Amount</span>
+                  <span className="text-lg sm:text-xl font-bold text-gray-900">
+                    {order.currency}{order.totalAmount.toFixed(2)}
                   </span>
-                  {order.items?.length > 0 && (
-                    <button
-                      onClick={() => handleProceedToCheckout(order)}
-                      className="inline-flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-sm"
-                      aria-label="Proceed to Checkout"
-                    >
-                      Proceed to Checkout
-                    </button>
-                  )}
                 </div>
               </div>
             ))}
