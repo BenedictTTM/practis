@@ -37,7 +37,8 @@ interface Order {
 
 interface OrdersResponse {
   success: boolean;
-  data: Order[];
+  data?: Order[];
+  message?: string;
 }
 
 export default function MyOrdersPage() {
@@ -64,7 +65,7 @@ export default function MyOrdersPage() {
       const result: OrdersResponse = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.data?.message || 'Failed to fetch orders');
+        throw new Error(result.message || 'Failed to fetch orders');
       }
 
       setOrders(result.data || []);

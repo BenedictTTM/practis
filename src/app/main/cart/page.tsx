@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ShoppingCart as CartIcon } from 'lucide-react';
-import { DotLoader } from '@/Components/Loaders';
+import SharedLoading from '@/Components/Loaders/SharedLoading';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { fetchCart, updateCartItem, removeCartItem, clearCart } from '@/lib/cart';
@@ -264,16 +264,9 @@ export default function ShoppingCart() {
   };
   // Per-item checkout flow removed: users select exactly one item, then use single checkout
 
-  // Loading state
+  // Show the shared route loading UI while cart initializes
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="text-center">
-          <DotLoader size={48} color="#E43C3C" ariaLabel="Loading cart" />
-          <p className="text-gray-600 mt-4">Loading cart...</p>
-        </div>
-      </div>
-    );
+    return <SharedLoading size={64} color="#E43C3C" message="Loading your cart..." subMessage="Just a moment" />;
   }
 
   // Calculate totals
