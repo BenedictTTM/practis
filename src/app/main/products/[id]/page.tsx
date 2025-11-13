@@ -118,7 +118,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     openGraph: {
       title: product.title,
       description,
-      type: 'product',
+      type: 'website',
       url: `${baseUrl}/main/products/${id}`,
       images: images.slice(0, 4).map((img) => ({
         url: img,

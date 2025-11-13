@@ -84,30 +84,9 @@ const searchCache = new LRUCache<SearchResult>(100, 60); // 100 items, 60s TTL
 const autocompleteCache = new LRUCache<string[]>(50, 300); // 50 items, 5min TTL
 const deduplicator = new RequestDeduplicator();
 
-// ============================================================================
-// DEBOUNCE UTILITY
-// ============================================================================
-
-let debounceTimer: NodeJS.Timeout | null = null;
-
-export function debounce<T extends (...args: any[]) => Promise<any>>(
-  func: T,
-  delay: number
-): (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>>> {
-  return (...args: Parameters<T>) => {
-    return new Promise((resolve, reject) => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(async () => {
-        try {
-          const result = await func(...args);
-          resolve(result);
-        } catch (error) {
-          reject(error);
-        }
-      }, delay);
-    });
-  };
-}
+// Debounce removed: autocomplete/debouncer moved out to simplify client and
+// avoid typing-triggered network calls. Search UI should trigger searches
+// explicitly (Enter or Search button) for best perceived performance.
 
 // ============================================================================
 // OPTIMIZED SEARCH FUNCTIONS
@@ -286,7 +265,9 @@ export async function getAutocompleteSuggestions(
  * };
  * ```
  */
-export const debouncedAutocomplete = debounce(getAutocompleteSuggestions, 300);
+// debouncedAutocomplete removed — call `getAutocompleteSuggestions` directly
+// if you need autocomplete in the future, or use a lightweight server-side
+// suggestion endpoint that returns only the minimal payload.
 
 /**
  * Search products client-side (for use in client components)

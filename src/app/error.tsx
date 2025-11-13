@@ -40,7 +40,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
 
         {/* Main Heading */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-          Oops! Something went wrong.
+          Oops! Page is  under  construction.
         </h1>
 
         {/* Description */}
