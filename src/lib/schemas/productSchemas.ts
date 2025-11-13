@@ -258,6 +258,129 @@ export function combineSchemas(...schemas: any[]) {
   };
 }
 
+// ============================================================================
+// INDIVIDUAL PRODUCT SCHEMA (For Product Detail Pages)
+// ============================================================================
+
+/**
+ * Generate Product JSON-LD schema for individual product pages
+ * 
+ * @param product - Product object from your database
+ * @returns JSON-LD object for Product schema
+ */
+export function generateProductSchema(product: Product) {
+  const images = getImageUrl(product);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://myplug.shop';
+
+  // Calculate rating values
+  const ratingValue = product.averageRating || 4.5;
+  const reviewCount = product.totalReviews || 0;
+
+  return {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    name: product.title,
+    image: images.slice(0, 5), // Google prefers multiple images
+    description: product.description || `Buy ${product.title} from University of Ghana student. ${product.condition || 'Good'} condition.`,
+    sku: product.id,
+    brand: {
+      "@type": "Brand",
+      name: product.user?.storeName || "MyPlug Student Seller",
+    },
+    offers: {
+      "@type": "Offer",
+      url: `${baseUrl}/main/products/${product.id}`,
+      priceCurrency: "GHS",
+      price: getProductPrice(product).toString(),
+      availability: getAvailabilityStatus(product),
+      itemCondition: getItemCondition(product.condition),
+      seller: {
+        "@type": "Organization",
+        name: "MyPlug",
+      },
+    },
+    ...(reviewCount > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: ratingValue.toString(),
+        reviewCount: reviewCount.toString(),
+        bestRating: "5",
+        worstRating: "1",
+      },
+    }),
+    category: product.category || "General",
+  };
+}
+
+// ============================================================================
+// FAQ SCHEMA
+// ============================================================================
+
+/**
+ * Generate FAQ JSON-LD schema
+ * 
+ * @param faqs - Array of FAQ items [{ question, answer }]
+ */
+export function generateFAQSchema(
+  faqs: Array<{ question: string; answer: string }>
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+}
+
+// ============================================================================
+// LOCAL BUSINESS SCHEMA
+// ============================================================================
+
+/**
+ * Generate LocalBusiness JSON-LD schema
+ * For local SEO at University of Ghana
+ */
+export function generateLocalBusinessSchema() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://myplug.shop';
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: "MyPlug",
+    description: "University of Ghana student marketplace for buying and selling campus essentials",
+    url: baseUrl,
+    telephone: "+233-XX-XXX-XXXX", // Update with real number
+    email: "support@myplug.shop",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "University of Ghana",
+      addressLocality: "Legon",
+      addressRegion: "Greater Accra",
+      postalCode: "00233",
+      addressCountry: "GH",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: "5.6511",
+      longitude: "-0.1894",
+    },
+    openingHours: "Mo-Su 00:00-23:59",
+    priceRange: "GH₵10-GH₵5000",
+    image: `${baseUrl}/og-default.png`,
+    sameAs: [
+      "https://facebook.com/mypluggh",
+      "https://instagram.com/mypluggh",
+      "https://twitter.com/mypluggh",
+    ],
+  };
+}
+
 // ----------------------------------------------------------------------------
 // WebSite Schema with SearchAction
 // ----------------------------------------------------------------------------

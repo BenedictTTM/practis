@@ -36,10 +36,10 @@ Allow: /*.svg$
 Crawl-delay: 1
 
 # Sitemap locations
-Sitemap: https://myplug.com.gh/sitemap.xml
-Sitemap: https://myplug.com.gh/products-sitemap.xml
-Sitemap: https://myplug.com.gh/categories-sitemap.xml
-Sitemap: https://myplug.com.gh/stores-sitemap.xml
+Sitemap: https://myplug.shop/sitemap.xml
+Sitemap: https://myplug.shop/products-sitemap.xml
+Sitemap: https://myplug.shop/categories-sitemap.xml
+Sitemap: https://myplug.shop.gh/stores-sitemap.xml
 
 # Specific rules for major search engines
 User-agent: Googlebot

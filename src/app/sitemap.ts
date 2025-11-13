@@ -14,7 +14,7 @@
 
 import { MetadataRoute } from 'next';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://myplug.com.gh';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://myplug.shop';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 /**

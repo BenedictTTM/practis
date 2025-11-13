@@ -14,6 +14,8 @@ import {
   ProductReviews,
   ProductActionsClient,
 } from "../../../../Components/Products/details";
+import { generateProductSchema, generateBreadcrumbSchema } from "../../../../lib/schemas/productSchemas";
+import { MultipleSchemas } from "../../../../Components/Schema";
 
 // Enable static params generation for dynamic routes
 export const dynamic = 'force-dynamic';
@@ -89,7 +91,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   
   if (!product) {
     return {
-      title: 'Product Not Found | myPlug',
+      title: 'Product Not Found — MyPlug',
       description: 'The requested product could not be found.',
     };
   }
@@ -98,12 +100,38 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     ? product.images
     : product?.imageUrl ?? [];
 
+  // Short, keyword-rich title
+  const title = `${product.title} — MyPlug`;
+  
+  // 1-2 sentence description for students
+  const description = product.description?.substring(0, 150) 
+    || `${product.title}. ${product.condition || 'Good'} condition. Meet on campus at University of Ghana. Message to haggle.`;
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://myplug.shop';
+
   return {
-    title: `${product.title} | myPlug`,
-    description: product.description?.substring(0, 160) || `Buy ${product.title} at myPlug`,
+    title,
+    description,
+    alternates: {
+      canonical: `${baseUrl}/main/products/${id}`,
+    },
     openGraph: {
       title: product.title,
-      description: product.description,
+      description,
+      type: 'product',
+      url: `${baseUrl}/main/products/${id}`,
+      images: images.slice(0, 4).map((img) => ({
+        url: img,
+        width: 800,
+        height: 600,
+        alt: `${product.title} — campus marketplace`,
+      })),
+      siteName: 'MyPlug',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
       images: images.slice(0, 1),
     },
   };
@@ -129,44 +157,57 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       /^(s|m|l|xl|xxl|3xl|4xl|5xl)$/i.test(t)
     ) ?? ["S", "M", "L", "XL", "XXL"];
 
+  // Generate JSON-LD schemas
+  const productSchema = generateProductSchema(product);
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Home", url: process.env.NEXT_PUBLIC_SITE_URL || "https://myplug.shop" },
+    { name: "Products", url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://myplug.shop"}/main/products` },
+    { name: product.title, url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://myplug.shop"}/main/products/${id}` },
+  ]);
+
   return (
-    <div className="px-3 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-6 sm:py-8 md:py-10 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-10">
-          {/* Left: Product Gallery - Render immediately */}
-          <div className="lg:col-span-1 space-y-4">
-            <ProductGallery
-              images={images}
-              title={product.title}
-              selectedImageIndex={0}
-            />
-            <div className="mt-4 sm:mt-6">
-              <ShareProduct />
+    <>
+      {/* JSON-LD Structured Data */}
+      <MultipleSchemas schemas={[productSchema, breadcrumbSchema]} />
+      
+      <div className="px-3 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-6 sm:py-8 md:py-10 bg-gray-50 min-h-screen">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-10">
+            {/* Left: Product Gallery - Render immediately */}
+            <div className="lg:col-span-1 space-y-4">
+              <ProductGallery
+                images={images}
+                title={product.title}
+                selectedImageIndex={0}
+              />
+              <div className="mt-4 sm:mt-6">
+                <ShareProduct />
+              </div>
             </div>
-          </div>
 
-          {/* Right: Product Details - Render immediately */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Critical above-the-fold content */}
-            <ProductHeader product={product} />
-            <ProductInfo product={product} inStock={inStock} />
+            {/* Right: Product Details - Render immediately */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Critical above-the-fold content */}
+              <ProductHeader product={product} />
+              <ProductInfo product={product} inStock={inStock} />
 
-            {/* Interactive elements - render directly (no skeletons) */}
-            <ProductOptionsClient sizes={sizes} />
+              {/* Interactive elements - render directly (no skeletons) */}
+              <ProductOptionsClient sizes={sizes} />
 
-            {/* Client-side interactive actions - render directly (no skeletons) */}
-            <ProductActionsClient
-              product={product}
-              inStock={inStock}
-            />
+              {/* Client-side interactive actions - render directly (no skeletons) */}
+              <ProductActionsClient
+                product={product}
+                inStock={inStock}
+              />
 
-            {/* Non-critical below-the-fold content - render directly (no skeletons) */}
-            <ProductDetails product={product} />
+              {/* Non-critical below-the-fold content - render directly (no skeletons) */}
+              <ProductDetails product={product} />
 
-            <ProductReviews product={product} />
+              <ProductReviews product={product} />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

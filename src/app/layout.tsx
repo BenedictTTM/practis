@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/Components/Toast/toast";
 import ReactQueryProvider from "@/Components/Providers/ReactQueryProvider";
+import Script from "next/script";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
   publisher: "myPlug",
 
   // Canonical URL and alternate
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://myplug.com.gh'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://myplug.shop'),
   alternates: {
     canonical: '/',
   },
@@ -51,7 +52,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_GH",
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://myplug.com.gh',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://myplug.shop',
     siteName: "myPlug",
     title: "myPlug - University of Ghana Student Marketplace | Buy & Sell Safely on Campus",
     description: "Join 1,000+ UG students buying and selling laptops, textbooks, fashion & gadgets. Campus delivery, verified sellers, daily flash sales. Your trusted campus marketplace!",
@@ -90,13 +91,19 @@ export const metadata: Metadata = {
 
   // Verification tags (add when you have them)
   verification: {
-    google: "", // Add Google Search Console verification code
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "", // Add Google Search Console verification code
     // bing: "", // Add Bing Webmaster verification code
   },
 
   // App specific
   applicationName: "myPlug",
   category: "E-commerce",
+  
+  // Icons
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   
   // Additional metadata
   other: {
@@ -112,6 +119,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  const isProd = process.env.NODE_ENV === 'production';
+
   return (
     <html lang="en" className={poppins.variable}>
       <body className={`${poppins.className} antialiased bg-gray-50`}>
@@ -127,6 +137,26 @@ export default function RootLayout({
             theme="light"
           />
         </ReactQueryProvider>
+
+        {/* Google Analytics (GA4) - Only in production */}
+        {isProd && gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}', {
+                  page_path: window.location.pathname
+                });
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

@@ -10,7 +10,7 @@ export function generateLocalBusinessSchema() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "@id": "https://myplug.com.gh/#localbusiness",
+    "@id": "https://myplug.shop/#localbusiness",
     
     // Basic Information
     "name": "myPlug",
@@ -19,8 +19,8 @@ export function generateLocalBusinessSchema() {
     "slogan": "Your Campus. Your Marketplace.",
     
     // Contact Information
-    "url": "https://myplug.com.gh",
-    "email": "support@myplug.com.gh",
+    "url": "https://myplug.shop",
+    "email": "support@myplug.shop",
     "telephone": "+233-XX-XXX-XXXX", // TODO: Replace with real number
     
     // Location Details
@@ -78,11 +78,11 @@ export function generateLocalBusinessSchema() {
     "paymentAccepted": "Mobile Money, Bank Transfer, Cash",
     
     // Visual Identity
-    "logo": "https://myplug.com.gh/logo.png",
+    "logo": "https://myplug.shop/logo.png",
     "image": [
-      "https://myplug.com.gh/og-image.jpg",
-      "https://myplug.com.gh/campus-delivery.jpg",
-      "https://myplug.com.gh/student-marketplace.jpg"
+      "https://myplug.shop/og-image.jpg",
+      "https://myplug.shop/campus-delivery.jpg",
+      "https://myplug.shop/student-marketplace.jpg"
     ],
     
     // Social Media Profiles
@@ -322,7 +322,7 @@ export function generateServiceSchema() {
     "provider": {
       "@type": "Organization",
       "name": "myPlug",
-      "@id": "https://myplug.com.gh/#organization"
+      "@id": "https://myplug.shop/#organization"
     },
     "areaServed": {
       "@type": "City",
