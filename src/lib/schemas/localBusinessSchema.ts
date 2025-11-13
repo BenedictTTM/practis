@@ -87,9 +87,9 @@ export function generateLocalBusinessSchema() {
     
     // Social Media Profiles
     "sameAs": [
-      "https://facebook.com/mypluggh",
-      "https://instagram.com/mypluggh",
-      "https://twitter.com/mypluggh",
+      "https://facebook.com/myplug",
+      "https://instagram.com/myplug",
+      "https://twitter.com/myplug",
       "https://linkedin.com/company/myplug"
     ],
     

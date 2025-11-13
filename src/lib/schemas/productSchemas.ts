@@ -374,9 +374,9 @@ export function generateLocalBusinessSchema() {
     priceRange: "GH₵10-GH₵5000",
     image: `${baseUrl}/og-default.png`,
     sameAs: [
-      "https://facebook.com/mypluggh",
-      "https://instagram.com/mypluggh",
-      "https://twitter.com/mypluggh",
+      "https://facebook.com/myplug",
+      "https://instagram.com/myplug",
+      "https://twitter.com/myplug",
     ],
   };
 }

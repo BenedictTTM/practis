@@ -69,8 +69,8 @@ export const metadata: Metadata = {
   // Twitter Card
   twitter: {
     card: "summary_large_image",
-    site: "@mypluggh",
-    creator: "@mypluggh",
+    site: "@myplug",
+    creator: "@myplug",
     title: "myPlug - University of Ghana Student Marketplace",
     description: "Buy & sell safely on campus. Laptops, textbooks, fashion & more from verified UG students. Join 1,000+ students!",
     images: ["/twitter-image.jpg"], // Create this image: 1200x600px
