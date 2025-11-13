@@ -62,7 +62,6 @@ const SearchComponent = () => {
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-200"
           onClick={() => {
             setIsFocused(false);
-            setShowSuggestions(false);
           }}
         />
       )}
@@ -89,9 +88,6 @@ const SearchComponent = () => {
             onKeyDown={handleKeyDown}
             onFocus={() => {
               setIsFocused(true);
-              if (suggestions.length > 0) {
-                setShowSuggestions(true);
-              }
             }}
             onBlur={(e) => {
               // Delay to allow clicking suggestions
