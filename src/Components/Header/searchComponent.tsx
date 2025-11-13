@@ -4,51 +4,22 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { DotLoader } from '@/Components/Loaders';
 import { useRouter } from 'next/navigation';
-import { debouncedAutocomplete } from '@/services/searchService';
 
 const SearchComponent = () => {
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false); // kept for UX if needed later
   const [isFocused, setIsFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-
-  // Fetch autocomplete suggestions (using optimized debounced function)
-  useEffect(() => {
-    if (query.trim().length < 2) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-
-    // Use the optimized debouncedAutocomplete from searchService
-    // It handles debouncing, caching, and deduplication automatically
-    debouncedAutocomplete(query, 5)
-      .then((results) => {
-        setSuggestions(results);
-        setShowSuggestions(results.length > 0);
-      })
-      .catch((error) => {
-        console.error('Failed to get suggestions:', error);
-        setSuggestions([]);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [query]);
+  // No autocomplete: remove network calls while typing for speed.
+  // Search is triggered explicitly by Enter or the Search button.
 
   // Click outside to close suggestions
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
+        setIsFocused(false);
       }
     };
 
@@ -60,48 +31,25 @@ const SearchComponent = () => {
   const handleSearch = (searchQuery: string = query) => {
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setShowSuggestions(false);
       setIsFocused(false); // Remove backdrop when search is triggered
       setQuery('');
     }
   };
 
-  // Handle keyboard navigation
+  // Simple Enter handling: submit search
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'ArrowDown') {
+    if (e.key === 'Enter') {
       e.preventDefault();
-      setSelectedIndex((prev) => 
-        prev < suggestions.length - 1 ? prev + 1 : prev
-      );
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (selectedIndex >= 0 && suggestions[selectedIndex]) {
-        handleSearch(suggestions[selectedIndex]);
-      } else {
-        handleSearch();
-      }
+      handleSearch();
     } else if (e.key === 'Escape') {
-      setShowSuggestions(false);
-      setSelectedIndex(-1);
+      setIsFocused(false);
     }
-  };
-
-  // Handle suggestion click
-  const handleSuggestionClick = (suggestion: string) => {
-    setQuery(suggestion);
-    handleSearch(suggestion);
-    // handleSearch already sets isFocused to false, so backdrop will be removed
   };
 
   // Clear search
   const handleClear = () => {
     setQuery('');
-    setSuggestions([]);
-    setShowSuggestions(false);
-    setSelectedIndex(-1);
+    // Keep focus state active when clearing to maintain UX
     // Keep focus state active when clearing to maintain UX
     inputRef.current?.focus();
   };
@@ -184,23 +132,7 @@ const SearchComponent = () => {
         </div>
       </div>
 
-      {/* Autocomplete suggestions dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
-          {suggestions.map((suggestion, index) => (
-            <button
-              key={index}
-              onClick={() => handleSuggestionClick(suggestion)}
-              className={`w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors flex items-center gap-3 ${
-                index === selectedIndex ? 'bg-gray-100' : ''
-              }`}
-            >
-              <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <span className="text-sm text-gray-700">{suggestion}</span>
-            </button>
-          ))}
-        </div>
-      )}
+      {/* No autocomplete dropdown (removed for performance) */}
       </div>
     </>
   );
