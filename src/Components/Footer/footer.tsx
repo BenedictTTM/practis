@@ -100,7 +100,7 @@ const Footer = () => {
                     className="flex items-start gap-2 text-sm text-gray-600 hover:text-red-500 transition-colors group"
                   >
                     <Mail className="w-4 h-4 mt-0.5 flex-shrink-0 group-hover:text-red-500" />
-                    <span>support@myplug.shop</span>
+                    <span>benedict100purpose@gmail.com</span>
                   </a>
                 </li>
                 <li>
@@ -109,7 +109,7 @@ const Footer = () => {
                     className="flex items-start gap-2 text-sm text-gray-600 hover:text-red-500 transition-colors group"
                   >
                     <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 group-hover:text-red-500" />
-                    <span>+1 (234) 567-890</span>
+                    <span>+ (233) 27-484-7107</span>
                   </a>
                 </li>
                 <li className="pt-1">
